@@ -15,10 +15,16 @@ export class RoomsService {
         private readonly roomRepository: Repository<Room>
     ) {}
 
+    private getCurrentTime() {
+        return new Date().toLocaleString("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh"
+        })
+    }
+
     // Lấy tất cả phòng
     async getAllRooms() {
         // Log ra console -> LOG: Get all rooms...
-        this.roomsLogger.log(`Get all rooms at ${new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"})}`)
+        this.roomsLogger.log(`Get all rooms at ${this.getCurrentTime}`)
         return await this.roomRepository.find();
     }
 
@@ -31,7 +37,7 @@ export class RoomsService {
         }
 
         // Log ra console -> LOG: Get room 'id' ... 
-        this.roomsLogger.log(`Get room id ${id} successfully at ${new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"})}`)
+        this.roomsLogger.log(`Get room id ${id} successfully at ${this.getCurrentTime()}`)
 
         return room
     }
@@ -42,7 +48,7 @@ export class RoomsService {
         const room = this.roomRepository.create(createRoomDto)
 
         // Log ra console -> LOG: Create room... 
-        this.roomsLogger.log(`Create room successfully at ${new Date().toLocaleString("vi-VN", {timeZone:"Asia/Ho_Chi_Minh"})}`)
+        this.roomsLogger.log(`Create room successfully at ${this.getCurrentTime()}`)
 
         return await this.roomRepository.save(room)
     }
@@ -59,7 +65,7 @@ export class RoomsService {
         }
 
         // Log ra console -> LOG: Update room 'id' ... 
-        this.roomsLogger.log(`Update room id ${id} successfully at ${new Date().toLocaleString("vi-VN", {timeZone: "Asia/Ho_Chi_Minh"})}`)
+        this.roomsLogger.log(`Update room id ${id} successfully at ${this.getCurrentTime()}`)
 
         return await this.roomRepository.save(room)
     }
@@ -75,11 +81,7 @@ export class RoomsService {
         await this.roomRepository.remove(room)
 
         // Log ra console -> LOG: Delete room 'id' ... 
-        this.roomsLogger.log(
-            `Delete room ${id} successfully at ${new Date().toLocaleString('vi-VN', {
-                timeZone: 'Asia/Ho_Chi_Minh'
-            })}`
-        );
+        this.roomsLogger.log(`Delete room ${id} successfully at ${this.getCurrentTime()}`);
 
         return {
             message: `Room with id ${id} deleted successfully`
