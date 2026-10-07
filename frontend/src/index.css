@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* Base */
+@import "./styles/fonts.css";
+@import "./styles/globals.css";
+
+/* Layout */
+@import "./styles/layout/header.css";
+@import "./styles/common/hero.css";
+@import "./styles/layout/floating-actions.css";
+
+/* Pages - keep this order to preserve the original cascade */
+@import "./styles/pages/home.css";
+@import "./styles/pages/blog.css";
+@import "./styles/pages/rooms.css";
+@import "./styles/pages/menu.css";
+@import "./styles/pages/about.css";
+@import "./styles/pages/careers.css";
+@import "./styles/pages/contact.css";
+@import "./styles/pages/booking.css";
+@import "./styles/pages/offers.css";
+@import "./styles/pages/room-detail.css";
+@import "./styles/pages/menu-detail.css";
+@import "./styles/pages/admin-login.css";
+@import "./styles/pages/admin-rooms.css";
+@import "./styles/pages/admin-sprint2.css";
+
+/* Shared / Footer */
+@import "./styles/layout/footer.css";
+@import "./styles/common/actions.css";
+
+/* Responsive overrides must stay last */
+@import "./styles/responsive.css";

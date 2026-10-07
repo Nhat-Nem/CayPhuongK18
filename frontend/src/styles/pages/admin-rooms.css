@@ -1,0 +1,788 @@
+/* Sprint 1 - Admin room management prototypes (T.05, T.09, T.13, T.17) */
+
+.admin-room-app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  background: #f6f5f1;
+  color: #29323d;
+  font-family: "Source Serif 4:Regular", serif;
+}
+
+.admin-room-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 22px;
+  background: #17345f;
+  color: white;
+  box-shadow: 10px 0 35px #10243f18;
+}
+
+.admin-room-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 6px 24px;
+  border-bottom: 1px solid #ffffff22;
+}
+
+.admin-room-brand > span {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  border-radius: 14px;
+  background: #f3e9d2;
+  color: #70463a;
+  font-family: "Montserrat:Bold", sans-serif;
+  font-size: .8rem;
+  letter-spacing: .06em;
+}
+
+.admin-room-brand strong,
+.admin-room-brand small {
+  display: block;
+}
+
+.admin-room-brand strong {
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .9rem;
+  line-height: 1.25;
+}
+
+.admin-room-brand small {
+  margin-top: 4px;
+  color: #ffffff9e;
+  font-size: .72rem;
+}
+
+.admin-room-nav {
+  display: grid;
+  gap: 7px;
+  margin-top: 24px;
+}
+
+.admin-room-nav p {
+  margin: 22px 11px 6px;
+  color: #ffffff70;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .62rem;
+  letter-spacing: .12em;
+}
+
+.admin-room-nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 13px;
+  border-radius: 10px;
+  color: #ffffffc9;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .8rem;
+  transition: background .2s, color .2s, transform .2s;
+}
+
+.admin-room-nav a:hover,
+.admin-room-nav a.active {
+  background: #ffffff14;
+  color: white;
+  transform: translateX(2px);
+}
+
+.admin-room-nav a.active {
+  box-shadow: inset 3px 0 #f3e9d2;
+}
+
+.admin-room-nav a span {
+  width: 20px;
+  color: #f3e9d2;
+  text-align: center;
+}
+
+.admin-room-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto;
+  padding: 11px 13px;
+  border: 1px solid #ffffff24;
+  border-radius: 10px;
+  background: transparent;
+  color: #ffffffc9;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .78rem;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.admin-room-logout:hover {
+  background: #ffffff12;
+  color: white;
+}
+
+.admin-room-logout +.admin-room-sidebar-note {
+  margin-top: 14px;
+}
+
+.admin-room-sidebar-note {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid #ffffff1d;
+  border-radius: 12px;
+  background: #ffffff0b;
+}
+
+.admin-room-sidebar-note strong {
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .76rem;
+}
+
+.admin-room-sidebar-note span {
+  color: #f3e9d2;
+  font-size: .74rem;
+}
+
+.admin-room-sidebar-note small {
+  color: #ffffff82;
+  line-height: 1.45;
+}
+
+.admin-room-main {
+  width: min(100%, 1500px);
+  margin: 0 auto;
+  padding: 38px clamp(28px, 4vw, 62px) 70px;
+}
+
+.admin-room-topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.admin-room-eyebrow {
+  margin: 0 0 8px;
+  color: #915c37;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .68rem;
+  letter-spacing: .14em;
+}
+
+.admin-room-topbar h1 {
+  margin: 0;
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: clamp(1.75rem, 2.6vw, 2.45rem);
+  line-height: 1.1;
+}
+
+.admin-room-topbar > div:first-child > p:last-child {
+  max-width: 720px;
+  margin: 9px 0 0;
+  color: #70767d;
+  font-size: .92rem;
+}
+
+.admin-primary-button,
+.admin-secondary-button,
+.admin-danger-button,
+.admin-text-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 9px;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .74rem;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, background .2s, border-color .2s;
+}
+
+.admin-primary-button {
+  border: 1px solid #17345f;
+  padding: 0 18px;
+  background: #17345f;
+  color: white;
+  box-shadow: 0 8px 20px #17345f24;
+}
+
+.admin-primary-button:hover {
+  transform: translateY(-1px);
+  background: #23487a;
+  box-shadow: 0 12px 26px #17345f2e;
+}
+
+.admin-secondary-button {
+  border: 1px solid #d7d8d4;
+  padding: 0 18px;
+  background: white;
+  color: #3e4650;
+}
+
+.admin-secondary-button:hover {
+  border-color: #aeb3b7;
+  transform: translateY(-1px);
+}
+
+.admin-danger-button {
+  border: 1px solid #b94e48;
+  padding: 0 18px;
+  background: #b94e48;
+  color: white;
+}
+
+.admin-danger-button:hover {
+  background: #9f403b;
+  transform: translateY(-1px);
+}
+
+.admin-text-link {
+  min-height: auto;
+  color: #23487a;
+}
+
+.admin-text-link:hover {
+  color: #70463a;
+}
+
+.admin-room-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.admin-room-stats article {
+  padding: 20px 22px;
+  border: 1px solid #e2e1dc;
+  border-radius: 13px;
+  background: white;
+  box-shadow: 0 7px 25px #17345f0a;
+}
+
+.admin-room-stats span,
+.admin-room-stats small {
+  display: block;
+}
+
+.admin-room-stats span {
+  color: #777d83;
+  font-size: .78rem;
+}
+
+.admin-room-stats strong {
+  display: block;
+  margin: 7px 0 4px;
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1.8rem;
+}
+
+.admin-room-stats small {
+  color: #989da1;
+  font-size: .7rem;
+}
+
+.admin-room-panel,
+.admin-room-form-card {
+  border: 1px solid #e2e1dc;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 10px 30px #17345f0b;
+}
+
+.admin-room-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid #ecebe7;
+}
+
+.admin-room-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  min-width: 260px;
+  padding: 0 13px;
+  border: 1px solid #d9d9d4;
+  border-radius: 9px;
+  background: #fafaf8;
+}
+
+.admin-room-search > span {
+  color: #8a8f94;
+  font-size: 1.1rem;
+}
+
+.admin-room-search input,
+.admin-room-toolbar select {
+  height: 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #3f4750;
+}
+
+.admin-room-search input {
+  width: 100%;
+}
+
+.admin-room-toolbar select {
+  min-width: 165px;
+  padding: 0 12px;
+  border: 1px solid #d9d9d4;
+  border-radius: 9px;
+  background: white;
+}
+
+.admin-room-result-count {
+  margin-left: auto;
+  color: #8a8f94;
+  font-size: .76rem;
+  white-space: nowrap;
+}
+
+.admin-room-inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 16px 18px 0;
+  padding: 11px 13px;
+  border: 1px solid #b9d8c1;
+  border-radius: 9px;
+  background: #f1faf3;
+  color: #356943;
+  font-size: .8rem;
+}
+
+.admin-room-inline-notice button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.admin-room-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-room-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.admin-room-table th,
+.admin-room-table td {
+  padding: 15px 17px;
+  border-bottom: 1px solid #efeee9;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-room-table th {
+  color: #8b9095;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .64rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.admin-room-table td {
+  color: #565d65;
+  font-size: .82rem;
+}
+
+.admin-room-table tbody tr:hover {
+  background: #fafaf7;
+}
+
+.admin-room-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-room-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 285px;
+}
+
+.admin-room-cell img {
+  width: 68px;
+  height: 52px;
+  flex: 0 0 68px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.admin-room-cell strong,
+.admin-room-cell span {
+  display: block;
+}
+
+.admin-room-cell strong {
+  color: #263746;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .82rem;
+}
+
+.admin-room-cell span {
+  margin-top: 5px;
+  color: #92979b;
+  font-size: .7rem;
+}
+
+.admin-room-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: .7rem;
+  white-space: nowrap;
+}
+
+.admin-room-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.admin-room-status.active {
+  background: #edf8ef;
+  color: #39754a;
+}
+
+.admin-room-status.active::before {
+  background: #53a76c;
+}
+
+.admin-room-status.paused {
+  background: #f7f1eb;
+  color: #8c6750;
+}
+
+.admin-room-status.paused::before {
+  background: #a77859;
+}
+
+.admin-room-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.admin-icon-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dadbd8;
+  border-radius: 8px;
+  background: white;
+  color: #4d5965;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+
+.admin-icon-button:hover {
+  border-color: #23487a;
+  color: #23487a;
+  background: #f6f9fc;
+}
+
+.admin-icon-button.danger:hover {
+  border-color: #b94e48;
+  color: #b94e48;
+  background: #fff8f7;
+}
+
+.admin-room-empty {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  padding: 45px 20px;
+  color: #909599;
+  text-align: center;
+}
+
+.admin-room-empty strong {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+}
+
+.admin-room-prototype-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border: 1px solid #d8c9aa;
+  border-radius: 10px;
+  background: #fffaf0;
+  color: #735d35;
+  font-size: .8rem;
+}
+
+.admin-room-prototype-banner strong {
+  font-family: "Montserrat:SemiBold", sans-serif;
+}
+
+.admin-room-form {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-room-form-card {
+  padding: 24px;
+}
+
+.admin-room-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eeede9;
+}
+
+.admin-room-form-heading > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.admin-room-form-heading > div > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 10px;
+  background: #eef3f8;
+  color: #23487a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .72rem;
+}
+
+.admin-room-form-heading h2 {
+  margin: 0;
+  color: #263746;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1rem;
+}
+
+.admin-room-form-heading p {
+  margin: 5px 0 0;
+  color: #8c9195;
+  font-size: .78rem;
+}
+
+.admin-room-form-heading > small {
+  color: #a36d52;
+  font-size: .68rem;
+}
+
+.admin-room-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.admin-room-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-room-form label > span {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .74rem;
+}
+
+.admin-room-form input,
+.admin-room-form select,
+.admin-room-form textarea {
+  width: 100%;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  background: #fcfcfa;
+  color: #323a43;
+  outline: 0;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.admin-room-form input,
+.admin-room-form select {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.admin-room-form textarea {
+  resize: vertical;
+  min-height: 118px;
+  padding: 12px;
+}
+
+.admin-room-form input:focus,
+.admin-room-form select:focus,
+.admin-room-form textarea:focus {
+  border-color: #597aa1;
+  background: white;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-room-form-full {
+  grid-column: 1 / -1;
+}
+
+.admin-room-form-full > small {
+  justify-self: end;
+  color: #999ea2;
+  font-size: .68rem;
+}
+
+.admin-room-input-suffix {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  background: #fcfcfa;
+  overflow: hidden;
+}
+
+.admin-room-input-suffix:focus-within {
+  border-color: #597aa1;
+  background: white;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-room-input-suffix input {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.admin-room-input-suffix strong {
+  padding: 0 12px;
+  color: #8d9296;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .68rem;
+}
+
+.admin-room-form-notice {
+  padding: 13px 15px;
+  border: 1px solid #b9d8c1;
+  border-radius: 10px;
+  background: #f1faf3;
+  color: #356943;
+  font-size: .8rem;
+}
+
+.admin-room-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.admin-room-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #1019238f;
+  backdrop-filter: blur(4px);
+}
+
+.admin-room-modal {
+  width: min(100%, 470px);
+  padding: 28px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 28px 80px #11182745;
+}
+
+.admin-room-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: #fff0ee;
+  color: #b94e48;
+  font-family: "Montserrat:Bold", sans-serif;
+  font-size: 1.1rem;
+}
+
+.admin-room-modal h2 {
+  margin: 0;
+  color: #263746;
+  font-size: 1.45rem;
+}
+
+.admin-room-modal > p:not(.admin-room-eyebrow) {
+  margin: 12px 0 0;
+  color: #747a80;
+  font-size: .9rem;
+}
+
+.admin-room-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+@media (max-width: 1050px) {
+  .admin-room-app { grid-template-columns: 220px minmax(0, 1fr); }
+  .admin-room-sidebar { padding-inline: 16px; }
+  .admin-room-main { padding-inline: 24px; }
+  .admin-room-stats { grid-template-columns: 1fr 1fr 1fr; }
+  .admin-room-form-grid { grid-template-columns: 1fr; }
+  .admin-room-form-full { grid-column: auto; }
+}
+
+@media (max-width: 760px) {
+  .admin-room-app { display: block; }
+  .admin-room-sidebar {
+    position: static;
+    height: auto;
+    padding: 15px 18px;
+  }
+  .admin-room-brand { padding-bottom: 14px; }
+  .admin-room-nav { grid-template-columns: 1fr 1fr; margin-top: 12px; }
+  .admin-room-nav p, .admin-room-sidebar-note { display: none; }
+  .admin-room-logout { margin-top: 12px; }
+  .admin-room-main { padding: 26px 16px 50px; }
+  .admin-room-topbar { align-items: flex-start; flex-direction: column; }
+  .admin-room-stats { grid-template-columns: 1fr; }
+  .admin-room-toolbar { align-items: stretch; flex-direction: column; }
+  .admin-room-search { min-width: 0; }
+  .admin-room-toolbar select { width: 100%; }
+  .admin-room-result-count { margin-left: 0; }
+  .admin-room-prototype-banner { align-items: flex-start; flex-direction: column; }
+  .admin-room-form-actions { flex-direction: column-reverse; }
+  .admin-room-form-actions > * { width: 100%; }
+}
+
+.admin-room-form-notice.error { background: #fff1f0; border-color: #f0b7b2; color: #9f2d25; }

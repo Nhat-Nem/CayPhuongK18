@@ -1,0 +1,20 @@
+/* Room detail page */
+
+.room-detail-header { display: grid; grid-template-columns: 1.2fr .8fr; gap: 8vw; align-items: end; margin-bottom: 60px; padding-bottom: 38px; border-bottom: 1px solid #70463a38; }
+.room-detail-header h2 { margin: 0; font-size: clamp(2rem, 3.5vw, 3.5rem); }
+.room-detail-header > div > p:last-child { max-width: 600px; margin: 18px 0 0; }
+.detail-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: start; }
+.detail-columns img { width: 100%; max-height: 520px; object-fit: cover; margin-top: 25px; }
+.detail-columns li { margin: 5px 0; }
+.amenity-panel { margin-top: 30px; padding: 30px; background: #ffffff70; }
+.amenity-panel h3 { margin-top: 0; color: #70463a; }
+.amenity-panel ul { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 30px; padding-left: 18px; }
+.detail-gallery { display: grid; grid-template-columns: 35px 1fr 1.35fr 1fr 35px; gap: 30px; align-items: center; margin-top: 65px; }
+.detail-gallery img { width: 100%; height: 210px; object-fit: cover; cursor: pointer; opacity: .8; }
+.detail-gallery img.active { height: 270px; opacity: 1; }
+.detail-gallery button { border: 0; background: transparent; color: #70463a; font-size: 4rem; cursor: pointer; transition: color .2s, transform .2s; }
+.detail-gallery button:hover { color: #23487a; transform: scale(1.12); }
+
+.room-detail-price { display: flex; align-items: baseline; gap: 8px; margin-top: 20px !important; }
+.room-detail-price strong { color: #23487a; font-family: "Source Serif 4:SemiBold", serif; font-size: 1.45rem; }
+.room-detail-price span { color: #676d70; font-size: .82rem; }
