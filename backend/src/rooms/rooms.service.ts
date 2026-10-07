@@ -15,6 +15,7 @@ export class RoomsService {
         private readonly roomRepository: Repository<Room>
     ) {}
 
+    // Lấy thời gian hiện tại
     private getCurrentTime() {
         return new Date().toLocaleString("vi-VN", {
             timeZone: "Asia/Ho_Chi_Minh"
@@ -24,7 +25,7 @@ export class RoomsService {
     // Lấy tất cả phòng
     async getAllRooms() {
         // Log ra console -> LOG: Get all rooms...
-        this.roomsLogger.log(`Get all rooms at ${this.getCurrentTime}`)
+        this.roomsLogger.log(`Get all rooms at ${this.getCurrentTime()}`)
         return await this.roomRepository.find();
     }
 
