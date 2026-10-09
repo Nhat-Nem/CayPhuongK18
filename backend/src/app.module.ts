@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RoomsModule } from './rooms/rooms.module';
+import { BookRequestsModule } from './book-requests/book-requests.module';
+import { ContactModule } from './contact/contact.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +26,12 @@ import { RoomsModule } from './rooms/rooms.module';
     }),
 
     RoomsModule,
+
+    BookRequestsModule,
+
+    ContactModule,
+
+    AuthModule,
   ],
   controllers: [AppController],
 
