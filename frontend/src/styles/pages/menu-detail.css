@@ -1,0 +1,50 @@
+/* Menu detail page */
+
+.menu-detail-section { padding-top: 45px; }
+.dish-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; max-width: 1380px; margin: 0 auto 35px; color: #676d70; font-size: .78rem; }
+.dish-breadcrumb a { color: #23487a; }
+.dish-breadcrumb strong { color: #70463a; font-weight: 500; }
+.dish-detail-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(50px, 7vw, 110px); max-width: 1380px; margin: auto; padding: clamp(28px, 4vw, 58px); background: #fffdf8; box-shadow: 0 18px 50px #11182717; }
+.dish-detail-media { min-width: 0; }
+.dish-detail-main-image { width: 100%; height: 540px; object-fit: cover; }
+.dish-detail-thumbnails { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.dish-detail-thumbnails img { width: 100%; height: 130px; object-fit: cover; }
+.dish-detail-info { display: flex; flex-direction: column; justify-content: center; }
+.dish-detail-category { margin: 0 0 18px; color: #915c37; font-family: "Montserrat:SemiBold", sans-serif; font-size: .72rem; letter-spacing: .13em; }
+.dish-detail-info h2 { margin: 0; font-size: clamp(2.5rem, 4vw, 4.4rem); line-height: 1.02; text-transform: uppercase; }
+.dish-detail-info > p:not(.dish-detail-category) { margin: 25px 0 20px; color: #676d70; font-size: 1.06rem; }
+.dish-detail-price { color: #23487a; font-family: "Source Serif 4:Medium", serif; font-size: 2rem; font-weight: 500; }
+.dish-detail-facts { display: grid; grid-template-columns: repeat(3, 1fr); margin: 30px 0 24px; padding: 20px 0; border-top: 1px solid #70463a26; border-bottom: 1px solid #70463a26; }
+.dish-detail-facts div + div { padding-left: 16px; border-left: 1px solid #70463a26; }
+.dish-detail-facts span, .dish-detail-facts strong { display: block; }
+.dish-detail-facts span { margin-bottom: 5px; color: #676d70; font-size: .7rem; }
+.dish-detail-facts strong { color: #70463a; font-family: "Source Serif 4:Medium", serif; font-size: .9rem; font-weight: 500; }
+.dish-order-link { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 20px; background: #23487a; color: white; font-family: "Montserrat:Medium", sans-serif; font-size: .76rem; text-transform: uppercase; transition: background .2s, transform .2s, box-shadow .2s; }
+.dish-order-link:hover { background: #70463a; transform: translateY(-2px); box-shadow: 0 10px 24px #11182724; }
+.dish-order-link span { font-size: 1.2rem; transition: transform .2s; }
+.dish-order-link:hover span { transform: translateX(4px); }
+.dish-ingredients { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(45px, 8vw, 120px); align-items: center; max-width: 1250px; margin: clamp(80px, 10vw, 150px) auto; }
+.ingredient-copy h2 { margin: 12px 0 22px; font-size: clamp(2rem, 3.2vw, 3.2rem); line-height: 1.08; }
+.ingredient-copy > p:not(.eyebrow) { color: #676d70; }
+.ingredient-copy ul { display: grid; gap: 11px; margin: 28px 0 0; padding: 26px 0 0; border-top: 1px solid #70463a35; list-style: none; }
+.ingredient-copy li { position: relative; padding-left: 21px; }
+.ingredient-copy li::before { content: ""; position: absolute; left: 0; top: .65em; width: 7px; height: 7px; border-radius: 50%; background: #70463a; }
+.ingredient-image { position: relative; padding: 0 0 32px 32px; }
+.ingredient-image::before { content: ""; position: absolute; left: 0; bottom: 0; width: 70%; height: 70%; background: #f3e9d2; }
+.ingredient-image img { position: relative; z-index: 1; width: 100%; height: 520px; object-fit: cover; }
+.ingredient-image span { position: absolute; z-index: 2; right: 25px; bottom: 8px; padding: 12px 18px; background: #70463a; color: white; font-family: "Montserrat:Medium", sans-serif; font-size: .7rem; text-transform: uppercase; }
+.related-dishes { max-width: 1320px; margin: 0 auto; padding-top: 60px; border-top: 1px solid #70463a35; }
+.related-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 35px; }
+.related-heading h2 { margin: 8px 0 0; }
+.related-heading > a { color: #23487a; font-family: "Montserrat:Medium", sans-serif; font-size: .75rem; text-transform: uppercase; transition: color .2s; }
+.related-heading > a:hover { color: #70463a; }
+.related-heading > a span { display: inline-block; margin-left: 8px; font-size: 1.1rem; transition: transform .2s; }
+.related-heading > a:hover span { transform: translateX(4px); }
+.related-dish-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.related-dish-card { overflow: hidden; background: #fffdf8; transition: transform .25s, box-shadow .25s; }
+.related-dish-card:hover { transform: translateY(-5px); box-shadow: 0 14px 35px #1118271c; }
+.related-dish-card img { width: 100%; height: 240px; object-fit: cover; transition: transform .5s; }
+.related-dish-card:hover img { transform: scale(1.04); }
+.related-dish-card > div { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 20px; }
+.related-dish-card h3 { margin: 0; color: #555; font-size: 1rem; }
+.related-dish-card strong { color: #23487a; font-family: "Source Serif 4:Medium", serif; font-size: 1.05rem; white-space: nowrap; }

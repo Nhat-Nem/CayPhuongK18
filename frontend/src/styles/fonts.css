@@ -1,0 +1,13 @@
+/* Fonts */
+
+@font-face { font-family: "Font Awesome 5 Free:Regular"; src: url("https://static.figma.com/font/Font%20Awesome%205%20Free-Regular-400_1") format("woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Montserrat:Bold"; src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2"); font-style: normal; font-weight: 700; }
+@font-face { font-family: "Montserrat:Medium"; src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2"); font-style: normal; font-weight: 500; }
+@font-face { font-family: "Montserrat:Regular"; src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Montserrat:SemiBold"; src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2"); font-style: normal; font-weight: 600; }
+@font-face { font-family: "Ms Madi:Regular"; src: url("https://static.figma.com/font/MsMadi-Regular_1") format("woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Roboto:Regular"; src: url("https://static.figma.com/font/Roboto_wdth_wght__3") format("woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Source Serif 4:Bold"; src: url("https://static.figma.com/font/SourceSerif4_opsz_wght__1") format("woff2"); font-style: normal; font-weight: 700; }
+@font-face { font-family: "Source Serif 4:Medium"; src: url("https://static.figma.com/font/SourceSerif4_opsz_wght__1") format("woff2"); font-style: normal; font-weight: 500; }
+@font-face { font-family: "Source Serif 4:Regular"; src: url("https://static.figma.com/font/SourceSerif4_opsz_wght__1") format("woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Source Serif 4:SemiBold"; src: url("https://static.figma.com/font/SourceSerif4_opsz_wght__1") format("woff2"); font-style: normal; font-weight: 600; }

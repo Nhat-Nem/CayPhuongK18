@@ -1,0 +1,16 @@
+export const routes = {
+  home: "/",
+  rooms: "/phong",
+  booking: "/dat-phong",
+  offers: "/uu-dai",
+  menu: "/menu",
+  about: "/ve-chung-toi",
+  careers: "/tuyen-dung",
+  contact: "/lien-he",
+  adminLogin: "/admin/dang-nhap",
+  adminRooms: "/admin/phong",
+  adminRoomCreate: "/admin/phong/them",
+  adminRoomEdit: "/admin/phong/sua",
+  adminWalkIns: "/admin/khach-vang-lai",
+  adminContact: "/admin/lien-he",
+}

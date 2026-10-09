@@ -1,0 +1,38 @@
+/* Careers page */
+
+.careers-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: end; padding: clamp(75px, 9vw, 135px) max(5vw, calc((100vw - 1320px) / 2)); background: #f3e9d2; }
+.careers-intro h2 { max-width: 650px; margin: 12px 0 0; font-size: clamp(2.2rem, 3.8vw, 3.9rem); }
+.careers-intro > p { max-width: 570px; margin: 0; color: #676d70; font-size: 1.06rem; }
+.careers-culture { display: grid; grid-template-columns: 1.1fr .9fr; min-height: 680px; background: #a8b89a; }
+.careers-culture-image { position: relative; overflow: hidden; }
+.careers-culture-image img { width: 100%; height: 100%; min-height: 680px; object-fit: cover; }
+.careers-culture-image span { position: absolute; left: 35px; right: 35px; bottom: 35px; padding: 18px 22px; background: #111827b5; color: white; font-family: "Montserrat:Medium", sans-serif; font-size: .75rem; letter-spacing: .08em; text-align: center; text-transform: uppercase; backdrop-filter: blur(7px); }
+.careers-values { display: flex; flex-direction: column; justify-content: center; padding: clamp(40px, 6vw, 90px); }
+.careers-values > div { display: grid; grid-template-columns: 55px 1fr; gap: 3px 20px; padding: 28px 0; border-bottom: 1px solid #70463a3a; }
+.careers-values > div:first-child { border-top: 1px solid #70463a3a; }
+.careers-values span { grid-row: 1 / 3; color: #915c37; font-family: "Montserrat:SemiBold", sans-serif; }
+.careers-values h3 { margin: 0; color: #70463a; font-size: 1.2rem; }
+.careers-values p { margin: 7px 0 0; color: #555; }
+.careers-openings { padding: clamp(75px, 9vw, 135px) max(5vw, calc((100vw - 1320px) / 2)); background: #fffdf8; }
+.careers-openings-heading { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: end; margin-bottom: 55px; }
+.careers-openings-heading h2 { margin: 12px 0 0; font-size: clamp(2.2rem, 3.7vw, 3.8rem); }
+.careers-openings-heading > p { max-width: 560px; margin: 0; color: #676d70; }
+.career-list { border-top: 1px solid #70463a35; }
+.career-list article { display: grid; grid-template-columns: 60px 1fr auto; gap: 30px; align-items: center; padding: 32px 0; border-bottom: 1px solid #70463a35; transition: padding .2s, background .2s; }
+.career-list article:hover { padding-right: 22px; padding-left: 22px; background: #f3e9d280; }
+.career-list article > span { color: #915c37; font-family: "Montserrat:SemiBold", sans-serif; font-size: .72rem; }
+.career-list article > div > p { margin: 0 0 8px; color: #915c37; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+.career-list h3 { margin: 0 0 7px; color: #70463a; font-size: 1.3rem; }
+.career-list small { display: block; max-width: 720px; color: #676d70; font-size: .86rem; line-height: 1.5; }
+.career-list article > a { display: flex; align-items: center; gap: 18px; padding: 12px 18px; border: 1px solid #23487a40; color: #23487a; font-family: "Montserrat:Medium", sans-serif; font-size: .72rem; text-transform: uppercase; transition: color .2s, background .2s, transform .2s; }
+.career-list article > a:hover { background: #23487a; color: white; transform: translateY(-2px); }
+.career-list article > a span { font-size: 1.1rem; transition: transform .2s; }
+.career-list article > a:hover span { transform: translateX(4px); }
+.careers-cta { display: flex; align-items: center; justify-content: space-between; gap: 70px; padding: clamp(65px, 8vw, 110px) max(5vw, calc((100vw - 1180px) / 2)); background: #23487a; color: white; }
+.careers-cta h2 { max-width: 700px; margin: 12px 0 20px; color: white; font-size: clamp(2.1rem, 3.5vw, 3.6rem); }
+.careers-cta .eyebrow { color: #f3e9d2; }
+.careers-cta p:not(.eyebrow) { max-width: 650px; color: #ffffffc7; }
+.careers-cta > a { display: flex; align-items: center; justify-content: space-between; gap: 35px; min-width: 235px; padding: 16px 20px; background: white; color: #23487a; font-family: "Montserrat:Medium", sans-serif; font-size: .72rem; text-transform: uppercase; transition: color .2s, background .2s, transform .2s, box-shadow .2s; }
+.careers-cta > a:hover { background: #f3e9d2; color: #70463a; transform: translateY(-3px); box-shadow: 0 12px 28px #11182735; }
+.careers-cta > a span { font-size: 1.15rem; transition: transform .2s; }
+.careers-cta > a:hover span { transform: translateX(4px); }

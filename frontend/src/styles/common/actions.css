@@ -1,0 +1,17 @@
+/* Shared action typography */
+
+button,
+.button-link,
+.header-booking,
+.hero-actions a,
+.vietnamese-about-button,
+.room-booking-link,
+.menu-reservation-note > a,
+.career-list article > a,
+.careers-cta > a,
+.map-card > a,
+.offer-detail-header > a,
+.dish-order-link {
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-weight: 600;
+}

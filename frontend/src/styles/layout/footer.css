@@ -1,0 +1,23 @@
+/* Footer */
+
+.footer { padding: 0 max(5vw, calc((100vw - 1450px) / 2)); background: #f3e9d2; color: #23487a; font-size: .88rem; }
+.footer-main { display: grid; grid-template-columns: minmax(360px, 1.7fr) repeat(3, minmax(130px, .55fr)); gap: clamp(35px, 5vw, 80px); padding: 68px 0 55px; }
+.footer-brand { display: grid; grid-template-columns: 132px 1fr; gap: 25px; align-items: center; }
+.footer-logo-wrap { display: grid; place-items: center; width: 132px; height: 132px; border: 1px solid #70463a30; border-radius: 50%; background: #fff9; box-shadow: 0 12px 35px #70463a14; transition: transform .2s, box-shadow .2s; }
+.footer-logo-wrap:hover { transform: translateY(-3px); box-shadow: 0 16px 40px #70463a20; }
+.footer-logo { width: 112px; height: 112px; object-fit: contain; }
+.footer-brand h2 { margin: 0 0 7px; color: #70463a; font-family: "Montserrat:SemiBold", sans-serif; font-size: 1.25rem; }
+.footer-brand p { margin: 0 0 12px; font-family: "Montserrat:Medium", sans-serif; text-transform: uppercase; letter-spacing: .08em; font-size: .72rem; }
+.footer-brand span { display: block; max-width: 300px; color: #676d70; line-height: 1.55; }
+.footer-column, .footer-contact { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
+.footer-column h3, .footer-contact h3 { margin: 7px 0 9px; color: #70463a; font-family: "Montserrat:SemiBold", sans-serif; font-size: .82rem; text-transform: uppercase; letter-spacing: .1em; }
+.footer-column a, .footer-contact a { position: relative; color: #555; transition: color .2s, transform .2s; }
+.footer-column a:hover, .footer-contact a:hover { color: #23487a; transform: translateX(3px); }
+.footer-contact p { margin: 0; color: #555; }
+.footer-bottom { min-height: 76px; border-top: 1px solid #70463a26; display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+.footer-bottom > p { margin: 0; color: #676d70; font-size: .78rem; }
+.footer-social { display: flex; align-items: center; gap: 10px; }
+.footer-social > span { margin-right: 7px; color: #676d70; font-size: .78rem; }
+.footer-social a { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #23487a30; border-radius: 50%; background: #fff8; transition: transform .2s, background .2s, border-color .2s; }
+.footer-social a:hover { transform: translateY(-3px); border-color: #23487a; background: white; }
+.footer-social img { width: 17px; height: 17px; object-fit: contain; }

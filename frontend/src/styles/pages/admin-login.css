@@ -1,0 +1,329 @@
+/* Admin login prototype */
+
+.admin-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(360px, 1.05fr) minmax(440px, .95fr);
+  background: #f7f5ef;
+  color: #29323d;
+}
+
+.admin-login-visual {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 5vw, 72px);
+  overflow: hidden;
+  background:
+    linear-gradient(150deg, #17345fe8, #17345fb8),
+    url("../../imports/h2.jpg") center / cover no-repeat;
+  color: white;
+}
+
+.admin-login-visual::after {
+  content: "";
+  position: absolute;
+  right: -120px;
+  bottom: -120px;
+  width: 420px;
+  height: 420px;
+  border: 1px solid #ffffff24;
+  border-radius: 50%;
+  box-shadow: 0 0 0 70px #ffffff0b, 0 0 0 140px #ffffff08;
+}
+
+.admin-login-brand,
+.admin-login-visual-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  align-self: flex-start;
+}
+
+.admin-login-brand img {
+  width: 66px;
+  height: 66px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px #0003);
+}
+
+.admin-login-brand strong,
+.admin-login-brand span {
+  display: block;
+}
+
+.admin-login-brand strong {
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1rem;
+}
+
+.admin-login-brand span {
+  margin-top: 3px;
+  color: #ffffffb8;
+  font-size: .8rem;
+}
+
+.admin-login-visual-copy {
+  max-width: 680px;
+  padding-bottom: clamp(35px, 7vw, 90px);
+}
+
+.admin-login-visual-copy > p {
+  margin: 0 0 17px;
+  color: #f3e9d2;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .72rem;
+  letter-spacing: .2em;
+}
+
+.admin-login-visual-copy h1 {
+  max-width: 650px;
+  margin: 0;
+  color: white;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: clamp(2.4rem, 4.4vw, 5rem);
+  line-height: 1.03;
+}
+
+.admin-login-visual-copy > span {
+  display: block;
+  max-width: 590px;
+  margin-top: 25px;
+  color: #ffffffc7;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.admin-login-panel {
+  display: grid;
+  place-items: center;
+  padding: 50px clamp(28px, 6vw, 90px);
+}
+
+.admin-login-card {
+  width: min(100%, 520px);
+}
+
+.admin-login-back {
+  display: inline-block;
+  margin-bottom: 54px;
+  color: #6f767d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .76rem;
+  transition: color .2s, transform .2s;
+}
+
+.admin-login-back:hover {
+  color: #17345f;
+  transform: translateX(-3px);
+}
+
+.admin-login-eyebrow {
+  margin: 0 0 10px;
+  color: #915c37;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .68rem;
+  letter-spacing: .16em;
+}
+
+.admin-login-card h2 {
+  margin: 0;
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+}
+
+.admin-login-intro {
+  max-width: 460px;
+  margin: 13px 0 30px;
+  color: #72787e;
+  font-size: .95rem;
+}
+
+.admin-login-form {
+  display: grid;
+  gap: 19px;
+}
+
+.admin-login-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-login-form label > span {
+  color: #424a53;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .72rem;
+}
+
+.admin-login-form input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 15px;
+  border: 1px solid #d7d8d4;
+  border-radius: 10px;
+  outline: 0;
+  background: white;
+  color: #29323d;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.admin-login-form input:focus {
+  border-color: #597aa1;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-login-password {
+  position: relative;
+}
+
+.admin-login-password input {
+  padding-right: 70px;
+}
+
+.admin-login-password button {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  min-width: 52px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: #f1f3f4;
+  color: #52606d;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.admin-login-error,
+.admin-login-success {
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: .82rem;
+}
+
+.admin-login-error {
+  margin: -3px 0 0;
+  border: 1px solid #efc6c2;
+  background: #fff2f0;
+  color: #a0433e;
+}
+
+.admin-login-success {
+  margin: 0 0 24px;
+  border: 1px solid #b9d8c1;
+  background: #f1faf3;
+  color: #356943;
+}
+
+.admin-login-success a {
+  font-family: "Montserrat:SemiBold", sans-serif;
+}
+
+.admin-login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 54px;
+  margin-top: 5px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #17345f;
+  color: white;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .8rem;
+  cursor: pointer;
+  box-shadow: 0 12px 28px #17345f26;
+  transition: background .2s, transform .2s, box-shadow .2s;
+}
+
+.admin-login-submit:hover {
+  background: #23487a;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px #17345f32;
+}
+
+.admin-login-submit span {
+  font-size: 1.2rem;
+}
+
+.admin-login-demo {
+  display: grid;
+  gap: 6px;
+  margin-top: 28px;
+  padding: 16px 18px;
+  border: 1px dashed #c8c9c5;
+  border-radius: 10px;
+  background: #ffffff8c;
+  color: #686f76;
+  font-size: .78rem;
+}
+
+.admin-login-demo strong {
+  margin-bottom: 3px;
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+}
+
+.admin-login-demo code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #e9ecef;
+  color: #29323d;
+}
+
+.admin-login-demo small {
+  margin-top: 5px;
+  color: #92979c;
+}
+
+@media (max-width: 900px) {
+  .admin-login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-login-visual {
+    min-height: 330px;
+  }
+
+  .admin-login-visual-copy {
+    padding-top: 70px;
+    padding-bottom: 10px;
+  }
+
+  .admin-login-panel {
+    padding-block: 45px 70px;
+  }
+
+  .admin-login-back {
+    margin-bottom: 35px;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-login-visual {
+    min-height: 290px;
+    padding: 25px;
+  }
+
+  .admin-login-brand img {
+    width: 54px;
+    height: 54px;
+  }
+
+  .admin-login-visual-copy h1 {
+    font-size: 2.25rem;
+  }
+
+  .admin-login-panel {
+    padding: 38px 20px 60px;
+  }
+}
