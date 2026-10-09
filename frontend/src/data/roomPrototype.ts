@@ -1,7 +1,7 @@
 export type RoomStatus = "Đang hoạt động" | "Tạm ngưng"
 
 export type RoomPrototype = {
-  id: string
+  id: number
   code: string
   name: string
   type: string
@@ -18,7 +18,7 @@ export type RoomPrototype = {
 // This is intentionally local/mock data. API integration belongs to the backend tasks.
 export const roomPrototypeData: RoomPrototype[] = [
   {
-    id: "room-deluxe-pool",
+    id: 1,
     code: "P001",
     name: "Phòng Deluxe Hướng Bể Bơi",
     type: "Deluxe",
@@ -32,7 +32,7 @@ export const roomPrototypeData: RoomPrototype[] = [
     images: ["8bb71.png", "a0b15.png"],
   },
   {
-    id: "room-glamping-deluxe",
+    id: 2,
     code: "P002",
     name: "Phòng Glamping Deluxe",
     type: "Glamping",
@@ -46,7 +46,7 @@ export const roomPrototypeData: RoomPrototype[] = [
     images: ["305a2.png", "58627.png"],
   },
   {
-    id: "room-deluxe-mountain",
+    id: 3,
     code: "P003",
     name: "Phòng Deluxe Hướng Núi",
     type: "Deluxe",
