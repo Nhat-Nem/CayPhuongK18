@@ -26,7 +26,7 @@ export default function AdminLoginPage({
       ? redirectTo
       : routes.adminRooms
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
 
@@ -35,14 +35,14 @@ export default function AdminLoginPage({
       return
     }
 
-    if (!loginAdmin(username, password)) {
-      setError("Tên đăng nhập hoặc mật khẩu không đúng.")
-      return
+    try {
+      await loginAdmin(username, password)
+      // Sau khi đăng nhập luôn chuyển vào khu vực Admin,
+      // mặc định là /admin/phong.
+      window.location.assign(safeRedirect)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Tên đăng nhập hoặc mật khẩu không đúng.")
     }
-
-    // Sau khi đăng nhập luôn chuyển vào khu vực Admin,
-    // mặc định là /admin/phong.
-    window.location.assign(safeRedirect)
   }
 
   const alreadyLoggedIn = isAdminAuthenticated()
@@ -134,7 +134,7 @@ export default function AdminLoginPage({
             <span>
               Mật khẩu: <code>{demoAdminAccount.password}</code>
             </span>
-            <small>Authentication hiện là prototype frontend.</small>
+            <small>Tài khoản demo được tạo tự động ở backend khi chạy local.</small>
           </div>
         </div>
       </section>

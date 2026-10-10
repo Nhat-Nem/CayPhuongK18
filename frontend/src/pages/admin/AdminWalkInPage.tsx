@@ -75,10 +75,10 @@ export default function AdminWalkInPage() {
     <AdminRoomLayout
       eyebrow="SPRINT 2 · US.08"
       title="Tiếp nhận khách vãng lai"
-      subtitle="Đúng theo Product Backlog: Admin ghi nhận khách đến trực tiếp không có lịch. Dữ liệu được lưu qua API /walk-ins."
+      subtitle="Đúng Product Backlog US.08: Admin ghi nhận khách đến trực tiếp không có lịch. Backend nhóm chưa có module walk-ins nên Sprint 2 tạm lưu dữ liệu trên frontend."
       primaryAction={<button className="admin-primary-button" type="button" onClick={() => setShowForm(true)}>＋ Tiếp nhận khách</button>}
     >
-      <section className="admin-s2-stats"><article><span>Tổng lượt ghi nhận</span><strong>{stats.total}</strong><small>Trong database</small></article><article><span>Chờ tiếp nhận</span><strong>{stats.waiting}</strong><small>Cần xử lý</small></article><article><span>Đang phục vụ</span><strong>{stats.serving}</strong><small>Đang hoạt động</small></article></section>
+      <section className="admin-s2-stats"><article><span>Tổng lượt ghi nhận</span><strong>{stats.total}</strong><small>Dữ liệu Sprint 2</small></article><article><span>Chờ tiếp nhận</span><strong>{stats.waiting}</strong><small>Cần xử lý</small></article><article><span>Đang phục vụ</span><strong>{stats.serving}</strong><small>Đang hoạt động</small></article></section>
       {error && <p className="booking-form-error">{error}</p>}
 
       {showForm && <section className="admin-s2-form-card"><div className="admin-s2-section-heading"><div><span>BIỂU MẪU TIẾP NHẬN</span><h2>Ghi nhận khách vãng lai</h2></div><button className="admin-secondary-button" type="button" onClick={closeForm}>Đóng</button></div>

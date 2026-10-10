@@ -65,7 +65,7 @@ export default function BookingPage() {
     <Shell>
       <Hero image="e4fc5.png" title="ĐẶT PHÒNG" subtitle="Gửi nhu cầu lưu trú để Cây Phượng K18 có thể chuẩn bị hạng phòng phù hợp cho chuyến đi của bạn." />
       <section className="booking-prototype-section">
-        <div className="booking-prototype-heading"><div><p className="eyebrow">SPRINT 2 · US.06</p><h2>Yêu cầu đặt phòng</h2></div><p>Biểu mẫu gửi trực tiếp xuống backend qua POST /book-requests và lưu vào MySQL.</p></div>
+        <div className="booking-prototype-heading"><div><p className="eyebrow">SPRINT 2 · US.06</p><h2>Yêu cầu đặt phòng</h2></div><p>Biểu mẫu gửi xuống backend qua POST /api/v1/book-requests.</p></div>
         <div className="booking-prototype-layout">
           <aside className="booking-room-summary"><span className="booking-step">01 · CHỌN HẠNG PHÒNG</span>{loadingRooms ? <p>Đang tải phòng...</p> : selectedRoom ? <><h3>{selectedRoom.name}</h3><p>{selectedRoom.description}</p><dl><div><dt>Mã phòng</dt><dd>{selectedRoom.code}</dd></div><div><dt>Sức chứa</dt><dd>{selectedRoom.capacity} khách</dd></div><div><dt>Giá tham khảo</dt><dd>{formatRoomPrice(selectedRoom.price)} / đêm</dd></div></dl></> : <p>Hiện chưa có phòng đang hoạt động.</p>}<a href="/phong">← Xem lại danh sách phòng</a></aside>
           <div className="booking-form-card">

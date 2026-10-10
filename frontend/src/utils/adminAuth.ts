@@ -1,33 +1,46 @@
-const ADMIN_AUTH_KEY = "cay-phuong-admin-auth"
+import { apiRequest } from '@/services/api'
 
-// Prototype Sprint 1: tài khoản mẫu dùng để trình diễn giao diện.
-// Khi backend Auth/API hoàn thiện, thay loginAdmin() bằng lời gọi API.
-const DEMO_ADMIN = {
-  username: "admin",
-  password: "Admin@123",
+const ADMIN_TOKEN_KEY = 'cay-phuong-admin-token'
+const ADMIN_USER_KEY = 'cay-phuong-admin-user'
+
+export interface AdminUser {
+  id: string
+  username: string
+  email: string
+  full_name: string
+  role: 'ADMIN'
+}
+
+interface LoginResponse {
+  access_token: string
+  user: AdminUser
 }
 
 export function isAdminAuthenticated() {
-  return window.localStorage.getItem(ADMIN_AUTH_KEY) === "authenticated"
+  return Boolean(window.localStorage.getItem(ADMIN_TOKEN_KEY))
 }
 
-export function loginAdmin(username: string, password: string) {
-  const valid =
-    username.trim().toLowerCase() === DEMO_ADMIN.username &&
-    password === DEMO_ADMIN.password
+export async function loginAdmin(usernameOrEmail: string, password: string) {
+  const result = await apiRequest<LoginResponse>('/api/v1/auth', {
+    method: 'POST',
+    body: JSON.stringify({
+      // Backend chấp nhận cả username và email trong field email để giữ tương thích DTO hiện tại.
+      email: usernameOrEmail.trim(),
+      password,
+    }),
+  })
 
-  if (valid) {
-    window.localStorage.setItem(ADMIN_AUTH_KEY, "authenticated")
-  }
-
-  return valid
+  window.localStorage.setItem(ADMIN_TOKEN_KEY, result.access_token)
+  window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(result.user))
+  return result.user
 }
 
 export function logoutAdmin() {
-  window.localStorage.removeItem(ADMIN_AUTH_KEY)
+  window.localStorage.removeItem(ADMIN_TOKEN_KEY)
+  window.localStorage.removeItem(ADMIN_USER_KEY)
 }
 
 export const demoAdminAccount = {
-  username: DEMO_ADMIN.username,
-  password: DEMO_ADMIN.password,
+  username: 'admin',
+  password: 'Admin@123',
 }
