@@ -5,6 +5,9 @@ export class Room {
     @PrimaryGeneratedColumn({ type: "bigint" })
     id: number;
 
+    @Column({ type: "varchar", length: 50, unique: true })
+    code: string
+
     @Column()
     name: string
 
@@ -22,4 +25,7 @@ export class Room {
 
     @Column({ nullable: true })
     image: string
+
+    @Column({ name: 'secondary_image', nullable: true })
+    secondaryImage: string
 }
