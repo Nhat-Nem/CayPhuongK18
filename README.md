@@ -20,7 +20,7 @@ Website hướng đến hai nhóm người dùng chính:
 | **Methodology** | Scrum                                              |
 | **Mentor**      | Nguyễn Minh Tân                                    |
 | **Customer**    | Anh Trực                                           |
-| **Development** | Sprint 0 → Sprint 3                                |
+| **Development** | Sprint 0 → Sprint 8                                |
 | **Repository**  | Git / GitHub                                       |
 
 ---
@@ -105,11 +105,11 @@ Admin có thể:
 ### Backend
 
 * Node.js
-* Express.js
+* NestJS
 
 ### Database
 
-* - MongoDB / MongoDB Atlas
+* - MySQL
 
 ### Development Tools
 
@@ -143,13 +143,13 @@ Admin có thể:
             │ REST API
             ▼
 ┌───────────────────────┐
-│    Node.js / Express  │
+│    Node.js / NestJS   │
 │        Backend        │
 └───────────┬───────────┘
             │
             ▼
 ┌───────────────────────┐
-│   MongoDB / Atlas     │
+│         MySQL         │
 │       Database        │
 └───────────────────────┘
 
