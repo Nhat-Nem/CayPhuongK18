@@ -57,18 +57,23 @@ export class RoomsService {
     // Cập nhật phòng
     // Input: ID phòng + UpdateRoomDTO
     async updateRoom(id: number, updateRoomDto: UpdateRoomDTO) {
-        const room = await this.roomRepository.preload({
-            id, ...updateRoomDto
-        })
+        const room = await this.roomRepository.findOneBy({ id });
 
         if (!room) {
-            throw new NotFoundException(`Room with id ${id} not found`)
+            throw new NotFoundException(`Room with id ${id} not found`);
         }
 
-        // Log ra console -> LOG: Update room 'id' ... 
-        this.roomsLogger.log(`Update room id ${id} successfully at ${this.getCurrentTime()}`)
+        // Gộp dữ liệu cập nhật vào phòng hiện tại
+        this.roomRepository.merge(room, updateRoomDto);
 
-        return await this.roomRepository.save(room)
+        // Lưu vào database
+        const updatedRoom = await this.roomRepository.save(room);
+
+        this.roomsLogger.log(
+            `Update room id ${id} successfully at ${this.getCurrentTime()}`
+        );
+
+        return updatedRoom;
     }
 
     // Xóa phòng
