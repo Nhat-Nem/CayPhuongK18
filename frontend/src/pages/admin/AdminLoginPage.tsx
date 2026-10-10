@@ -12,16 +12,19 @@ interface AdminLoginPageProps {
 }
 
 export default function AdminLoginPage({
-  redirectTo = routes.adminRooms,
+  redirectTo,
 }: AdminLoginPageProps) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
 
-  const safeRedirect = redirectTo.startsWith("/admin/")
-    ? redirectTo
-    : routes.adminRooms
+  const safeRedirect =
+    redirectTo &&
+    redirectTo !== routes.adminLogin &&
+    (redirectTo === routes.admin || redirectTo.startsWith("/admin/"))
+      ? redirectTo
+      : routes.adminRooms
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -37,7 +40,9 @@ export default function AdminLoginPage({
       return
     }
 
-    window.location.href = safeRedirect
+    // Sau khi đăng nhập luôn chuyển vào khu vực Admin,
+    // mặc định là /admin/phong.
+    window.location.assign(safeRedirect)
   }
 
   const alreadyLoggedIn = isAdminAuthenticated()
@@ -55,9 +60,9 @@ export default function AdminLoginPage({
 
         <div className="admin-login-visual-copy">
           <p>HỆ THỐNG QUẢN TRỊ</p>
-          <h1>Quản lý phòng nhanh chóng và rõ ràng.</h1>
+          <h1>Quản lý Cây Phượng K18</h1>
           <span>
-            Prototype Sprint 1 dành cho các chức năng quản lý phòng US.02–US.05.
+            Khu vực quản trị các chức năng Sprint 1 và Sprint 2.
           </span>
         </div>
       </section>
@@ -76,7 +81,8 @@ export default function AdminLoginPage({
 
           {alreadyLoggedIn && (
             <div className="admin-login-success">
-              Bạn đang đăng nhập. <a href={routes.adminRooms}>Vào trang quản trị →</a>
+              Bạn đang đăng nhập.{" "}
+              <a href={routes.adminRooms}>Vào trang quản trị →</a>
             </div>
           )}
 
@@ -121,10 +127,14 @@ export default function AdminLoginPage({
           </form>
 
           <div className="admin-login-demo">
-            <strong>Tài khoản demo Sprint 1</strong>
-            <span>Tên đăng nhập: <code>{demoAdminAccount.username}</code></span>
-            <span>Mật khẩu: <code>{demoAdminAccount.password}</code></span>
-            <small>Chỉ dùng cho prototype, chưa kết nối API xác thực.</small>
+            <strong>Tài khoản demo</strong>
+            <span>
+              Tên đăng nhập: <code>{demoAdminAccount.username}</code>
+            </span>
+            <span>
+              Mật khẩu: <code>{demoAdminAccount.password}</code>
+            </span>
+            <small>Authentication hiện là prototype frontend.</small>
           </div>
         </div>
       </section>

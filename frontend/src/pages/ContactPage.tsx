@@ -2,20 +2,17 @@ import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
-import { CONTACT_UPDATED_EVENT, getContactSettings, getPhoneHref, normalizeContactHref } from "@/utils/contactStore"
+import { CONTACT_UPDATED_EVENT, defaultContactSettings, getContactSettings, getPhoneHref, normalizeContactHref } from "@/services/contactApi"
 
 export default function ContactPage() {
-  const [contact, setContact] = useState(getContactSettings)
+  const [contact, setContact] = useState(defaultContactSettings)
   const [sent, setSent] = useState(false)
   const [rating, setRating] = useState(0)
   useEffect(() => {
-    const refresh = () => setContact(getContactSettings())
-    window.addEventListener("storage", refresh)
+    const refresh = () => { void getContactSettings().then(setContact) }
+    refresh()
     window.addEventListener(CONTACT_UPDATED_EVENT, refresh)
-    return () => {
-      window.removeEventListener("storage", refresh)
-      window.removeEventListener(CONTACT_UPDATED_EVENT, refresh)
-    }
+    return () => window.removeEventListener(CONTACT_UPDATED_EVENT, refresh)
   }, [])
 
   const requestTypes = ["Đặt phòng", "Đặt bàn", "Feedback"] as const

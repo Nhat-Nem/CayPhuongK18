@@ -786,3 +786,66 @@
 }
 
 .admin-room-form-notice.error { background: #fff1f0; border-color: #f0b7b2; color: #9f2d25; }
+
+/* Room image picker - frontend only */
+.admin-room-image-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.admin-room-image-picker {
+  display: grid;
+  gap: 9px;
+}
+
+.admin-room-image-picker > span {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .74rem;
+}
+
+.admin-room-image-preview {
+  position: relative;
+  min-height: 210px;
+  overflow: hidden;
+  border: 1px solid #d8d9d5;
+  border-radius: 12px;
+  background: #f5f6f4;
+}
+
+.admin-room-image-preview img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+}
+
+.admin-room-image-picker input[type="file"] {
+  height: auto;
+  padding: 9px;
+  cursor: pointer;
+  background: #fcfcfa;
+}
+
+.admin-room-image-picker input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 7px;
+  background: #23487a;
+  color: white;
+  font-family: "Montserrat:Medium", sans-serif;
+  cursor: pointer;
+}
+
+.admin-room-image-picker > small {
+  color: #92979b;
+  font-size: .68rem;
+}
+
+@media (max-width: 760px) {
+  .admin-room-image-grid {
+    grid-template-columns: 1fr;
+  }
+}

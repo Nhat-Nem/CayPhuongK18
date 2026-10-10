@@ -80,9 +80,9 @@ export default function AdminRoomLayout({
         </button>
 
         <div className="admin-room-sidebar-note">
-          <strong>Sprint 1–2 · Frontend</strong>
+          <strong>Sprint 1–2 · Full stack</strong>
           <span>US.01–US.09</span>
-          <small>Phần Kiệt: thiết kế prototype · Phần Đông: hiện thực giao diện. Dữ liệu đang lưu tạm cho đến khi ghép API.</small>
+          <small>Frontend đã nối với NestJS/MySQL cho phòng, đặt phòng, khách vãng lai và thông tin liên hệ.</small>
         </div>
       </aside>
 

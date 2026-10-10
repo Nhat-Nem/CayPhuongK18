@@ -1,0 +1,27 @@
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "")
+
+export async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers ?? {}),
+    },
+  })
+
+  if (!response.ok) {
+    let message = `API error ${response.status}`
+    try {
+      const data = await response.json() as { message?: string | string[]; error?: string }
+      if (Array.isArray(data.message)) message = data.message.join(", ")
+      else if (data.message) message = data.message
+      else if (data.error) message = data.error
+    } catch {
+      // Keep fallback message.
+    }
+    throw new Error(message)
+  }
+
+  if (response.status === 204) return undefined as T
+  return response.json() as Promise<T>
+}
