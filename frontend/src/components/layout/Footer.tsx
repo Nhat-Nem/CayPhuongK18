@@ -1,6 +1,5 @@
 import footerLogoImg from "@/imports/footer-logo.png"
 import { A } from "@/config/assets"
-import { routes } from "@/config/routes"
 
 export default function Footer() {
   return (
@@ -33,8 +32,6 @@ export default function Footer() {
           <a href="/ve-chung-toi">Về chúng tôi</a>
           <a href="/tuyen-dung">Tuyển dụng</a>
           <a href="/lien-he">Liên hệ</a>
-          <a href="#faq">Câu hỏi thường gặp</a>
-          <a href={routes.adminLogin}>Đăng nhập Admin</a>
         </div>
         <div className="footer-contact">
           <h3>Liên hệ</h3>

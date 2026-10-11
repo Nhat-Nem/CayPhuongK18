@@ -8,6 +8,7 @@ import { RoomsModule } from "./rooms/rooms.module";
 import { BookRequestsModule } from "./book-requests/book-requests.module";
 import { ContactModule } from "./contact/contact.module";
 import { AuthModule } from "./auth/auth.module";
+import { WalkInsModule } from "./walk-ins/walk-ins.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AuthModule } from "./auth/auth.module";
     BookRequestsModule,
     ContactModule,
     AuthModule,
+    WalkInsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

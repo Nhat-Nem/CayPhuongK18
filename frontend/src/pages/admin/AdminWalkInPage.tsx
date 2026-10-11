@@ -41,23 +41,36 @@ export default function AdminWalkInPage() {
 
   const addGuest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    // Đọc dữ liệu ngay tại thời điểm submit.
+    // Không gọi form.reset() sau async/await vì form có thể đã bị unmount.
     const form = new FormData(event.currentTarget)
-    setSaving(true); setError("")
+
+    setSaving(true)
+    setError("")
+
     try {
       await createWalkIn({
         fullName: String(form.get("fullName") ?? "").trim(),
         phone: String(form.get("phone") ?? "").trim(),
         service,
         guests: Number(form.get("guests") ?? 1),
-        roomId: service === "Phòng nghỉ" && form.get("roomId") ? Number(form.get("roomId")) : null,
+        roomId:
+          service === "Phòng nghỉ" && form.get("roomId")
+            ? Number(form.get("roomId"))
+            : null,
         note: String(form.get("note") ?? "").trim(),
       })
-      event.currentTarget.reset()
+
+      // Form sẽ tự được tạo mới khi mở lại vì showForm chuyển false -> true.
+      // Không cần reset() thủ công.
       closeForm()
       await loadData()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tiếp nhận khách")
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   const setStatus = async (id: number, status: GuestStatus) => {

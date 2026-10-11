@@ -1,0 +1,43 @@
+/* Compatibility styles for dynamic Sprint 1 room data.
+   Public visual language otherwise comes directly from the original prototype. */
+
+.room-price-preview {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0 0 22px;
+  color: #676d70;
+}
+.room-price-preview span,
+.room-price-preview small { font-size: .78rem; }
+.room-price-preview strong {
+  color: #23487a;
+  font-family: "Source Serif 4:SemiBold", serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+
+.room-detail-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 20px !important;
+}
+.room-detail-price strong {
+  color: #23487a;
+  font-family: "Source Serif 4:SemiBold", serif;
+  font-size: 1.45rem;
+}
+.room-detail-price span { color: #676d70; font-size: .82rem; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

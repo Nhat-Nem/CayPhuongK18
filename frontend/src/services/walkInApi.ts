@@ -1,5 +1,24 @@
+import { apiRequest } from "@/services/api"
+
 export type ServiceType = "Phòng nghỉ" | "Nhà hàng"
 export type GuestStatus = "Chờ tiếp nhận" | "Đang phục vụ" | "Hoàn tất"
+
+type WalkInServiceApi = "ROOM" | "RESTAURANT"
+type WalkInStatusApi = "WAITING" | "SERVING" | "COMPLETED"
+
+interface WalkInApiRecord {
+  id: number | string
+  code: string | null
+  fullName: string
+  phone: string
+  service: WalkInServiceApi
+  guests: number
+  roomId: number | string | null
+  note: string | null
+  status: WalkInStatusApi
+  createdAt: string
+  updatedAt: string
+}
 
 export interface WalkInRecord {
   id: number
@@ -23,81 +42,90 @@ export interface CreateWalkInPayload {
   note?: string
 }
 
-const STORAGE_KEY = "cay-phuong-walk-ins-sprint2"
+const serviceToApi: Record<ServiceType, WalkInServiceApi> = {
+  "Phòng nghỉ": "ROOM",
+  "Nhà hàng": "RESTAURANT",
+}
 
-function readRows(): WalkInRecord[] {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as WalkInRecord[]
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
+const serviceFromApi: Record<WalkInServiceApi, ServiceType> = {
+  ROOM: "Phòng nghỉ",
+  RESTAURANT: "Nhà hàng",
+}
+
+const statusToApi: Record<GuestStatus, WalkInStatusApi> = {
+  "Chờ tiếp nhận": "WAITING",
+  "Đang phục vụ": "SERVING",
+  "Hoàn tất": "COMPLETED",
+}
+
+const statusFromApi: Record<WalkInStatusApi, GuestStatus> = {
+  WAITING: "Chờ tiếp nhận",
+  SERVING: "Đang phục vụ",
+  COMPLETED: "Hoàn tất",
+}
+
+function mapRecord(row: WalkInApiRecord): WalkInRecord {
+  return {
+    id: Number(row.id),
+    code: row.code ?? `VL-${String(row.id).padStart(6, "0")}`,
+    fullName: row.fullName,
+    phone: row.phone,
+    service: serviceFromApi[row.service],
+    guests: Number(row.guests),
+    roomId: row.roomId === null ? null : Number(row.roomId),
+    note: row.note,
+    status: statusFromApi[row.status],
+    createdAt: row.createdAt,
   }
 }
 
-function writeRows(rows: WalkInRecord[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rows))
+export async function getWalkIns(): Promise<WalkInRecord[]> {
+  const rows = await apiRequest<WalkInApiRecord[]>("/api/v1/walk-ins")
+  return rows.map(mapRecord)
 }
 
-/**
- * US.08 hiện mới là phần frontend của Sprint 2.
- * Backend nhóm chưa có module walk-ins nên tạm lưu localStorage để tránh gọi API
- * không tồn tại và gây 404. Khi backend có endpoint, chỉ cần thay file service này.
- */
-export async function getWalkIns() {
-  return readRows()
-}
+export async function createWalkIn(
+  payload: CreateWalkInPayload,
+): Promise<WalkInRecord> {
+  const row = await apiRequest<WalkInApiRecord>("/api/v1/walk-ins", {
+    method: "POST",
+    body: JSON.stringify({
+      fullName: payload.fullName,
+      phone: payload.phone,
+      service: serviceToApi[payload.service],
+      guests: payload.guests,
+      roomId: payload.roomId ?? null,
+      note: payload.note?.trim() || null,
+    }),
+  })
 
-export async function createWalkIn(payload: CreateWalkInPayload) {
-  const rows = readRows()
-  const id = Date.now()
-
-  const row: WalkInRecord = {
-    id,
-    code: `VL-${String(id).slice(-6)}`,
-    fullName: payload.fullName,
-    phone: payload.phone,
-    service: payload.service,
-    guests: payload.guests,
-    roomId: payload.roomId ?? null,
-    note: payload.note?.trim() || null,
-    status: "Chờ tiếp nhận",
-    createdAt: new Date().toISOString(),
-  }
-
-  writeRows([row, ...rows])
-  return row
+  return mapRecord(row)
 }
 
 export async function updateWalkIn(
   id: number,
   payload: Partial<CreateWalkInPayload & { status: GuestStatus }>,
-) {
-  const rows = readRows()
-  const index = rows.findIndex((row) => row.id === id)
+): Promise<WalkInRecord> {
+  const body: Record<string, unknown> = {}
 
-  if (index < 0) {
-    throw new Error("Không tìm thấy lượt khách vãng lai.")
-  }
+  if (payload.fullName !== undefined) body.fullName = payload.fullName
+  if (payload.phone !== undefined) body.phone = payload.phone
+  if (payload.service !== undefined) body.service = serviceToApi[payload.service]
+  if (payload.guests !== undefined) body.guests = payload.guests
+  if (payload.roomId !== undefined) body.roomId = payload.roomId
+  if (payload.note !== undefined) body.note = payload.note.trim() || null
+  if (payload.status !== undefined) body.status = statusToApi[payload.status]
 
-  const next = {
-    ...rows[index],
-    ...payload,
-    roomId:
-      payload.roomId === undefined ? rows[index].roomId : payload.roomId ?? null,
-    note:
-      payload.note === undefined
-        ? rows[index].note
-        : payload.note.trim() || null,
-  }
+  const row = await apiRequest<WalkInApiRecord>(`/api/v1/walk-ins/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  })
 
-  const updatedRows = [...rows]
-  updatedRows[index] = next
-  writeRows(updatedRows)
-  return next
+  return mapRecord(row)
 }
 
-export async function deleteWalkIn(id: number) {
-  writeRows(readRows().filter((row) => row.id !== id))
+export async function deleteWalkIn(id: number): Promise<void> {
+  await apiRequest(`/api/v1/walk-ins/${id}`, {
+    method: "DELETE",
+  })
 }
