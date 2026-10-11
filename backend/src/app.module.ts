@@ -8,6 +8,10 @@ import { RoomsModule } from './rooms/rooms.module';
 import { BookRequestsModule } from './book-requests/book-requests.module';
 import { ContactModule } from './contact/contact.module';
 import { AuthModule } from './auth/auth.module';
+import { TableBookingRequestsModule } from './table-booking-requests/table-booking-requests.module';
+import { RoomBookingRequestsModule } from './room-booking-requests/room-booking-requests.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { WalkInVisitsModule } from './walk-in-visits/walk-in-visits.module';
 
 @Module({
   imports: [
@@ -32,6 +36,14 @@ import { AuthModule } from './auth/auth.module';
     ContactModule,
 
     AuthModule,
+
+    TableBookingRequestsModule,
+
+    RoomBookingRequestsModule,
+
+    ReviewsModule,
+
+    WalkInVisitsModule,
   ],
   controllers: [AppController],
 
