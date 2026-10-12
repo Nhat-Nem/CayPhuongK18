@@ -88,7 +88,7 @@ export default function AdminWalkInPage() {
     <AdminRoomLayout
       eyebrow="SPRINT 2 · US.08"
       title="Tiếp nhận khách vãng lai"
-      subtitle="Đúng Product Backlog US.08: Admin ghi nhận khách đến trực tiếp không có lịch. Backend nhóm chưa có module walk-ins nên Sprint 2 tạm lưu dữ liệu trên frontend."
+      subtitle="Đúng Product Backlog US.08: Admin ghi nhận khách đến trực tiếp không có lịch."
       primaryAction={<button className="admin-primary-button" type="button" onClick={() => setShowForm(true)}>＋ Tiếp nhận khách</button>}
     >
       <section className="admin-s2-stats"><article><span>Tổng lượt ghi nhận</span><strong>{stats.total}</strong><small>Dữ liệu Sprint 2</small></article><article><span>Chờ tiếp nhận</span><strong>{stats.waiting}</strong><small>Cần xử lý</small></article><article><span>Đang phục vụ</span><strong>{stats.serving}</strong><small>Đang hoạt động</small></article></section>

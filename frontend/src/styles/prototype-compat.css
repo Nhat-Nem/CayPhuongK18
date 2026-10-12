@@ -41,3 +41,41 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Contact request form additions for US.06.
+   Keeps the original Contact prototype layout while supporting room booking fields. */
+.form-field select {
+  width: 100%;
+  border: 1px solid #70463a36;
+  border-radius: 4px;
+  outline: 0;
+  padding: 14px 15px;
+  background: white;
+  color: #555;
+  font-family: inherit;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-field select:focus {
+  border-color: #23487a;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+.form-field select:disabled {
+  cursor: not-allowed;
+  background: #f6f4ef;
+  color: #8b8f92;
+}
+.contact-form-error {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #d88f88;
+  border-radius: 4px;
+  background: #fff3f1;
+  color: #9d4039;
+  font-size: .82rem;
+}
+.form-submit button:disabled {
+  cursor: not-allowed;
+  opacity: .68;
+  transform: none;
+  box-shadow: none;
+}
