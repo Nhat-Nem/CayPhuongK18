@@ -23,9 +23,9 @@ export class Room {
     @Column()
     capacity: number
 
-    @Column({ nullable: true })
+    @Column({ type: "longtext", nullable: true })
     image: string
 
-    @Column({ name: 'secondary_image', nullable: true })
+    @Column({ name: 'secondary_image', type: "longtext", nullable: true })
     secondaryImage: string
 }
