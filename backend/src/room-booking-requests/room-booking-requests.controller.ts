@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { RoomBookingRequestsService } from './room-booking-requests.service';
 import { CreateRoomBookingRequestDto } from './dto/create-room-booking-request.dto';
 
@@ -7,6 +7,11 @@ export class RoomBookingRequestsController {
     constructor(
         private readonly roomBookingService: RoomBookingRequestsService
     ) {}
+
+    @Get()
+    findAll() {
+        return this.roomBookingService.findAll()
+    }
 
     @Post() 
     create(@Body() dto: CreateRoomBookingRequestDto) {

@@ -21,6 +21,15 @@ export class ReviewsService {
         })
     }
 
+    // Lay het
+    async findAll() {
+        this.reviewLogger.log(`Get all reviews successfully at ${this.getCurrentTime()}`)
+
+        return this.reviewRepository.find({
+            order: { createdAt: "DESC" }
+        })
+    }
+
     // Tao review
     async create(dto: CreateReviewDto) {
         const review = this.reviewRepository.create(dto)

@@ -21,6 +21,15 @@ export class RoomBookingRequestsService {
         })
     }
 
+    // Lay het
+    async findAll() {
+        this.roomBookingLogger.log(`Get all room booking request successfully at ${this.getCurrentTime()}`)
+
+        return this.roomBookingRequestRepository.find({
+            order: { createdAt: "DESC" }
+        })
+    }
+
     // Tao 
     async create(dto: CreateRoomBookingRequestDto) {
         const request = this.roomBookingRequestRepository.create({
