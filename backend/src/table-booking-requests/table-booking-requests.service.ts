@@ -21,6 +21,15 @@ export class TableBookingRequestsService {
         })
     }
 
+    // Lấy all booking
+    findAll() {
+        this.tableBookingLogger.log(`Get all table booking request at ${this.getCurrentTime()}`)
+
+        return this.tableBookingRequestRepository.find({
+            order: { createdAt: "DESC" }
+        })
+    }
+
     // Tạo Table Booking Request
     async create(dto: CreateTableBookingRequestDto) {
         const request = this.tableBookingRequestRepository.create({

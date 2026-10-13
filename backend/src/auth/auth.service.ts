@@ -37,8 +37,8 @@ export class AuthService {
         }
 
         // 4. Chỉ cho phép ADMIN đăng nhập trang quản trị
-        if (user.role !== "ADMIN") {
-            throw new UnauthorizedException("Bạn không có quyền truy cập quản trị")
+        if (!["ADMIH", "STAFF"].includes(user.role)) {
+            throw new UnauthorizedException("Bạn không có quyền truy cập hệ thống quản trị")
         }
 
         // 5. Tạo JWT
