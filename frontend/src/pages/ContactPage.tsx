@@ -2,7 +2,8 @@ import { useEffect, useState, type FormEvent } from "react"
 import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
-import { createBookRequest } from "@/services/bookingApi"
+import { createRoomBookingRequest } from "@/services/roomBookingRequestApi"
+import { createReview, createTableBookingRequest } from "@/services/contactFormsApi"
 import {
   CONTACT_UPDATED_EVENT,
   defaultContactSettings,
@@ -15,20 +16,24 @@ import type { RoomPrototype } from "@/data/roomPrototype"
 
 type RequestType = "Đặt bàn" | "Đặt phòng" | "Feedback"
 
-const requestTypes: RequestType[] = ["Đặt bàn", "Đặt phòng", "Feedback"]
+const requestTypes: RequestType[] = ["Đặt phòng", "Đặt bàn", "Feedback"]
 
 function getInitialRequestType(): RequestType {
   const type = new URLSearchParams(window.location.search).get("type")
 
-  if (type === "room" || type === "booking" || type === "stay") {
-    return "Đặt phòng"
+  if (type === "table" || type === "restaurant") {
+    return "Đặt bàn"
   }
 
   if (type === "feedback") {
     return "Feedback"
   }
 
-  return "Đặt bàn"
+  if (type === "room" || type === "booking" || type === "stay") {
+    return "Đặt phòng"
+  }
+
+  return "Đặt phòng"
 }
 
 export default function ContactPage() {
@@ -125,53 +130,86 @@ export default function ContactPage() {
     event.preventDefault()
     setFormError("")
 
-    if (requestType !== "Đặt phòng") {
-      setSent(true)
-      return
-    }
-
-    if (!roomId) {
-      setFormError("Vui lòng chọn hạng phòng.")
-      return
-    }
-
-    if (!checkIn || !checkOut) {
-      setFormError("Vui lòng chọn ngày nhận phòng và ngày trả phòng.")
-      return
-    }
-
-    if (checkOut <= checkIn) {
-      setFormError("Ngày trả phòng phải sau ngày nhận phòng.")
-      return
-    }
-
     const form = new FormData(event.currentTarget)
+    const fullName = String(form.get("fullName") ?? "").trim()
+    const phone = String(form.get("phone") ?? "").trim()
+    const email = String(form.get("email") ?? "").trim()
+    const message = String(form.get("message") ?? "").trim()
+
     setSubmitting(true)
 
     try {
-      const booking = await createBookRequest({
-        fullName: String(form.get("fullName") ?? "").trim(),
-        phone: String(form.get("phone") ?? "").trim(),
-        email: String(form.get("email") ?? "").trim(),
-        roomId: Number(roomId),
-        guests: Number(form.get("guests") ?? 1),
-        checkIn,
-        checkOut,
-        note: String(form.get("message") ?? "").trim(),
-      })
+      if (requestType === "Đặt phòng") {
+        if (!roomId) {
+          throw new Error("Vui lòng chọn hạng phòng.")
+        }
 
-      setSubmittedBookingCode(booking.code)
+        if (!checkIn || !checkOut) {
+          throw new Error("Vui lòng chọn ngày nhận phòng và ngày trả phòng.")
+        }
+
+        if (checkOut <= checkIn) {
+          throw new Error("Ngày trả phòng phải sau ngày nhận phòng.")
+        }
+
+        const room = rooms.find((item) => item.id === Number(roomId))
+        if (!room) {
+          throw new Error("Không tìm thấy hạng phòng đã chọn.")
+        }
+
+        const booking = await createRoomBookingRequest({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          roomType: room.name,
+          guests: Number(form.get("guests") ?? 1),
+          checkIn,
+          checkOut,
+          note: message,
+        })
+
+        setSubmittedBookingCode(`DP-${String(booking.id).padStart(6, "0")}`)
+      } else if (requestType === "Đặt bàn") {
+        const booking = await createTableBookingRequest({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          note: message,
+        })
+
+        setSubmittedBookingCode(
+          booking.id ? `DB-${String(booking.id).padStart(6, "0")}` : "",
+        )
+      } else {
+        if (rating < 1 || rating > 5) {
+          throw new Error("Vui lòng chọn mức đánh giá từ 1 đến 5 sao.")
+        }
+
+        const review = await createReview({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          rating,
+          note: message,
+        })
+
+        setSubmittedBookingCode(
+          review.id ? `DG-${String(review.id).padStart(6, "0")}` : "",
+        )
+      }
+
       setSent(true)
     } catch (error) {
       setFormError(
         error instanceof Error
           ? error.message
-          : "Không thể gửi yêu cầu đặt phòng.",
+          : `Không thể gửi yêu cầu ${requestType.toLowerCase()}.`,
       )
     } finally {
       setSubmitting(false)
     }
   }
+
 
   return (
     <Shell>
@@ -376,7 +414,7 @@ export default function ContactPage() {
                 <strong>Cảm ơn bạn!</strong>
                 <p>
                   Yêu cầu “{requestType}” đã được gửi thành công.
-                  {requestType === "Đặt phòng" && submittedBookingCode
+                  {submittedBookingCode
                     ? ` Mã yêu cầu: ${submittedBookingCode}.`
                     : ""}
                 </p>

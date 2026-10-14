@@ -16,6 +16,7 @@ import MenuDetailPage from "@/pages/MenuDetailPage"
 import AdminRoomsPage from "@/pages/admin/AdminRoomsPage"
 import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
+import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
 import AdminLoginPage from "@/pages/admin/AdminLoginPage"
@@ -55,6 +56,7 @@ export default function App() {
       [routes.adminRooms]: "Quản lý phòng",
       [routes.adminRoomCreate]: "Thêm phòng",
       [routes.adminRoomEdit]: "Sửa phòng",
+      [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
     }
@@ -94,6 +96,9 @@ export default function App() {
     page = <AdminRoomsPage />
   }
   // Sprint 2
+  else if (path === routes.adminRoomBookings) {
+    page = <AdminRoomBookingRequestsPage />
+  }
   else if (path === routes.adminWalkIns) {
     page = <AdminWalkInPage />
   }

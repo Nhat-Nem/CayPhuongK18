@@ -18,6 +18,7 @@ export const routes = {
   adminRoomEdit: "/admin/phong/sua",
 
   // Sprint 2
+  adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",
   adminContact: "/admin/lien-he",
 }

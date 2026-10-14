@@ -47,6 +47,12 @@ export default function AdminRoomLayout({
 
           <p>SPRINT 2 · TIẾP NHẬN</p>
           <a
+            className={path === routes.adminRoomBookings ? "active" : ""}
+            href={routes.adminRoomBookings}
+          >
+            <span>▤</span> Tiếp nhận đặt phòng
+          </a>
+          <a
             className={path === routes.adminWalkIns ? "active" : ""}
             href={routes.adminWalkIns}
           >
