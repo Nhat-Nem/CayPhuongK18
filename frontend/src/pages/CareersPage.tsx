@@ -1,32 +1,26 @@
+import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
+import { routes } from "@/config/routes"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
-
-const careerOpenings = [
-  {
-    title: "Nhân viên phục vụ nhà hàng",
-    type: "Toàn thời gian",
-    location: "Tây Ninh",
-    description:
-      "Đón tiếp và phục vụ khách hàng chu đáo, phối hợp cùng đội ngũ để mang đến trải nghiệm ẩm thực ấm áp.",
-  },
-  {
-    title: "Nhân viên buồng phòng",
-    type: "Toàn thời gian",
-    location: "Tây Ninh",
-    description:
-      "Chăm sóc không gian phòng nghỉ sạch sẽ, chỉn chu và hỗ trợ khách trong suốt thời gian lưu trú.",
-  },
-  {
-    title: "Phụ bếp",
-    type: "Toàn thời gian",
-    location: "Tây Ninh",
-    description:
-      "Chuẩn bị nguyên liệu tươi mới, hỗ trợ bếp chính và giữ gìn tiêu chuẩn vệ sinh trong khu vực bếp.",
-  },
-]
+import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
+import { getRecruitments } from "@/services/recruitmentApi"
 
 export default function CareersPage() {
+  const [careerOpenings, setCareerOpenings] = useState<RecruitmentRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    getRecruitments()
+      .then((result) => {
+        setCareerOpenings(result.items)
+        setError("")
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <Shell>
       <Hero
@@ -77,25 +71,39 @@ export default function CareersPage() {
             hệ khi có cơ hội mới.
           </p>
         </div>
-        <div className="career-list">
-          {careerOpenings.map((opening, index) => (
-            <article key={opening.title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <p>
-                  {opening.type} · {opening.location}
-                </p>
-                <h3>{opening.title}</h3>
-                <small>{opening.description}</small>
-              </div>
-              <a
-                href={`mailto:cayphuongk18@gmail.com?subject=Ứng tuyển ${opening.title}`}
-              >
-                Ứng tuyển <span>→</span>
-              </a>
-            </article>
-          ))}
-        </div>
+
+        {error && <div className="career-data-notice error">{error}</div>}
+        {loading && (
+          <div className="career-data-notice">Đang tải danh sách tuyển dụng...</div>
+        )}
+
+        {!loading && !error && careerOpenings.length === 0 && (
+          <div className="career-data-notice">
+            Hiện chưa có vị trí tuyển dụng đang mở.
+          </div>
+        )}
+
+        {!loading && careerOpenings.length > 0 && (
+          <div className="career-list">
+            {careerOpenings.map((opening, index) => (
+              <article key={opening.id}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <p>
+                    {opening.type} · {opening.location}
+                  </p>
+                  <h3>{opening.title}</h3>
+                  <small>{opening.description}</small>
+                </div>
+                <a
+                  href={`${routes.careerDetail}?id=${encodeURIComponent(opening.id)}`}
+                >
+                  Xem chi tiết <span>→</span>
+                </a>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
       <section className="careers-cta">
         <div>
@@ -113,4 +121,3 @@ export default function CareersPage() {
     </Shell>
   )
 }
-

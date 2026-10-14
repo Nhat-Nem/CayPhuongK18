@@ -6,6 +6,7 @@ export const routes = {
   menu: "/menu",
   about: "/ve-chung-toi",
   careers: "/tuyen-dung",
+  careerDetail: "/tuyen-dung/chi-tiet",
   contact: "/lien-he",
 
   // Admin
@@ -21,4 +22,8 @@ export const routes = {
   adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",
   adminContact: "/admin/lien-he",
+
+  // Tuyển dụng · US.18–US.21
+  adminRecruitments: "/admin/tuyen-dung",
+  adminRecruitmentEdit: "/admin/tuyen-dung/sua",
 }

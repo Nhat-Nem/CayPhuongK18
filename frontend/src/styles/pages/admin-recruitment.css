@@ -1,0 +1,178 @@
+/* US.18–US.20 · Giao diện quản lý tuyển dụng */
+.admin-recruitment-api-note {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  border: 1px solid #e0cba3;
+  border-radius: 10px;
+  background: #fff9ec;
+  color: #765b2c;
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.admin-recruitment-api-note strong {
+  color: #70463a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+}
+
+.admin-recruitment-toolbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.admin-recruitment-table {
+  min-width: 980px;
+}
+
+.admin-recruitment-table td:first-child strong,
+.admin-recruitment-table td:first-child small {
+  display: block;
+}
+
+.admin-recruitment-table td:first-child strong {
+  color: #17345f;
+}
+
+.admin-recruitment-table td:first-child small {
+  margin-top: 4px;
+  color: #9a9ea1;
+  font-size: .68rem;
+}
+
+.admin-recruitment-description {
+  display: -webkit-box;
+  max-width: 460px;
+  overflow: hidden;
+  color: #687078;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-recruitment-edit-card {
+  padding: 26px;
+  border: 1px solid #e2e1dc;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 10px 30px #17345f0b;
+}
+
+.admin-recruitment-edit-card .admin-s2-section-heading small {
+  color: #92979b;
+  font-size: .72rem;
+}
+
+.admin-recruitment-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.admin-recruitment-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-recruitment-form label > span {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .74rem;
+}
+
+.admin-recruitment-form input,
+.admin-recruitment-form textarea {
+  width: 100%;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  background: #fcfcfa;
+  color: #323a43;
+  outline: 0;
+}
+
+.admin-recruitment-form input {
+  height: 46px;
+  padding: 0 13px;
+}
+
+.admin-recruitment-form textarea {
+  min-height: 170px;
+  padding: 13px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.admin-recruitment-form input:focus,
+.admin-recruitment-form textarea:focus {
+  border-color: #597aa1;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-recruitment-full {
+  grid-column: 1 / -1;
+}
+
+.admin-recruitment-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.admin-recruitment-dialog-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #101c2f80;
+  backdrop-filter: blur(4px);
+}
+
+.admin-recruitment-dialog {
+  width: min(100%, 470px);
+  padding: 28px;
+  border: 1px solid #e6ded4;
+  border-radius: 16px;
+  background: #fffdf9;
+  box-shadow: 0 24px 70px #10243f35;
+}
+
+.admin-recruitment-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: #f9e8e5;
+  color: #a3433e;
+  font-family: "Montserrat:Bold", sans-serif;
+}
+
+.admin-recruitment-dialog h2 {
+  margin: 5px 0 10px;
+  color: #17345f;
+  font-size: 1.45rem;
+}
+
+.admin-recruitment-dialog > p:not(.admin-room-eyebrow) {
+  margin: 0;
+  color: #6d747b;
+  line-height: 1.55;
+}
+
+.admin-recruitment-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+@media (max-width: 760px) {
+  .admin-recruitment-form { grid-template-columns: 1fr; }
+  .admin-recruitment-full { grid-column: auto; }
+  .admin-recruitment-form-actions { flex-direction: column-reverse; }
+  .admin-recruitment-form-actions > * { width: 100%; }
+}

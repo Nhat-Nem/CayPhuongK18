@@ -13,3 +13,6 @@
 @import "./styles/pages/admin-login.css";
 @import "./styles/pages/admin-rooms.css";
 @import "./styles/pages/admin-sprint2.css";
+/* US.18–US.21 · Recruitment UI */
+@import "./styles/pages/admin-recruitment.css";
+@import "./styles/pages/recruitment.css";

@@ -8,6 +8,7 @@ import BookingPage from "@/pages/BookingPage"
 import MenuPage from "@/pages/MenuPage"
 import AboutPage from "@/pages/AboutPage"
 import CareersPage from "@/pages/CareersPage"
+import CareerDetailPage from "@/pages/CareerDetailPage"
 import ContactPage from "@/pages/ContactPage"
 import OffersPage from "@/pages/OffersPage"
 import OfferDetailPage from "@/pages/OfferDetailPage"
@@ -20,6 +21,8 @@ import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequests
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
 import AdminLoginPage from "@/pages/admin/AdminLoginPage"
+import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
+import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
 import { isAdminAuthenticated } from "@/utils/adminAuth"
 
 export default function App() {
@@ -50,6 +53,7 @@ export default function App() {
       [routes.offers]: "Ưu đãi",
       [routes.about]: "Câu chuyện",
       [routes.careers]: "Tuyển dụng",
+      [routes.careerDetail]: "Chi tiết tuyển dụng",
       [routes.contact]: "Liên hệ",
       [routes.admin]: "Quản trị",
       [routes.adminLogin]: "Đăng nhập quản trị",
@@ -59,6 +63,8 @@ export default function App() {
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
+      [routes.adminRecruitments]: "Quản lý tuyển dụng",
+      [routes.adminRecruitmentEdit]: "Sửa tuyển dụng",
     }
 
     let title = titles[path]
@@ -105,6 +111,13 @@ export default function App() {
   else if (path === routes.adminContact) {
     page = <AdminContactPage />
   }
+  // Tuyển dụng · US.18–US.21
+  else if (path === routes.adminRecruitmentEdit) {
+    page = <AdminRecruitmentEditPage />
+  }
+  else if (path === routes.adminRecruitments) {
+    page = <AdminRecruitmentsPage />
+  }
   // Khách hàng
   else if (path === "/phong/chi-tiet") {
     page = <RoomDetailPage />
@@ -126,6 +139,9 @@ export default function App() {
   }
   else if (path === routes.about) {
     page = <AboutPage />
+  }
+  else if (path === routes.careerDetail) {
+    page = <CareerDetailPage />
   }
   else if (path === routes.careers) {
     page = <CareersPage />
