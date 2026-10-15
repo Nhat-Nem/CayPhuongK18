@@ -37,7 +37,7 @@ export class AuthService {
         }
 
         // 4. Chỉ cho phép ADMIN đăng nhập trang quản trị
-        if (!["ADMIH", "STAFF"].includes(user.role)) {
+        if (!["ADMIN", "STAFF"].includes(user.role)) {
             throw new UnauthorizedException("Bạn không có quyền truy cập hệ thống quản trị")
         }
 
