@@ -1,0 +1,27 @@
+.admin-menu-table .admin-room-cell { min-width: 330px; }
+.admin-menu-table .admin-room-cell span {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-menu-modal { width: min(100%, 680px); max-height: 92vh; overflow-y: auto; }
+.admin-menu-form { margin-top: 20px; }
+.admin-menu-form label { display: grid; gap: 7px; }
+.admin-menu-form label > span { color: #4d555d; font-family: "Montserrat:Medium", sans-serif; font-size: .74rem; }
+.admin-menu-form label > small { color: #999ea2; font-size: .68rem; }
+.admin-menu-form input,
+.admin-menu-form select,
+.admin-menu-form textarea {
+  width: 100%;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  background: #fcfcfa;
+  color: #323a43;
+  outline: 0;
+}
+.admin-menu-form input,
+.admin-menu-form select { min-height: 44px; padding: 0 12px; }
+.admin-menu-form input[type="file"] { padding: 9px 12px; }
+.admin-menu-form textarea { min-height: 105px; padding: 12px; resize: vertical; }
+.admin-menu-preview { width: 100%; max-height: 210px; border-radius: 10px; object-fit: cover; }

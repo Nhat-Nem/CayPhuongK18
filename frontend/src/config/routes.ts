@@ -18,6 +18,9 @@ export const routes = {
   adminRoomCreate: "/admin/phong/them",
   adminRoomEdit: "/admin/phong/sua",
 
+  // Thực đơn
+  adminMenu: "/admin/thuc-don",
+
   // Sprint 2
   adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",

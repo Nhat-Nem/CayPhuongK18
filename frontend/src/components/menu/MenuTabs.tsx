@@ -1,11 +1,28 @@
-import { useState } from "react"
-import { dishes } from "@/data/dishes"
+import { useEffect, useMemo, useState } from "react"
 import DishCard from "@/components/menu/DishCard"
+import { getMenuDishes, MENU_UPDATED_EVENT } from "@/services/menuStore"
 
 export default function MenuTabs() {
   const [tab, setTab] = useState("Tất cả")
-  const visibleDishes =
-    tab === "Tất cả" ? dishes : dishes.filter((dish) => dish.group === tab)
+  const [allDishes, setAllDishes] = useState(() => getMenuDishes())
+
+  useEffect(() => {
+    const refresh = () => setAllDishes(getMenuDishes())
+    window.addEventListener(MENU_UPDATED_EVENT, refresh)
+    window.addEventListener("storage", refresh)
+    return () => {
+      window.removeEventListener(MENU_UPDATED_EVENT, refresh)
+      window.removeEventListener("storage", refresh)
+    }
+  }, [])
+
+  const visibleDishes = useMemo(
+    () =>
+      tab === "Tất cả"
+        ? allDishes
+        : allDishes.filter((dish) => dish.group === tab),
+    [allDishes, tab],
+  )
   const categories = ["Tất cả", "Món ăn", "Tráng miệng"]
 
   return (
@@ -17,8 +34,8 @@ export default function MenuTabs() {
           {categories.map((name, index) => {
             const count =
               name === "Tất cả"
-                ? dishes.length
-                : dishes.filter((dish) => dish.group === name).length
+                ? allDishes.length
+                : allDishes.filter((dish) => dish.group === name).length
             return (
               <button
                 className={tab === name ? "active" : ""}
@@ -60,7 +77,7 @@ export default function MenuTabs() {
             <DishCard
               dish={dish}
               featured={tab === "Tất cả" && index === 0}
-              key={dish.name}
+              key={dish.id}
             />
           ))}
         </div>
@@ -68,4 +85,3 @@ export default function MenuTabs() {
     </div>
   )
 }
-

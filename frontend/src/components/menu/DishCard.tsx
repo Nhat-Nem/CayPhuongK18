@@ -1,18 +1,23 @@
 import type { Dish } from "@/data/dishes"
+import { getMenuDishes, type MenuDish } from "@/services/menuStore"
 
 export default function DishCard({
   dish,
   featured = false,
   compact = false,
 }: {
-  dish: Dish
+  dish: Dish | MenuDish
   featured?: boolean
   compact?: boolean
 }) {
+  const id = "id" in dish
+    ? dish.id
+    : getMenuDishes().find((item) => item.name === dish.name)?.id ?? ""
+
   return (
     <a
       className={`dish-card ${featured ? "featured-dish" : ""} ${compact ? "compact-dish" : ""}`}
-      href="/menu/chi-tiet"
+      href={id ? `/menu/chi-tiet?dish=${encodeURIComponent(id)}` : "/menu/chi-tiet"}
     >
       <div className="dish-image">
         <img src={dish.image} alt={dish.name} />
@@ -35,4 +40,3 @@ export default function DishCard({
     </a>
   )
 }
-

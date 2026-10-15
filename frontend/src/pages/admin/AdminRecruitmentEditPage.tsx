@@ -105,11 +105,7 @@ export default function AdminRecruitmentEditPage() {
     >
       {source === "prototype" && (
         <div className="admin-recruitment-api-note">
-          <strong>Đang chỉnh sửa prototype frontend.</strong>
-          <span>
-            Backend hiện chưa có API tuyển dụng. Khi {getRecruitmentApiPath()}
-            được triển khai, form sẽ tự ưu tiên PATCH API.
-          </span>
+          <span>Khi backend có {getRecruitmentApiPath()}, trang này sẽ tự ưu tiên dữ liệu API.</span>
         </div>
       )}
 
