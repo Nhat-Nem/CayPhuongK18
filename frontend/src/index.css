@@ -1,33 +1,18 @@
 @import "tailwindcss";
 
-/* Base */
-@import "./styles/fonts.css";
-@import "./styles/globals.css";
+/* Public/customer-facing UI: exact visual source from the original prototype. */
+@import "./styles/prototype-original.css";
 
-/* Layout */
-@import "./styles/layout/header.css";
-@import "./styles/common/hero.css";
-@import "./styles/layout/floating-actions.css";
+/* Small compatibility additions for dynamic API-backed room data. */
+@import "./styles/prototype-compat.css";
 
-/* Pages - keep this order to preserve the original cascade */
-@import "./styles/pages/home.css";
-@import "./styles/pages/blog.css";
-@import "./styles/pages/rooms.css";
-@import "./styles/pages/menu.css";
-@import "./styles/pages/about.css";
-@import "./styles/pages/careers.css";
-@import "./styles/pages/contact.css";
+/* Sprint 2 booking page has no equivalent screen in the original prototype. */
 @import "./styles/pages/booking.css";
-@import "./styles/pages/offers.css";
-@import "./styles/pages/room-detail.css";
-@import "./styles/pages/menu-detail.css";
+
+/* Admin screens are project additions and intentionally remain separate. */
 @import "./styles/pages/admin-login.css";
 @import "./styles/pages/admin-rooms.css";
 @import "./styles/pages/admin-sprint2.css";
-
-/* Shared / Footer */
-@import "./styles/layout/footer.css";
-@import "./styles/common/actions.css";
-
-/* Responsive overrides must stay last */
-@import "./styles/responsive.css";
+/* US.18–US.21 · Recruitment UI */
+@import "./styles/pages/admin-recruitment.css";
+@import "./styles/pages/recruitment.css";

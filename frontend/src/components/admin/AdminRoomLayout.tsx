@@ -31,7 +31,7 @@ export default function AdminRoomLayout({
         </a>
 
         <nav className="admin-room-nav" aria-label="Điều hướng quản trị">
-          <p>SPRINT 1 · PHÒNG</p>
+          <p>PHÒNG</p>
           <a
             className={path === routes.adminRooms ? "active" : ""}
             href={routes.adminRooms}
@@ -45,7 +45,13 @@ export default function AdminRoomLayout({
             <span>＋</span> Thêm phòng
           </a>
 
-          <p>SPRINT 2 · TIẾP NHẬN</p>
+          <p>TIẾP NHẬN</p>
+          <a
+            className={path === routes.adminRoomBookings ? "active" : ""}
+            href={routes.adminRoomBookings}
+          >
+            <span>▤</span> Tiếp nhận đặt phòng
+          </a>
           <a
             className={path === routes.adminWalkIns ? "active" : ""}
             href={routes.adminWalkIns}
@@ -59,12 +65,28 @@ export default function AdminRoomLayout({
             <span>☎</span> Thông tin liên hệ
           </a>
 
+          <p>TUYỂN DỤNG · US.18–US.21</p>
+          <a
+            className={
+              path === routes.adminRecruitments ||
+              path === routes.adminRecruitmentEdit
+                ? "active"
+                : ""
+            }
+            href={routes.adminRecruitments}
+          >
+            <span>▤</span> Danh sách tuyển dụng
+          </a>
+
           <p>WEBSITE</p>
           <a href={routes.rooms}>
             <span>↗</span> Xem trang phòng
           </a>
           <a href={routes.contact}>
             <span>↗</span> Xem trang liên hệ
+          </a>
+          <a href={routes.careers}>
+            <span>↗</span> Xem trang tuyển dụng
           </a>
         </nav>
 
@@ -79,11 +101,6 @@ export default function AdminRoomLayout({
           <span>↪</span> Đăng xuất
         </button>
 
-        <div className="admin-room-sidebar-note">
-          <strong>Sprint 1–2 · Full stack</strong>
-          <span>US.01–US.09</span>
-          <small>Frontend đã nối với NestJS/MySQL cho phòng, đặt phòng, khách vãng lai và thông tin liên hệ.</small>
-        </div>
       </aside>
 
       <main className="admin-room-main">

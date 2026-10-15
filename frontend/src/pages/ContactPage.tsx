@@ -1,36 +1,97 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
-import { CONTACT_UPDATED_EVENT, defaultContactSettings, getContactSettings, getPhoneHref, normalizeContactHref } from "@/services/contactApi"
+import { createRoomBookingRequest } from "@/services/roomBookingRequestApi"
+import { createReview, createTableBookingRequest } from "@/services/contactFormsApi"
+import {
+  CONTACT_UPDATED_EVENT,
+  defaultContactSettings,
+  getContactSettings,
+  getPhoneHref,
+  normalizeContactHref,
+} from "@/services/contactApi"
+import { getPublicRooms } from "@/services/roomApi"
+import type { RoomPrototype } from "@/data/roomPrototype"
+
+type RequestType = "Đặt bàn" | "Đặt phòng" | "Feedback"
+
+const requestTypes: RequestType[] = ["Đặt phòng", "Đặt bàn", "Feedback"]
+
+function getInitialRequestType(): RequestType {
+  const type = new URLSearchParams(window.location.search).get("type")
+
+  if (type === "table" || type === "restaurant") {
+    return "Đặt bàn"
+  }
+
+  if (type === "feedback") {
+    return "Feedback"
+  }
+
+  if (type === "room" || type === "booking" || type === "stay") {
+    return "Đặt phòng"
+  }
+
+  return "Đặt phòng"
+}
 
 export default function ContactPage() {
   const [contact, setContact] = useState(defaultContactSettings)
   const [sent, setSent] = useState(false)
   const [rating, setRating] = useState(0)
+  const [requestType, setRequestType] = useState<RequestType>(getInitialRequestType)
+
+  const [rooms, setRooms] = useState<RoomPrototype[]>([])
+  const [roomId, setRoomId] = useState<number | "">("")
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [loadingRooms, setLoadingRooms] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [submittedBookingCode, setSubmittedBookingCode] = useState("")
+
   useEffect(() => {
-    const refresh = () => { void getContactSettings().then(setContact) }
+    const refresh = () => {
+      void getContactSettings().then(setContact)
+    }
+
     refresh()
     window.addEventListener(CONTACT_UPDATED_EVENT, refresh)
+
     return () => window.removeEventListener(CONTACT_UPDATED_EVENT, refresh)
   }, [])
 
-  const requestTypes = ["Đặt phòng", "Đặt bàn", "Feedback"] as const
-  const [requestType, setRequestType] = useState<typeof requestTypes[number]>(
-    () =>
-      new URLSearchParams(window.location.search).get("type") === "table"
-        ? "Đặt bàn"
-        : "Đặt phòng",
-  )
+  useEffect(() => {
+    if (window.location.hash === "#yeu-cau-truc-tuyen") {
+      window.setTimeout(() => {
+        document
+          .getElementById("yeu-cau-truc-tuyen")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" })
+      }, 0)
+    }
+  }, [])
+
+  useEffect(() => {
+    const requestedRoom = Number(
+      new URLSearchParams(window.location.search).get("room"),
+    )
+
+    getPublicRooms()
+      .then((data) => {
+        setRooms(data)
+
+        if (data.some((room) => room.id === requestedRoom)) {
+          setRoomId(requestedRoom)
+        } else {
+          setRoomId(data[0]?.id ?? "")
+        }
+      })
+      .catch((error: Error) => setFormError(error.message))
+      .finally(() => setLoadingRooms(false))
+  }, [])
+
   const requestContent = {
-    "Đặt phòng": {
-      title: "Yêu cầu đặt phòng",
-      description:
-        "Hãy để lại thông tin và nhu cầu lưu trú. Chúng tôi sẽ liên hệ xác nhận phòng phù hợp trong thời gian sớm nhất.",
-      placeholder:
-        "Ví dụ: Ngày nhận phòng, ngày trả phòng, số lượng khách và yêu cầu đặc biệt...",
-      button: "Gửi yêu cầu đặt phòng",
-    },
     "Đặt bàn": {
       title: "Yêu cầu đặt bàn",
       description:
@@ -38,6 +99,14 @@ export default function ContactPage() {
       placeholder:
         "Ví dụ: Ngày giờ dùng bữa, số lượng khách, vị trí bàn hoặc món ăn quan tâm...",
       button: "Gửi yêu cầu đặt bàn",
+    },
+    "Đặt phòng": {
+      title: "Yêu cầu đặt phòng",
+      description:
+        "Hãy để lại thông tin và nhu cầu lưu trú. Chúng tôi sẽ liên hệ xác nhận phòng phù hợp trong thời gian sớm nhất.",
+      placeholder:
+        "Ví dụ: Giường phụ, giờ nhận phòng dự kiến hoặc yêu cầu đặc biệt...",
+      button: "Gửi yêu cầu đặt phòng",
     },
     Feedback: {
       title: "Gửi feedback",
@@ -47,10 +116,105 @@ export default function ContactPage() {
         "Chia sẻ cảm nhận, góp ý hoặc trải nghiệm của bạn tại Cây Phượng K18...",
       button: "Gửi feedback",
     },
-  }[requestType]!
+  }[requestType]
+
+  const changeRequestType = (type: RequestType) => {
+    setRequestType(type)
+    setSent(false)
+    setRating(0)
+    setFormError("")
+    setSubmittedBookingCode("")
+  }
+
+  const submitRequest = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFormError("")
+
+    const form = new FormData(event.currentTarget)
+    const fullName = String(form.get("fullName") ?? "").trim()
+    const phone = String(form.get("phone") ?? "").trim()
+    const email = String(form.get("email") ?? "").trim()
+    const message = String(form.get("message") ?? "").trim()
+
+    setSubmitting(true)
+
+    try {
+      if (requestType === "Đặt phòng") {
+        if (!roomId) {
+          throw new Error("Vui lòng chọn hạng phòng.")
+        }
+
+        if (!checkIn || !checkOut) {
+          throw new Error("Vui lòng chọn ngày nhận phòng và ngày trả phòng.")
+        }
+
+        if (checkOut <= checkIn) {
+          throw new Error("Ngày trả phòng phải sau ngày nhận phòng.")
+        }
+
+        const room = rooms.find((item) => item.id === Number(roomId))
+        if (!room) {
+          throw new Error("Không tìm thấy hạng phòng đã chọn.")
+        }
+
+        const booking = await createRoomBookingRequest({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          roomType: room.name,
+          guests: Number(form.get("guests") ?? 1),
+          checkIn,
+          checkOut,
+          note: message,
+        })
+
+        setSubmittedBookingCode(`DP-${String(booking.id).padStart(6, "0")}`)
+      } else if (requestType === "Đặt bàn") {
+        const booking = await createTableBookingRequest({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          note: message,
+        })
+
+        setSubmittedBookingCode(
+          booking.id ? `DB-${String(booking.id).padStart(6, "0")}` : "",
+        )
+      } else {
+        if (rating < 1 || rating > 5) {
+          throw new Error("Vui lòng chọn mức đánh giá từ 1 đến 5 sao.")
+        }
+
+        const review = await createReview({
+          customerName: fullName,
+          customerPhone: phone,
+          customerEmail: email,
+          rating,
+          note: message,
+        })
+
+        setSubmittedBookingCode(
+          review.id ? `DG-${String(review.id).padStart(6, "0")}` : "",
+        )
+      }
+
+      setSent(true)
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : `Không thể gửi yêu cầu ${requestType.toLowerCase()}.`,
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+
   return (
     <Shell>
       <Hero image="8e9ad.png" title="Thông tin liên hệ" />
+
       <section className="contact-overview">
         <div className="contact-overview-heading">
           <div>
@@ -66,6 +230,7 @@ export default function ContactPage() {
             email. Đội ngũ sẽ phản hồi trong vòng 24 giờ.
           </p>
         </div>
+
         <div className="contact-info">
           <div className="contact-details">
             <article className="contact-method">
@@ -85,15 +250,14 @@ export default function ContactPage() {
                 →
               </a>
             </article>
+
             <article className="contact-method">
               <div className="contact-icon">
                 <img src={`${A}64850.png`} alt="" />
               </div>
               <div>
                 <span>Email</span>
-                <a href={`mailto:${contact.email}`}>
-                  {contact.email}
-                </a>
+                <a href={`mailto:${contact.email}`}>{contact.email}</a>
                 <small>Phản hồi trong vòng 24 giờ</small>
               </div>
               <a
@@ -104,13 +268,20 @@ export default function ContactPage() {
                 →
               </a>
             </article>
+
             <article className="contact-method">
               <div className="contact-icon">
                 <img src={`${A}9d481.svg`} alt="" />
               </div>
               <div>
                 <span>Zalo</span>
-                <a href={normalizeContactHref(contact.zalo, "zalo")} target="_blank" rel="noreferrer">Zalo Cây Phượng K18</a>
+                <a
+                  href={normalizeContactHref(contact.zalo, "zalo")}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Zalo Cây Phượng K18
+                </a>
                 <small>Nhắn tin trực tiếp qua Zalo</small>
               </div>
               <a
@@ -123,13 +294,20 @@ export default function ContactPage() {
                 →
               </a>
             </article>
+
             <article className="contact-method">
               <div className="contact-icon">
                 <img src={`${A}0a86e.svg`} alt="" />
               </div>
               <div>
                 <span>Messenger</span>
-                <a href={normalizeContactHref(contact.messenger, "messenger")} target="_blank" rel="noreferrer">Messenger Cây Phượng K18</a>
+                <a
+                  href={normalizeContactHref(contact.messenger, "messenger")}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Messenger Cây Phượng K18
+                </a>
                 <small>Nhắn tin trực tiếp qua Messenger</small>
               </div>
               <a
@@ -142,6 +320,7 @@ export default function ContactPage() {
                 →
               </a>
             </article>
+
             <article className="contact-method">
               <div className="contact-icon">
                 <img src={`${A}01681.png`} alt="" />
@@ -151,15 +330,12 @@ export default function ContactPage() {
                 <strong>Quốc lộ 22, Ninh Sơn, Tây Ninh, Việt Nam</strong>
                 <small>Không gian Homestay &amp; Nhà hàng</small>
               </div>
-              <a
-                className="contact-action"
-                href="#ban-do"
-                aria-label="Xem bản đồ"
-              >
+              <a className="contact-action" href="#ban-do" aria-label="Xem bản đồ">
                 →
               </a>
             </article>
           </div>
+
           <div className="contact-map-wrap" id="ban-do">
             <img
               className="contact-map"
@@ -176,7 +352,11 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-      <section className="section sage contact-form-section">
+
+      <section
+        className="section sage contact-form-section"
+        id="yeu-cau-truc-tuyen"
+      >
         <div className="contact-form-layout">
           <div className="contact-form-intro">
             <p className="eyebrow">KẾT NỐI VỚI CHÚNG TÔI</p>
@@ -194,6 +374,7 @@ export default function ContactPage() {
               <strong>Trong vòng 24 giờ</strong>
             </div>
           </div>
+
           <div className="contact-form-card">
             <fieldset className="request-options">
               <legend>Bạn muốn liên hệ về</legend>
@@ -208,11 +389,7 @@ export default function ContactPage() {
                       name="request-type"
                       value={type}
                       checked={requestType === type}
-                      onChange={() => {
-                        setRequestType(type)
-                        setSent(false)
-                        setRating(0)
-                      }}
+                      onChange={() => changeRequestType(type)}
                     />
                     <span className="radio-mark" />
                     <span className="request-option-copy">
@@ -223,6 +400,7 @@ export default function ContactPage() {
                 ))}
               </div>
             </fieldset>
+
             <div className="form-heading">
               <span className="form-heading-kicker">
                 Yêu cầu trực tuyến · 0{requestTypes.indexOf(requestType) + 1}
@@ -230,20 +408,29 @@ export default function ContactPage() {
               <h3>{requestContent.title}</h3>
               <p>{requestContent.description}</p>
             </div>
+
             {sent ? (
               <div className="success">
                 <strong>Cảm ơn bạn!</strong>
-                <p>Yêu cầu “{requestType}” đã được gửi thành công.</p>
-                <button onClick={() => setSent(false)}>Gửi yêu cầu khác</button>
+                <p>
+                  Yêu cầu “{requestType}” đã được gửi thành công.
+                  {submittedBookingCode
+                    ? ` Mã yêu cầu: ${submittedBookingCode}.`
+                    : ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSent(false)
+                    setSubmittedBookingCode("")
+                    setFormError("")
+                  }}
+                >
+                  Gửi yêu cầu khác
+                </button>
               </div>
             ) : (
-              <form
-                className="contact-form"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  setSent(true)
-                }}
-              >
+              <form className="contact-form" onSubmit={submitRequest}>
                 <label className="form-field">
                   <span>Họ và tên</span>
                   <input
@@ -253,6 +440,7 @@ export default function ContactPage() {
                     placeholder="Nhập họ và tên của bạn"
                   />
                 </label>
+
                 <div className="form-row">
                   <label className="form-field">
                     <span>Số điện thoại</span>
@@ -261,6 +449,7 @@ export default function ContactPage() {
                       name="phone"
                       type="tel"
                       autoComplete="tel"
+                      pattern="[0-9 +().-]{9,15}"
                       placeholder="Nhập số điện thoại"
                     />
                   </label>
@@ -275,6 +464,83 @@ export default function ContactPage() {
                     />
                   </label>
                 </div>
+
+                {requestType === "Đặt phòng" && (
+                  <>
+                    <div className="form-row">
+                      <label className="form-field">
+                        <span>Hạng phòng</span>
+                        <select
+                          required
+                          value={roomId}
+                          onChange={(event) =>
+                            setRoomId(
+                              event.target.value
+                                ? Number(event.target.value)
+                                : "",
+                            )
+                          }
+                          disabled={loadingRooms || rooms.length === 0}
+                        >
+                          <option value="">
+                            {loadingRooms
+                              ? "Đang tải hạng phòng..."
+                              : "Chọn hạng phòng"}
+                          </option>
+                          {rooms.map((room) => (
+                            <option value={room.id} key={room.id}>
+                              {room.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>Số lượng khách</span>
+                        <input
+                          required
+                          name="guests"
+                          type="number"
+                          min="1"
+                          placeholder="Nhập số lượng khách"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="form-row">
+                      <label className="form-field">
+                        <span>Ngày nhận phòng</span>
+                        <input
+                          required
+                          name="checkIn"
+                          type="date"
+                          value={checkIn}
+                          min={new Date().toISOString().slice(0, 10)}
+                          onChange={(event) => {
+                            setCheckIn(event.target.value)
+                            setFormError("")
+                          }}
+                        />
+                      </label>
+
+                      <label className="form-field">
+                        <span>Ngày trả phòng</span>
+                        <input
+                          required
+                          name="checkOut"
+                          type="date"
+                          value={checkOut}
+                          min={checkIn || undefined}
+                          onChange={(event) => {
+                            setCheckOut(event.target.value)
+                            setFormError("")
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+
                 {requestType === "Feedback" && (
                   <fieldset className="rating-field">
                     <legend>Đánh giá của bạn</legend>
@@ -304,22 +570,31 @@ export default function ContactPage() {
                     </small>
                   </fieldset>
                 )}
+
                 <label className="form-field">
                   <span>Nội dung</span>
                   <textarea
-                    required
+                    required={requestType !== "Đặt phòng"}
                     name="message"
                     placeholder={requestContent.placeholder}
                     rows={6}
                   />
                 </label>
+
+                {formError && (
+                  <p className="contact-form-error" role="alert">
+                    {formError}
+                  </p>
+                )}
+
                 <div className="form-submit">
                   <p>
                     Bằng việc gửi form, bạn đồng ý để chúng tôi liên hệ xác nhận
                     thông tin.
                   </p>
-                  <button type="submit">
-                    {requestContent.button} <span>→</span>
+                  <button type="submit" disabled={submitting}>
+                    {submitting ? "Đang gửi..." : requestContent.button}{" "}
+                    <span>→</span>
                   </button>
                 </div>
               </form>
@@ -330,4 +605,3 @@ export default function ContactPage() {
     </Shell>
   )
 }
-
