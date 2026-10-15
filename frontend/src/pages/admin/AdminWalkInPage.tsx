@@ -41,23 +41,36 @@ export default function AdminWalkInPage() {
 
   const addGuest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    // Đọc dữ liệu ngay tại thời điểm submit.
+    // Không gọi form.reset() sau async/await vì form có thể đã bị unmount.
     const form = new FormData(event.currentTarget)
-    setSaving(true); setError("")
+
+    setSaving(true)
+    setError("")
+
     try {
       await createWalkIn({
         fullName: String(form.get("fullName") ?? "").trim(),
         phone: String(form.get("phone") ?? "").trim(),
         service,
         guests: Number(form.get("guests") ?? 1),
-        roomId: service === "Phòng nghỉ" && form.get("roomId") ? Number(form.get("roomId")) : null,
+        roomId:
+          service === "Phòng nghỉ" && form.get("roomId")
+            ? Number(form.get("roomId"))
+            : null,
         note: String(form.get("note") ?? "").trim(),
       })
-      event.currentTarget.reset()
+
+      // Form sẽ tự được tạo mới khi mở lại vì showForm chuyển false -> true.
+      // Không cần reset() thủ công.
       closeForm()
       await loadData()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tiếp nhận khách")
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   const setStatus = async (id: number, status: GuestStatus) => {
@@ -75,10 +88,10 @@ export default function AdminWalkInPage() {
     <AdminRoomLayout
       eyebrow="SPRINT 2 · US.08"
       title="Tiếp nhận khách vãng lai"
-      subtitle="Đúng theo Product Backlog: Admin ghi nhận khách đến trực tiếp không có lịch. Dữ liệu được lưu qua API /walk-ins."
+      subtitle="Đúng Product Backlog US.08: Admin ghi nhận khách đến trực tiếp không có lịch."
       primaryAction={<button className="admin-primary-button" type="button" onClick={() => setShowForm(true)}>＋ Tiếp nhận khách</button>}
     >
-      <section className="admin-s2-stats"><article><span>Tổng lượt ghi nhận</span><strong>{stats.total}</strong><small>Trong database</small></article><article><span>Chờ tiếp nhận</span><strong>{stats.waiting}</strong><small>Cần xử lý</small></article><article><span>Đang phục vụ</span><strong>{stats.serving}</strong><small>Đang hoạt động</small></article></section>
+      <section className="admin-s2-stats"><article><span>Tổng lượt ghi nhận</span><strong>{stats.total}</strong><small>Dữ liệu Sprint 2</small></article><article><span>Chờ tiếp nhận</span><strong>{stats.waiting}</strong><small>Cần xử lý</small></article><article><span>Đang phục vụ</span><strong>{stats.serving}</strong><small>Đang hoạt động</small></article></section>
       {error && <p className="booking-form-error">{error}</p>}
 
       {showForm && <section className="admin-s2-form-card"><div className="admin-s2-section-heading"><div><span>BIỂU MẪU TIẾP NHẬN</span><h2>Ghi nhận khách vãng lai</h2></div><button className="admin-secondary-button" type="button" onClick={closeForm}>Đóng</button></div>

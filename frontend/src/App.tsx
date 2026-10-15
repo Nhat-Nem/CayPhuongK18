@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import LanguageContext, { type Language } from "@/i18n/LanguageContext"
 import usePageTranslation from "@/hooks/usePageTranslation"
 import { routes } from "@/config/routes"
@@ -8,6 +8,7 @@ import BookingPage from "@/pages/BookingPage"
 import MenuPage from "@/pages/MenuPage"
 import AboutPage from "@/pages/AboutPage"
 import CareersPage from "@/pages/CareersPage"
+import CareerDetailPage from "@/pages/CareerDetailPage"
 import ContactPage from "@/pages/ContactPage"
 import OffersPage from "@/pages/OffersPage"
 import OfferDetailPage from "@/pages/OfferDetailPage"
@@ -16,9 +17,12 @@ import MenuDetailPage from "@/pages/MenuDetailPage"
 import AdminRoomsPage from "@/pages/admin/AdminRoomsPage"
 import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
+import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
 import AdminLoginPage from "@/pages/admin/AdminLoginPage"
+import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
+import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
 import { isAdminAuthenticated } from "@/utils/adminAuth"
 
 export default function App() {
@@ -39,6 +43,38 @@ export default function App() {
 
   const path = window.location.pathname.replace(/\/+$/, "") || "/"
   const requestedAdminPath = `${path}${window.location.search}`
+
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      [routes.home]: "Trang chủ",
+      [routes.rooms]: "Phòng",
+      [routes.booking]: "Đặt phòng",
+      [routes.menu]: "Ẩm thực",
+      [routes.offers]: "Ưu đãi",
+      [routes.about]: "Câu chuyện",
+      [routes.careers]: "Tuyển dụng",
+      [routes.careerDetail]: "Chi tiết tuyển dụng",
+      [routes.contact]: "Liên hệ",
+      [routes.admin]: "Quản trị",
+      [routes.adminLogin]: "Đăng nhập quản trị",
+      [routes.adminRooms]: "Quản lý phòng",
+      [routes.adminRoomCreate]: "Thêm phòng",
+      [routes.adminRoomEdit]: "Sửa phòng",
+      [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
+      [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
+      [routes.adminContact]: "Quản lý liên hệ",
+      [routes.adminRecruitments]: "Quản lý tuyển dụng",
+      [routes.adminRecruitmentEdit]: "Sửa tuyển dụng",
+    }
+
+    let title = titles[path]
+
+    if (path === "/phong/chi-tiet") title = "Chi tiết phòng"
+    if (path === "/menu/chi-tiet") title = "Chi tiết món ăn"
+    if (path === "/uu-dai/chi-tiet") title = "Chi tiết ưu đãi"
+
+    document.title = `${title ?? "Cây Phượng K18"} | Cây Phượng K18`
+  }, [path])
   const isAdminPage = path === routes.admin || path.startsWith("/admin/")
 
   let page: ReactNode
@@ -66,11 +102,21 @@ export default function App() {
     page = <AdminRoomsPage />
   }
   // Sprint 2
+  else if (path === routes.adminRoomBookings) {
+    page = <AdminRoomBookingRequestsPage />
+  }
   else if (path === routes.adminWalkIns) {
     page = <AdminWalkInPage />
   }
   else if (path === routes.adminContact) {
     page = <AdminContactPage />
+  }
+  // Tuyển dụng · US.18–US.21
+  else if (path === routes.adminRecruitmentEdit) {
+    page = <AdminRecruitmentEditPage />
+  }
+  else if (path === routes.adminRecruitments) {
+    page = <AdminRecruitmentsPage />
   }
   // Khách hàng
   else if (path === "/phong/chi-tiet") {
@@ -93,6 +139,9 @@ export default function App() {
   }
   else if (path === routes.about) {
     page = <AboutPage />
+  }
+  else if (path === routes.careerDetail) {
+    page = <CareerDetailPage />
   }
   else if (path === routes.careers) {
     page = <CareersPage />

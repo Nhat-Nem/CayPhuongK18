@@ -15,7 +15,7 @@ export default function AdminContactPage() {
     catch (err) { setError(err instanceof Error ? err.message : "Không thể lưu thông tin liên hệ") }
     finally { setSaving(false) }
   }
-  return <AdminRoomLayout eyebrow="SPRINT 2 · US.09" title="Quản lý thông tin liên hệ" subtitle="Hotline, Zalo, Messenger và Email được lấy/lưu qua GET và PUT /contact-settings.">
+  return <AdminRoomLayout eyebrow="SPRINT 2 · US.09" title="Quản lý thông tin liên hệ" subtitle="Hotline, Zalo, Messenger và Email được lấy/lưu qua GET và PATCH /api/v1/contact.">
     <div className="admin-contact-layout"><section className="admin-s2-form-card"><div className="admin-s2-section-heading"><div><span>THÔNG TIN LIÊN HỆ</span><h2>Cập nhật kênh hỗ trợ khách hàng</h2></div></div><form className="admin-contact-form" onSubmit={submit}>
       <label><span>Hotline *</span><small>Số điện thoại hiển thị ở nút Hotline cố định.</small><input required value={contact.hotline} onChange={(e) => updateField("hotline", e.target.value)} /></label>
       <label><span>Zalo *</span><small>Nhập URL Zalo hoặc số điện thoại Zalo.</small><input required value={contact.zalo} onChange={(e) => updateField("zalo", e.target.value)} /></label>

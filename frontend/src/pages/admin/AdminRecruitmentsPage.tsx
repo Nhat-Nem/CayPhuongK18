@@ -1,0 +1,217 @@
+import { useEffect, useMemo, useState } from "react"
+import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
+import DeleteRecruitmentDialog from "@/components/admin/DeleteRecruitmentDialog"
+import { routes } from "@/config/routes"
+import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
+import {
+  deleteRecruitment,
+  getRecruitments,
+  type RecruitmentDataSource,
+} from "@/services/recruitmentApi"
+
+function sourceLabel(source: RecruitmentDataSource) {
+  return source === "api" ? "Dữ liệu backend" : "Prototype frontend"
+}
+
+export default function AdminRecruitmentsPage() {
+  const [items, setItems] = useState<RecruitmentRecord[]>([])
+  const [source, setSource] = useState<RecruitmentDataSource>("prototype")
+  const [query, setQuery] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [notice, setNotice] = useState("")
+  const [toDelete, setToDelete] = useState<RecruitmentRecord | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const loadItems = async () => {
+    setLoading(true)
+    try {
+      const result = await getRecruitments()
+      setItems(result.items)
+      setSource(result.source)
+      setError("")
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không thể tải danh sách tuyển dụng.",
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadItems()
+  }, [])
+
+  const filteredItems = useMemo(() => {
+    const keyword = query.trim().toLocaleLowerCase("vi")
+    if (!keyword) return items
+
+    return items.filter((item) =>
+      [item.title, item.type, item.location, item.description]
+        .join(" ")
+        .toLocaleLowerCase("vi")
+        .includes(keyword),
+    )
+  }, [items, query])
+
+  const locations = new Set(items.map((item) => item.location).filter(Boolean))
+  const fullTime = items.filter((item) =>
+    item.type.toLocaleLowerCase("vi").includes("toàn thời gian"),
+  ).length
+
+  const handleDelete = async (item: RecruitmentRecord) => {
+    setDeleting(true)
+    try {
+      const usedSource = await deleteRecruitment(item.id)
+      setToDelete(null)
+      setNotice(
+        usedSource === "api"
+          ? `Đã xóa vị trí “${item.title}” khỏi backend.`
+          : `Đã xóa vị trí “${item.title}” trong prototype frontend.`,
+      )
+      await loadItems()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể xóa tuyển dụng.")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <AdminRoomLayout
+      eyebrow="US.18–US.20 · TUYỂN DỤNG"
+      title="Quản lý danh sách tuyển dụng"
+      subtitle="T.05–T.14 · Giao diện xóa, sửa và quản lý danh sách tuyển dụng."
+    >
+      {source === "prototype" && !loading && (
+        <div className="admin-recruitment-api-note">
+          <span>Khi backend có /api/v1/recruitments, trang này sẽ tự ưu tiên dữ liệu API.</span>
+        </div>
+      )}
+
+      <section className="admin-room-stats" aria-label="Tổng quan tuyển dụng">
+        <article>
+          <span>Tổng vị trí</span>
+          <strong>{items.length}</strong>
+          <small>{sourceLabel(source)}</small>
+        </article>
+        <article>
+          <span>Toàn thời gian</span>
+          <strong>{fullTime}</strong>
+          <small>Trong danh sách hiện tại</small>
+        </article>
+        <article>
+          <span>Khu vực tuyển</span>
+          <strong>{locations.size}</strong>
+          <small>Địa điểm khác nhau</small>
+        </article>
+      </section>
+
+      <section className="admin-room-panel">
+        <div className="admin-room-toolbar admin-recruitment-toolbar">
+          <label className="admin-room-search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              aria-label="Tìm kiếm tuyển dụng"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Tìm theo vị trí, loại công việc, địa điểm..."
+            />
+          </label>
+          <span className="admin-room-result-count">
+            {filteredItems.length} kết quả
+          </span>
+        </div>
+
+        {notice && (
+          <div className="admin-room-inline-notice">
+            <span>✓</span>
+            {notice}
+            <button type="button" onClick={() => setNotice("")}>
+              ×
+            </button>
+          </div>
+        )}
+
+        {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
+
+        {loading && (
+          <div className="admin-room-empty">
+            <strong>Đang tải danh sách tuyển dụng...</strong>
+          </div>
+        )}
+
+        {!loading && filteredItems.length > 0 && (
+          <div className="admin-room-table-wrap">
+            <table className="admin-room-table admin-recruitment-table">
+              <thead>
+                <tr>
+                  <th>Vị trí tuyển dụng</th>
+                  <th>Hình thức</th>
+                  <th>Địa điểm</th>
+                  <th>Mô tả</th>
+                  <th aria-label="Thao tác" />
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <strong>{item.title}</strong>
+                      <small>{item.id}</small>
+                    </td>
+                    <td>{item.type || "—"}</td>
+                    <td>{item.location || "—"}</td>
+                    <td>
+                      <span className="admin-recruitment-description">
+                        {item.description || "Chưa có mô tả"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="admin-room-row-actions">
+                        <a
+                          className="admin-icon-button"
+                          href={`${routes.adminRecruitmentEdit}?id=${encodeURIComponent(item.id)}`}
+                          aria-label={`Sửa ${item.title}`}
+                          title="Sửa tuyển dụng"
+                        >
+                          ✎
+                        </a>
+                        <button
+                          className="admin-icon-button danger"
+                          type="button"
+                          onClick={() => setToDelete(item)}
+                          aria-label={`Xóa ${item.title}`}
+                          title="Xóa tuyển dụng"
+                        >
+                          ⌫
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loading && filteredItems.length === 0 && (
+          <div className="admin-room-empty">
+            <strong>Không tìm thấy thông tin tuyển dụng phù hợp</strong>
+            <span>Hãy thử một từ khóa khác.</span>
+          </div>
+        )}
+      </section>
+
+      <DeleteRecruitmentDialog
+        recruitment={toDelete}
+        deleting={deleting}
+        onCancel={() => setToDelete(null)}
+        onConfirm={(item) => void handleDelete(item)}
+      />
+    </AdminRoomLayout>
+  )
+}
