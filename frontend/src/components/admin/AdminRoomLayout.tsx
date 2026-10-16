@@ -45,6 +45,14 @@ export default function AdminRoomLayout({
             <span>＋</span> Thêm phòng
           </a>
 
+          <p>THỰC ĐƠN</p>
+          <a
+            className={path === routes.adminMenu ? "active" : ""}
+            href={routes.adminMenu}
+          >
+            <span>▤</span> Quản lý thực đơn
+          </a>
+
           <p>TIẾP NHẬN</p>
           <a
             className={path === routes.adminRoomBookings ? "active" : ""}
@@ -69,6 +77,7 @@ export default function AdminRoomLayout({
           <a
             className={
               path === routes.adminRecruitments ||
+              path === routes.adminRecruitmentCreate ||
               path === routes.adminRecruitmentEdit
                 ? "active"
                 : ""
@@ -81,6 +90,9 @@ export default function AdminRoomLayout({
           <p>WEBSITE</p>
           <a href={routes.rooms}>
             <span>↗</span> Xem trang phòng
+          </a>
+          <a href={routes.menu}>
+            <span>↗</span> Xem trang thực đơn
           </a>
           <a href={routes.contact}>
             <span>↗</span> Xem trang liên hệ

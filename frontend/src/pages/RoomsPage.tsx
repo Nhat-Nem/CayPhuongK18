@@ -42,62 +42,75 @@ export default function RoomsPage() {
 
         {!loading &&
           !error &&
-          rooms.map((room, index) => (
-            <section
-              className={`room-row ${index % 2 ? "reverse" : ""}`}
-              key={room.id}
-            >
-              <div className="room-photos">
-                <img
-                  src={resolveImageSource(room.images[0])}
-                  alt={room.name}
-                />
-                <img src={resolveImageSource(room.images[1])} alt="" />
-              </div>
+          rooms.map((room, index) => {
+            const previewImages =
+              room.images.length > 0 ? room.images.slice(0, 2) : [""]
 
-              <div className="room-copy">
-                <p className="room-index">
-                  {room.type.toUpperCase()} · {room.code}
-                </p>
-                <h2>{room.name}</h2>
-                <p className="room-description">{room.description}</p>
-                <p className="room-price-preview">
-                  <span>Từ</span>
-                  <strong>{formatRoomPrice(room.price)}</strong>
-                  <small>/ đêm</small>
-                </p>
+            return (
+              <section
+                className={`room-row ${index % 2 ? "reverse" : ""}`}
+                key={room.id}
+              >
+                <div
+                  className={`room-photos ${
+                    previewImages.length === 1 ? "single" : ""
+                  }`}
+                >
+                  {previewImages.map((image, imageIndex) => (
+                    <img
+                      src={resolveImageSource(image)}
+                      alt={imageIndex === 0 ? room.name : ""}
+                      key={`${image}-${imageIndex}`}
+                    />
+                  ))}
+                </div>
 
-                <div className="room-facts">
-                  <div>
-                    <span>Sức chứa</span>
-                    <strong>{room.capacity} khách</strong>
+                <div className="room-copy">
+                  <p className="room-index">
+                    {room.type.toUpperCase()} · {room.code}
+                  </p>
+                  <h2>{room.name}</h2>
+                  <p className="room-description">{room.description}</p>
+
+                  <p className="room-price-preview">
+                    <span>Từ</span>
+                    <strong>{formatRoomPrice(room.price)}</strong>
+                    <small>/ đêm</small>
+                  </p>
+
+                  <div className="room-facts">
+                    <div>
+                      <span>Sức chứa</span>
+                      <strong>{room.capacity} khách</strong>
+                    </div>
+                    <div>
+                      <span>Loại phòng</span>
+                      <strong>{room.type}</strong>
+                    </div>
                   </div>
-                  <div>
-                    <span>Loại phòng</span>
-                    <strong>{room.type}</strong>
+
+                  <div className="room-highlights">
+                    <span>Wi-Fi miễn phí</span>
+                    <span>Phòng tắm riêng</span>
+                    <span>Không gian nghỉ dưỡng</span>
+                  </div>
+
+                  <div className="room-actions">
+                    <ButtonLink href={`/phong/chi-tiet?id=${room.id}`}>
+                      Xem chi tiết
+                    </ButtonLink>
+
+                    <a
+                      className="room-booking-link"
+                      href={`/dat-phong?room=${room.id}`}
+                    >
+                      Đặt phòng <span>→</span>
+                    </a>
                   </div>
                 </div>
-
-                <div className="room-highlights">
-                  <span>Wi-Fi miễn phí</span>
-                  <span>Phòng tắm riêng</span>
-                  <span>Không gian nghỉ dưỡng</span>
-                </div>
-
-                <div className="room-actions">
-                  <ButtonLink href={`/phong/chi-tiet?id=${room.id}`}>
-                    Xem chi tiết
-                  </ButtonLink>
-                  <a
-                    className="room-booking-link"
-                    href={`/dat-phong?room=${room.id}`}
-                  >
-                    Đặt phòng <span>→</span>
-                  </a>
-                </div>
-              </div>
-            </section>
-          ))}
+              </section>
+            )
+          })}
 
         {!loading && !error && rooms.length === 0 && (
           <section className="section centered">

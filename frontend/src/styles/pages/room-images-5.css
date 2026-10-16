@@ -1,0 +1,387 @@
+/* ============================================================
+   ROOM IMAGES: 1 ảnh chính + tối đa 4 ảnh phụ
+   File này được import cuối để override CSS prototype cũ.
+   ============================================================ */
+
+/* ---------- Admin image picker ---------- */
+
+.admin-room-image-grid--multi {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  align-items: start;
+}
+
+.admin-room-image-preview {
+  position: relative;
+}
+
+.admin-room-image-empty {
+  display: grid;
+  min-height: 230px;
+  place-items: center;
+  padding: 24px;
+  color: #8a8f92;
+  text-align: center;
+}
+
+.admin-room-image-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #183f70;
+  color: #fff;
+  font-size: .66rem;
+  letter-spacing: .04em;
+}
+
+.admin-room-secondary-images {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-room-secondary-heading {
+  display: grid;
+  gap: 5px;
+}
+
+.admin-room-secondary-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-room-secondary-heading strong {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .76rem;
+}
+
+.admin-room-secondary-heading span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #23487a;
+  font-size: .68rem;
+}
+
+.admin-room-secondary-heading small,
+.admin-room-secondary-note {
+  color: #92979b;
+  font-size: .68rem;
+}
+
+.admin-room-secondary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-room-secondary-item {
+  position: relative;
+  min-height: 126px;
+  overflow: hidden;
+  border: 1px solid #d8d9d5;
+  border-radius: 10px;
+  background: #f5f6f4;
+}
+
+.admin-room-secondary-item img {
+  display: block;
+  width: 100%;
+  height: 126px;
+  object-fit: cover;
+}
+
+.admin-room-secondary-item > span {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: #183f70;
+  font-size: .64rem;
+}
+
+.admin-room-secondary-item > button {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(118, 45, 38, .94);
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.admin-room-secondary-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 126px;
+  place-items: center;
+  border: 1px dashed #c9cbc7;
+  border-radius: 10px;
+  color: #969a9c;
+  background: #fafaf8;
+  font-size: .76rem;
+}
+
+.admin-room-secondary-add {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #23487a;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .75rem;
+}
+
+.admin-room-secondary-add input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-room-secondary-add.disabled {
+  background: #a8adb2;
+  cursor: default;
+}
+
+/* ---------- Customer room carousel ---------- */
+
+.detail-gallery-section {
+  margin-top: 65px;
+}
+
+.detail-gallery {
+  display: grid !important;
+  align-items: center;
+  gap: 26px !important;
+  margin-top: 0 !important;
+}
+
+.detail-gallery-count-3 {
+  grid-template-columns:
+    42px minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr) 42px !important;
+}
+
+.detail-gallery-count-2 {
+  grid-template-columns: 42px minmax(0, 1fr) minmax(0, 1fr) 42px !important;
+}
+
+.detail-gallery-count-1 {
+  grid-template-columns: 42px minmax(0, 760px) 42px !important;
+  justify-content: center;
+}
+
+.detail-gallery > img {
+  display: block;
+  width: 100% !important;
+  height: 220px !important;
+  margin: 0 !important;
+  object-fit: cover;
+  opacity: .72 !important;
+  cursor: pointer;
+  transition:
+    height .22s,
+    opacity .22s,
+    transform .22s;
+}
+
+.detail-gallery > img.active {
+  height: 290px !important;
+  opacity: 1 !important;
+  transform: scale(1.015);
+}
+
+.detail-gallery-count-1 > img,
+.detail-gallery-count-1 > img.active {
+  height: 360px !important;
+  opacity: 1 !important;
+}
+
+.detail-gallery > button {
+  display: grid !important;
+  width: 42px;
+  height: 64px;
+  place-items: center;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #70463a !important;
+  font-size: 4rem !important;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color .2s,
+    transform .2s,
+    opacity .2s;
+}
+
+.detail-gallery > button:hover:not(:disabled) {
+  color: #23487a !important;
+  transform: scale(1.12);
+}
+
+.detail-gallery > button:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.detail-gallery-all {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 980px;
+  margin: 24px auto 0;
+}
+
+.detail-gallery-all > button {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  opacity: .68;
+  transition:
+    border-color .2s,
+    opacity .2s,
+    transform .2s;
+}
+
+.detail-gallery-all > button.active {
+  border-color: #23487a;
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.detail-gallery-all img {
+  display: block;
+  width: 100%;
+  height: 92px;
+  object-fit: cover;
+}
+
+.detail-gallery-all span {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: #183f70;
+  font-size: .62rem;
+}
+
+.detail-gallery-counter {
+  margin: 11px 0 0;
+  color: #6e736f;
+  font-size: .74rem;
+  text-align: center;
+}
+
+/* Danh sách phòng: nếu chỉ có 1 ảnh, cho ảnh chiếm toàn khối ảnh. */
+.room-photos.single {
+  grid-template-columns: 1fr !important;
+}
+
+.room-photos.single img {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .admin-room-image-grid--multi {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-gallery {
+    gap: 10px !important;
+  }
+
+  .detail-gallery-count-3 {
+    grid-template-columns:
+      30px minmax(0, .8fr) minmax(0, 1.2fr) minmax(0, .8fr) 30px !important;
+  }
+
+  .detail-gallery-count-2 {
+    grid-template-columns: 30px 1fr 1fr 30px !important;
+  }
+
+  .detail-gallery-count-1 {
+    grid-template-columns: 30px 1fr 30px !important;
+  }
+
+  .detail-gallery > button {
+    width: 30px;
+    font-size: 2.8rem !important;
+  }
+
+  .detail-gallery > img,
+  .detail-gallery > img.active {
+    height: 180px !important;
+  }
+
+  .detail-gallery-all {
+    gap: 7px;
+  }
+
+  .detail-gallery-all img {
+    height: 70px;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-room-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-gallery-count-3 {
+    grid-template-columns: 30px minmax(0, 1fr) 30px !important;
+  }
+
+  .detail-gallery-count-3 > img:not(.active) {
+    display: none;
+  }
+
+  .detail-gallery-count-2 {
+    grid-template-columns: 30px minmax(0, 1fr) 30px !important;
+  }
+
+  .detail-gallery-count-2 > img:not(.active) {
+    display: none;
+  }
+
+  .detail-gallery > img,
+  .detail-gallery > img.active {
+    height: 240px !important;
+  }
+
+  .detail-gallery-all {
+    grid-template-columns: repeat(5, minmax(52px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .detail-gallery-all img {
+    height: 58px;
+  }
+}

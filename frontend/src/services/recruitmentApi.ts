@@ -66,6 +66,16 @@ function writeFallback(items: RecruitmentRecord[]) {
   window.localStorage.setItem(FALLBACK_STORAGE_KEY, JSON.stringify(items))
 }
 
+function createFallbackId(items: RecruitmentRecord[]) {
+  const maxNumber = items.reduce((max, item) => {
+    const match = String(item.id).match(/^td-(\d+)$/i)
+    if (!match) return max
+    return Math.max(max, Number(match[1]))
+  }, 0)
+
+  return `td-${String(maxNumber + 1).padStart(3, "0")}`
+}
+
 function normalizeRecruitment(
   row: BackendRecruitment,
   index = 0,
@@ -81,17 +91,20 @@ function normalizeRecruitment(
 
 async function parseError(response: Response) {
   let message = `API error ${response.status}`
+
   try {
     const data = (await response.json()) as {
       message?: string | string[]
       error?: string
     }
+
     if (Array.isArray(data.message)) message = data.message.join(", ")
     else if (data.message) message = data.message
     else if (data.error) message = data.error
   } catch {
     // Giữ thông báo mặc định.
   }
+
   return message
 }
 
@@ -99,6 +112,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = window.localStorage.getItem(ADMIN_TOKEN_KEY)
 
   let response: Response
+
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
@@ -122,6 +136,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) throw new Error(await parseError(response))
   if (response.status === 204) return undefined as T
+
   return response.json() as Promise<T>
 }
 
@@ -134,7 +149,9 @@ export async function getRecruitments(): Promise<RecruitmentListResult> {
     const response = await request<
       BackendRecruitment[] | { data?: BackendRecruitment[] }
     >(API_PATH)
+
     const rows = Array.isArray(response) ? response : response.data ?? []
+
     return {
       items: rows.map(normalizeRecruitment),
       source: "api",
@@ -152,12 +169,14 @@ export async function getRecruitmentById(
     const response = await request<BackendRecruitment>(
       `${API_PATH}/${encodeURIComponent(id)}`,
     )
-    return { item: normalizeRecruitment(response), source: "api" }
+
+    return {
+      item: normalizeRecruitment(response),
+      source: "api",
+    }
   } catch (error) {
     if (!(error instanceof RecruitmentApiUnavailableError)) throw error
 
-    // Nếu backend chỉ có API danh sách nhưng chưa có API chi tiết,
-    // vẫn tận dụng danh sách trước khi rơi về prototype local.
     try {
       const listResponse = await request<
         BackendRecruitment[] | { data?: BackendRecruitment[] }
@@ -165,17 +184,56 @@ export async function getRecruitmentById(
       const rows = Array.isArray(listResponse)
         ? listResponse
         : listResponse.data ?? []
+
       const apiItem = rows
         .map(normalizeRecruitment)
         .find((record) => record.id === id)
+
       if (apiItem) return { item: apiItem, source: "api" }
     } catch (listError) {
-      if (!(listError instanceof RecruitmentApiUnavailableError)) throw listError
+      if (!(listError instanceof RecruitmentApiUnavailableError)) {
+        throw listError
+      }
     }
 
     const item = readFallback().find((record) => record.id === id)
-    if (!item) throw new Error("Không tìm thấy thông tin tuyển dụng.")
+
+    if (!item) {
+      throw new Error("Không tìm thấy thông tin tuyển dụng.")
+    }
+
     return { item, source: "prototype" }
+  }
+}
+
+export async function createRecruitment(
+  payload: Omit<RecruitmentRecord, "id">,
+): Promise<RecruitmentItemResult> {
+  try {
+    const response = await request<BackendRecruitment>(API_PATH, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
+
+    return {
+      item: normalizeRecruitment(response),
+      source: "api",
+    }
+  } catch (error) {
+    if (!(error instanceof RecruitmentApiUnavailableError)) throw error
+
+    const items = readFallback()
+    const item: RecruitmentRecord = {
+      id: createFallbackId(items),
+      ...payload,
+    }
+
+    writeFallback([item, ...items])
+
+    return {
+      item,
+      source: "prototype",
+    }
   }
 }
 
@@ -191,17 +249,25 @@ export async function updateRecruitment(
         body: JSON.stringify(payload),
       },
     )
-    return { item: normalizeRecruitment(response), source: "api" }
+
+    return {
+      item: normalizeRecruitment(response),
+      source: "api",
+    }
   } catch (error) {
     if (!(error instanceof RecruitmentApiUnavailableError)) throw error
 
     const items = readFallback()
     const index = items.findIndex((record) => record.id === id)
-    if (index < 0) throw new Error("Không tìm thấy thông tin tuyển dụng.")
+
+    if (index < 0) {
+      throw new Error("Không tìm thấy thông tin tuyển dụng.")
+    }
 
     const item: RecruitmentRecord = { id, ...payload }
     items[index] = item
     writeFallback(items)
+
     return { item, source: "prototype" }
   }
 }
@@ -213,15 +279,18 @@ export async function deleteRecruitment(
     await request(`${API_PATH}/${encodeURIComponent(id)}`, {
       method: "DELETE",
     })
+
     return "api"
   } catch (error) {
     if (!(error instanceof RecruitmentApiUnavailableError)) throw error
 
     const items = readFallback()
     const nextItems = items.filter((record) => record.id !== id)
+
     if (nextItems.length === items.length) {
       throw new Error("Không tìm thấy thông tin tuyển dụng.")
     }
+
     writeFallback(nextItems)
     return "prototype"
   }

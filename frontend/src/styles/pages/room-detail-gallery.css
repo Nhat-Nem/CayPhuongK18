@@ -1,0 +1,129 @@
+/*
+ * Room detail gallery fix
+ * - Giữ lại carousel/mũi tên trái-phải của prototype.
+ * - Chỉ render ảnh thật từ backend (tối đa 2 ảnh do form Admin hiện tại).
+ * - Không tạo cột/ô ảnh thứ 3 rỗng.
+ */
+
+.detail-gallery {
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) 56px !important;
+  gap: 24px !important;
+  align-items: center;
+  max-width: 1320px;
+  margin: 65px auto 0;
+}
+
+.detail-gallery-track {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+  align-items: center;
+  min-width: 0;
+}
+
+.detail-gallery--1 .detail-gallery-track {
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.detail-gallery > button {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #70463a;
+  font-size: 4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    transform 0.2s,
+    opacity 0.2s;
+}
+
+.detail-gallery > button:hover:not(:disabled) {
+  color: #23487a;
+  transform: scale(1.12);
+}
+
+.detail-gallery > button:disabled {
+  opacity: 0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.detail-gallery-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.76;
+  transform: scale(0.94);
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
+}
+
+.detail-gallery-item img {
+  display: block;
+  width: 100% !important;
+  height: 235px !important;
+  object-fit: cover;
+  opacity: 1 !important;
+  cursor: pointer;
+}
+
+.detail-gallery-item.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.detail-gallery-item.active img {
+  height: 285px !important;
+  opacity: 1 !important;
+}
+
+.detail-gallery--1 .detail-gallery-item {
+  opacity: 1;
+  transform: none;
+}
+
+.detail-gallery--1 .detail-gallery-item img,
+.detail-gallery--1 .detail-gallery-item.active img {
+  height: 320px !important;
+}
+
+@media (max-width: 760px) {
+  .detail-gallery {
+    grid-template-columns: 34px minmax(0, 1fr) 34px !important;
+    gap: 8px !important;
+    margin-top: 42px;
+  }
+
+  .detail-gallery-track {
+    gap: 8px;
+  }
+
+  .detail-gallery > button {
+    width: 34px;
+    height: 44px;
+    font-size: 2.7rem;
+  }
+
+  .detail-gallery-item img,
+  .detail-gallery-item.active img {
+    height: 145px !important;
+  }
+
+  .detail-gallery--1 .detail-gallery-item img,
+  .detail-gallery--1 .detail-gallery-item.active img {
+    height: 240px !important;
+  }
+}

@@ -18,7 +18,7 @@ export type RoomPrototype = {
   status: RoomStatus
   capacity: number
   description: string
-  images: [string, string]
+  images: string[]
 }
 
 export const roomPrototypeData: RoomPrototype[] = [

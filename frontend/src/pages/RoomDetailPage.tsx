@@ -8,7 +8,7 @@ import { getRoomById } from "@/services/roomApi"
 export default function RoomDetailPage() {
   const roomId = new URLSearchParams(window.location.search).get("id")
   const [room, setRoom] = useState<RoomPrototype | null>(null)
-  const [active, setActive] = useState(1)
+  const [active, setActive] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -24,7 +24,9 @@ export default function RoomDetailPage() {
         if (data.status !== "AVAILABLE") {
           throw new Error("Phòng hiện không được mở bán.")
         }
+
         setRoom(data)
+        setActive(0)
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
@@ -56,7 +58,42 @@ export default function RoomDetailPage() {
     )
   }
 
-  const gallery = [room.images[0], room.images[1], "87e80.png"]
+  const gallery = Array.from(
+    new Set(room.images.filter((image) => Boolean(image))),
+  ).slice(0, 5)
+
+  const galleryLength = gallery.length
+  const safeActive =
+    galleryLength > 0
+      ? ((active % galleryLength) + galleryLength) % galleryLength
+      : 0
+
+  // Carousel giữ bố cục prototype: tối đa 3 ảnh lớn cùng lúc.
+  // Toàn bộ tối đa 5 ảnh vẫn luôn xuất hiện ở dải thumbnail phía dưới
+  // và đều có thể duyệt bằng hai mũi tên trái/phải.
+  const visibleIndexes =
+    galleryLength >= 3
+      ? [
+          (safeActive + galleryLength - 1) % galleryLength,
+          safeActive,
+          (safeActive + 1) % galleryLength,
+        ]
+      : Array.from({ length: galleryLength }, (_, index) => index)
+
+  const previousImage = () => {
+    if (galleryLength <= 1) return
+
+    setActive(
+      (current) =>
+        (current + galleryLength - 1) % galleryLength,
+    )
+  }
+
+  const nextImage = () => {
+    if (galleryLength <= 1) return
+
+    setActive((current) => (current + 1) % galleryLength)
+  }
 
   return (
     <Shell>
@@ -74,6 +111,7 @@ export default function RoomDetailPage() {
             </p>
             <h2>{room.name}</h2>
             <p>{room.description}</p>
+
             <p className="room-detail-price">
               <strong>{formatRoomPrice(room.price)}</strong>
               <span>/ đêm</span>
@@ -100,14 +138,23 @@ export default function RoomDetailPage() {
               gũi thiên nhiên, nội thất ấm cúng và các tiện nghi cần thiết cho kỳ
               nghỉ thoải mái.
             </p>
-            <img src={resolveImageSource(room.images[0])} alt={room.name} />
+
+            {gallery[0] && (
+              <img
+                src={resolveImageSource(gallery[0])}
+                alt={`${room.name} - ảnh chính`}
+              />
+            )}
           </div>
 
           <div>
-            <img
-              src={resolveImageSource(room.images[1])}
-              alt={`Không gian ${room.name}`}
-            />
+            {gallery[1] && (
+              <img
+                src={resolveImageSource(gallery[1])}
+                alt={`${room.name} - ảnh phụ 1`}
+              />
+            )}
+
             <div className="amenity-panel">
               <h3>Tiện nghi trong phòng</h3>
               <ul>
@@ -117,6 +164,7 @@ export default function RoomDetailPage() {
                 <li>Phòng tắm riêng, vòi sen</li>
                 <li>Trà và cà phê miễn phí</li>
               </ul>
+
               <a
                 className="room-booking-link"
                 href={`/dat-phong?room=${room.id}`}
@@ -127,29 +175,64 @@ export default function RoomDetailPage() {
           </div>
         </div>
 
-        <div className="detail-gallery">
-          <button
-            onClick={() =>
-              setActive((active + gallery.length - 1) % gallery.length)
-            }
+        {galleryLength > 0 && (
+          <section
+            className="detail-gallery-section"
+            aria-label={`Thư viện ảnh ${room.name}`}
           >
-            ‹
-          </button>
-          {gallery.map((image, i) => (
-            <img
-              className={i === active ? "active" : ""}
-              onClick={() => setActive(i)}
-              src={resolveImageSource(image)}
-              alt=""
-              key={`${image}-${i}`}
-            />
-          ))}
-          <button
-            onClick={() => setActive((active + 1) % gallery.length)}
-          >
-            ›
-          </button>
-        </div>
+            <div
+              className={`detail-gallery detail-gallery-count-${Math.min(
+                galleryLength,
+                3,
+              )}`}
+            >
+              <button
+                type="button"
+                onClick={previousImage}
+                disabled={galleryLength <= 1}
+                aria-label="Xem ảnh trước"
+              >
+                ‹
+              </button>
+
+              {visibleIndexes.map((imageIndex) => (
+                <img
+                  className={imageIndex === safeActive ? "active" : ""}
+                  onClick={() => setActive(imageIndex)}
+                  src={resolveImageSource(gallery[imageIndex])}
+                  alt={`${room.name} - ảnh ${imageIndex + 1}`}
+                  key={`${gallery[imageIndex]}-${imageIndex}`}
+                />
+              ))}
+
+              <button
+                type="button"
+                onClick={nextImage}
+                disabled={galleryLength <= 1}
+                aria-label="Xem ảnh tiếp theo"
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="detail-gallery-all">
+              {gallery.map((image, index) => (
+                <button
+                  type="button"
+                  className={index === safeActive ? "active" : ""}
+                  onClick={() => setActive(index)}
+                  aria-label={`Chọn ảnh ${index + 1}`}
+                  key={`thumb-${image}-${index}`}
+                >
+                  <img
+                    src={resolveImageSource(image)}
+                    alt={`${room.name} - ảnh nhỏ ${index + 1}`}
+                  />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
     </Shell>
   )

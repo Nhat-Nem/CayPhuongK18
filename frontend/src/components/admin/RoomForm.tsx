@@ -9,6 +9,9 @@ import {
 import { createRoom, getRooms, updateRoom } from "@/services/roomApi"
 import { fileToRoomImage } from "@/utils/roomImage"
 
+const MAX_ROOM_IMAGES = 5
+const MAX_SECONDARY_IMAGES = MAX_ROOM_IMAGES - 1
+
 export type RoomFormValues = {
   code: string
   name: string
@@ -18,8 +21,10 @@ export type RoomFormValues = {
   capacity: string
   description: string
   primaryImage: string
-  secondaryImage: string
+  secondaryImages: string[]
 }
+
+type RoomTextField = Exclude<keyof RoomFormValues, "secondaryImages">
 
 interface RoomFormProps {
   mode: "create" | "edit"
@@ -34,8 +39,8 @@ const createInitialValues = (room?: RoomPrototype): RoomFormValues => ({
   status: room?.status ?? "AVAILABLE",
   capacity: room ? String(room.capacity) : "2",
   description: room?.description ?? "",
-  primaryImage: room?.images[0] ?? "8bb71.png",
-  secondaryImage: room?.images[1] ?? "a0b15.png",
+  primaryImage: room?.images[0] ?? "",
+  secondaryImages: room?.images.slice(1, MAX_ROOM_IMAGES) ?? [],
 })
 
 export default function RoomForm({ mode, room }: RoomFormProps) {
@@ -45,35 +50,98 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
   const [error, setError] = useState("")
   const [saving, setSaving] = useState(false)
   const [processingImage, setProcessingImage] = useState<
-    "primaryImage" | "secondaryImage" | null
+    "primary" | "secondary" | null
   >(null)
 
-  const updateField = (field: keyof RoomFormValues, value: string) => {
+  const updateField = (field: RoomTextField, value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
     if (error) setError("")
   }
 
-  const handleImageChange = async (
-    field: "primaryImage" | "secondaryImage",
+  const handlePrimaryImageChange = async (
     event: ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     setError("")
-    setProcessingImage(field)
+    setProcessingImage("primary")
 
     try {
       const imageData = await fileToRoomImage(file)
-      updateField(field, imageData)
+
+      setValues((current) => ({
+        ...current,
+        primaryImage: imageData,
+      }))
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Không thể xử lý ảnh đã chọn.",
       )
-      event.target.value = ""
     } finally {
+      event.target.value = ""
       setProcessingImage(null)
     }
+  }
+
+  const handleSecondaryImagesChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(event.target.files ?? [])
+    if (files.length === 0) return
+
+    const remaining = MAX_SECONDARY_IMAGES - values.secondaryImages.length
+
+    if (remaining <= 0) {
+      setError("Đã đủ 4 ảnh phụ. Một phòng được phép có tối đa 5 ảnh.")
+      event.target.value = ""
+      return
+    }
+
+    if (files.length > remaining) {
+      setError(
+        `Bạn chỉ có thể thêm ${remaining} ảnh phụ nữa (tối đa 5 ảnh/phòng).`,
+      )
+      event.target.value = ""
+      return
+    }
+
+    setError("")
+    setProcessingImage("secondary")
+
+    try {
+      const newImages: string[] = []
+
+      for (const file of files) {
+        newImages.push(await fileToRoomImage(file))
+      }
+
+      setValues((current) => ({
+        ...current,
+        secondaryImages: [
+          ...current.secondaryImages,
+          ...newImages,
+        ].slice(0, MAX_SECONDARY_IMAGES),
+      }))
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Không thể xử lý ảnh đã chọn.",
+      )
+    } finally {
+      event.target.value = ""
+      setProcessingImage(null)
+    }
+  }
+
+  const removeSecondaryImage = (index: number) => {
+    setValues((current) => ({
+      ...current,
+      secondaryImages: current.secondaryImages.filter(
+        (_, imageIndex) => imageIndex !== index,
+      ),
+    }))
+
+    if (error) setError("")
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -84,11 +152,17 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
       return
     }
 
+    if (!values.primaryImage) {
+      setError("Vui lòng chọn 1 ảnh chính cho phòng.")
+      return
+    }
+
     setSaving(true)
     setError("")
 
     try {
       const rooms = await getRooms()
+
       const duplicate = rooms.some(
         (item) =>
           item.code.trim().toLocaleLowerCase("vi") ===
@@ -105,13 +179,14 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
         name: values.name.trim(),
         type: values.type,
         price: Number(values.price),
-        // Backend chỉ nhận giá trị máy đọc được, không gửi chuỗi hiển thị tiếng Việt.
         status: values.status,
         capacity: Number(values.capacity),
         description: values.description.trim(),
-        primaryImage: values.primaryImage || "8bb71.png",
-        secondaryImage:
-          values.secondaryImage || values.primaryImage || "a0b15.png",
+        primaryImage: values.primaryImage,
+        secondaryImages: values.secondaryImages.slice(
+          0,
+          MAX_SECONDARY_IMAGES,
+        ),
       }
 
       if (mode === "create") {
@@ -129,6 +204,9 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
       setSaving(false)
     }
   }
+
+  const totalImages =
+    (values.primaryImage ? 1 : 0) + values.secondaryImages.length
 
   return (
     <form className="admin-room-form" onSubmit={handleSubmit}>
@@ -209,7 +287,7 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
               </option>
             </select>
             <small>
-              Backend lưu AVAILABLE / UNAVAILABLE; giao diện chỉ render nhãn tiếng
+              Backend lưu AVAILABLE / UNAVAILABLE; giao diện render nhãn tiếng
               Việt.
             </small>
           </label>
@@ -236,9 +314,7 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
             <span>02</span>
             <div>
               <h2>Mô tả phòng</h2>
-              <p>
-                Đã bỏ Loại giường và Tầm nhìn để khớp với dữ liệu phòng ở backend.
-              </p>
+              <p>Bổ sung thông tin giúp khách hàng lựa chọn phòng phù hợp.</p>
             </div>
           </div>
         </div>
@@ -264,55 +340,125 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
             <span>03</span>
             <div>
               <h2>Hình ảnh phòng</h2>
-              <p>Chọn ảnh trực tiếp từ máy tính. Frontend tự nén ảnh trước khi lưu.</p>
+              <p>
+                1 ảnh chính + tối đa 4 ảnh phụ. Tổng cộng tối đa 5 ảnh/phòng.
+              </p>
             </div>
           </div>
+          <small>{totalImages}/{MAX_ROOM_IMAGES} ảnh</small>
         </div>
 
-        <div className="admin-room-image-grid">
-          <label className="admin-room-image-picker">
+        <div className="admin-room-image-grid admin-room-image-grid--multi">
+          <div className="admin-room-image-picker">
             <span>Ảnh chính *</span>
-            <div className="admin-room-image-preview">
-              <img
-                src={resolveImageSource(values.primaryImage)}
-                alt="Xem trước ảnh chính"
-              />
-            </div>
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) =>
-                void handleImageChange("primaryImage", event)
-              }
-            />
-            <small>
-              {processingImage === "primaryImage"
-                ? "Đang xử lý ảnh..."
-                : "JPG, PNG hoặc WEBP · tối đa 8 MB"}
-            </small>
-          </label>
 
-          <label className="admin-room-image-picker">
-            <span>Ảnh phụ</span>
             <div className="admin-room-image-preview">
-              <img
-                src={resolveImageSource(values.secondaryImage)}
-                alt="Xem trước ảnh phụ"
-              />
+              {values.primaryImage ? (
+                <img
+                  src={resolveImageSource(values.primaryImage)}
+                  alt="Xem trước ảnh chính"
+                />
+              ) : (
+                <div className="admin-room-image-empty">
+                  Chưa chọn ảnh chính
+                </div>
+              )}
+
+              <strong className="admin-room-image-badge">Ảnh chính</strong>
             </div>
+
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={(event) =>
-                void handleImageChange("secondaryImage", event)
-              }
+              onChange={(event) => void handlePrimaryImageChange(event)}
             />
+
             <small>
-              {processingImage === "secondaryImage"
+              {processingImage === "primary"
                 ? "Đang xử lý ảnh..."
                 : "JPG, PNG hoặc WEBP · tối đa 8 MB"}
             </small>
-          </label>
+          </div>
+
+          <div className="admin-room-secondary-images">
+            <div className="admin-room-secondary-heading">
+              <div>
+                <strong>Ảnh phụ</strong>
+                <span>
+                  {values.secondaryImages.length}/{MAX_SECONDARY_IMAGES}
+                </span>
+              </div>
+
+              <small>
+                Có thể chọn nhiều ảnh cùng lúc. Carousel sẽ dùng toàn bộ ảnh.
+              </small>
+            </div>
+
+            <div className="admin-room-secondary-grid">
+              {values.secondaryImages.map((image, index) => (
+                <div
+                  className="admin-room-secondary-item"
+                  key={`${image.slice(0, 40)}-${index}`}
+                >
+                  <img
+                    src={resolveImageSource(image)}
+                    alt={`Ảnh phụ ${index + 1}`}
+                  />
+                  <span>Ảnh phụ {index + 1}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => removeSecondaryImage(index)}
+                    aria-label={`Xóa ảnh phụ ${index + 1}`}
+                    title="Xóa ảnh"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {values.secondaryImages.length === 0 && (
+                <div className="admin-room-secondary-empty">
+                  Chưa có ảnh phụ
+                </div>
+              )}
+            </div>
+
+            <label
+              className={`admin-room-secondary-add ${
+                values.secondaryImages.length >= MAX_SECONDARY_IMAGES
+                  ? "disabled"
+                  : ""
+              }`}
+            >
+              <span>
+                {values.secondaryImages.length >= MAX_SECONDARY_IMAGES
+                  ? "Đã đủ 4 ảnh phụ"
+                  : "+ Thêm ảnh phụ"}
+              </span>
+
+              <input
+                type="file"
+                multiple
+                disabled={
+                  values.secondaryImages.length >= MAX_SECONDARY_IMAGES ||
+                  Boolean(processingImage)
+                }
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) =>
+                  void handleSecondaryImagesChange(event)
+                }
+              />
+            </label>
+
+            <small className="admin-room-secondary-note">
+              {processingImage === "secondary"
+                ? "Đang xử lý ảnh phụ..."
+                : `Còn ${
+                    MAX_SECONDARY_IMAGES - values.secondaryImages.length
+                  } vị trí ảnh phụ.`}
+            </small>
+          </div>
         </div>
       </section>
 
@@ -324,6 +470,7 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
         <a className="admin-secondary-button" href={routes.adminRooms}>
           Hủy
         </a>
+
         <button
           className="admin-primary-button"
           disabled={saving || Boolean(processingImage)}

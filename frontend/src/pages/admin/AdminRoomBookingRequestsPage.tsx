@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   getRoomBookingRequests,
+  updateRoomBookingRequestStatus,
   type RoomBookingRequestRecord,
+  type RoomBookingStatus,
 } from "@/services/roomBookingRequestApi"
 
 function formatDate(value: string) {
@@ -22,30 +24,33 @@ function formatCreatedAt(value: string) {
   }).format(date)
 }
 
-function statusLabel(value: string) {
-  switch (value.trim().toUpperCase()) {
-    case "PENDING": return "Chờ tiếp nhận"
-    case "CONFIRMED": return "Đã xác nhận"
-    case "CANCELLED":
-    case "CANCELED": return "Đã hủy"
-    case "COMPLETED": return "Hoàn tất"
-    default: return value || "—"
-  }
-}
+const BOOKING_STATUS_OPTIONS: Array<{
+  value: RoomBookingStatus
+  label: string
+}> = [
+  { value: "PENDING", label: "Chờ tiếp nhận" },
+  { value: "CONFIRMED", label: "Đã xác nhận" },
+  { value: "COMPLETED", label: "Hoàn tất" },
+  { value: "CANCELLED", label: "Đã hủy" },
+]
 
 export default function AdminRoomBookingRequestsPage() {
   const [records, setRecords] = useState<RoomBookingRequestRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [keyword, setKeyword] = useState("")
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   const loadData = async () => {
     setLoading(true)
     setError("")
+
     try {
       setRecords(await getRoomBookingRequests())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể tải đơn đặt phòng")
+      setError(
+        err instanceof Error ? err.message : "Không thể tải đơn đặt phòng",
+      )
     } finally {
       setLoading(false)
     }
@@ -55,9 +60,50 @@ export default function AdminRoomBookingRequestsPage() {
     void loadData()
   }, [])
 
+  const handleStatusChange = async (
+    record: RoomBookingRequestRecord,
+    status: RoomBookingStatus,
+  ) => {
+    if (status === record.status) return
+
+    const previousStatus = record.status
+    setUpdatingId(record.id)
+    setError("")
+
+    // Cập nhật giao diện ngay, nếu API lỗi sẽ trả lại trạng thái cũ.
+    setRecords((current) =>
+      current.map((item) =>
+        item.id === record.id ? { ...item, status } : item,
+      ),
+    )
+
+    try {
+      const updated = await updateRoomBookingRequestStatus(record.id, status)
+      setRecords((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      )
+    } catch (err) {
+      setRecords((current) =>
+        current.map((item) =>
+          item.id === record.id
+            ? { ...item, status: previousStatus }
+            : item,
+        ),
+      )
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không thể cập nhật trạng thái đơn đặt phòng.",
+      )
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
   const filteredRecords = useMemo(() => {
     const q = keyword.trim().toLowerCase()
     if (!q) return records
+
     return records.filter((record) =>
       [
         record.id,
@@ -75,17 +121,19 @@ export default function AdminRoomBookingRequestsPage() {
   }, [keyword, records])
 
   const pendingCount = records.filter(
-    (record) => record.status.trim().toUpperCase() === "PENDING",
+    (record) => record.status === "PENDING",
   ).length
 
   const today = new Date().toISOString().slice(0, 10)
-  const checkInTodayCount = records.filter((record) => record.checkIn === today).length
+  const checkInTodayCount = records.filter(
+    (record) => record.checkIn === today,
+  ).length
 
   return (
     <AdminRoomLayout
-      eyebrow="SPRINT 2 · TIẾP NHẬN"
+      eyebrow="TIẾP NHẬN"
       title="Tiếp nhận form Đặt phòng"
-      subtitle="Các yêu cầu khách gửi từ mục Đặt phòng tại trang Liên hệ. Dữ liệu lấy từ GET /api/v1/room-booking-requests."
+      subtitle="Các yêu cầu khách gửi từ mục Đặt phòng tại trang Liên hệ. Admin có thể cập nhật trạng thái trực tiếp tại danh sách."
       primaryAction={
         <button
           className="admin-primary-button"
@@ -121,6 +169,7 @@ export default function AdminRoomBookingRequestsPage() {
             <span>FORM KHÁCH HÀNG · ĐẶT PHÒNG</span>
             <h2>Danh sách yêu cầu đặt phòng</h2>
           </div>
+
           <label className="admin-room-booking-search">
             <span>Tìm kiếm</span>
             <input
@@ -131,20 +180,24 @@ export default function AdminRoomBookingRequestsPage() {
           </label>
         </div>
 
-        {error ? (
+        {error && (
           <div className="admin-room-booking-message error" role="alert">
-            <strong>Không tải được form đặt phòng</strong>
+            <strong>Có lỗi xảy ra</strong>
             <p>{error}</p>
-            <small>Kiểm tra backend có GET /api/v1/room-booking-requests và backend đang chạy.</small>
           </div>
-        ) : loading ? (
+        )}
+
+        {loading ? (
           <div className="admin-room-booking-message">
             <strong>Đang tải form đặt phòng...</strong>
           </div>
         ) : filteredRecords.length === 0 ? (
           <div className="admin-room-booking-message">
             <strong>Chưa có form đặt phòng</strong>
-            <p>Khi khách gửi mục Đặt phòng ở trang Liên hệ, yêu cầu sẽ xuất hiện tại đây.</p>
+            <p>
+              Khi khách gửi mục Đặt phòng ở trang Liên hệ, yêu cầu sẽ xuất hiện
+              tại đây.
+            </p>
           </div>
         ) : (
           <div className="admin-s2-table-wrap">
@@ -163,6 +216,7 @@ export default function AdminRoomBookingRequestsPage() {
                   <th>Trạng thái</th>
                 </tr>
               </thead>
+
               <tbody>
                 {filteredRecords.map((record) => (
                   <tr key={record.id}>
@@ -170,21 +224,62 @@ export default function AdminRoomBookingRequestsPage() {
                       <strong>DP-{record.id.padStart(6, "0")}</strong>
                       <small>{formatCreatedAt(record.createdAt)}</small>
                     </td>
-                    <td><strong>{record.customerName || "—"}</strong></td>
+                    <td>
+                      <strong>{record.customerName || "—"}</strong>
+                    </td>
                     <td>
                       <strong>{record.customerPhone || "—"}</strong>
-                      {record.customerPhone && <a className="admin-room-booking-call" href={`tel:${record.customerPhone}`}>Gọi khách</a>}
+                      {record.customerPhone && (
+                        <a
+                          className="admin-room-booking-call"
+                          href={`tel:${record.customerPhone}`}
+                        >
+                          Gọi khách
+                        </a>
+                      )}
                     </td>
                     <td>{record.customerEmail || "—"}</td>
-                    <td><strong>{record.roomType || "—"}</strong></td>
-                    <td><strong>{record.guests ?? "—"}</strong></td>
+                    <td>
+                      <strong>{record.roomType || "—"}</strong>
+                    </td>
+                    <td>
+                      <strong>{record.guests ?? "—"}</strong>
+                    </td>
                     <td>{formatDate(record.checkIn)}</td>
                     <td>{formatDate(record.checkOut)}</td>
-                    <td className="admin-room-booking-note">{record.note || "—"}</td>
+                    <td className="admin-room-booking-note">
+                      {record.note || "—"}
+                    </td>
                     <td>
-                      <span className={`admin-room-booking-status status-${record.status.toLowerCase()}`}>
-                        {statusLabel(record.status)}
-                      </span>
+                      <select
+                        className="admin-s2-status"
+                        value={record.status}
+                        disabled={updatingId === record.id}
+                        onChange={(event) =>
+                          void handleStatusChange(
+                            record,
+                            event.target.value as RoomBookingStatus,
+                          )
+                        }
+                        aria-label={`Trạng thái đơn DP-${record.id.padStart(
+                          6,
+                          "0",
+                        )}`}
+                      >
+                        {BOOKING_STATUS_OPTIONS.map((option) => (
+                          <option
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {updatingId === record.id && (
+                        <small className="admin-booking-status-saving">
+                          Đang lưu...
+                        </small>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -17,11 +17,13 @@ import MenuDetailPage from "@/pages/MenuDetailPage"
 import AdminRoomsPage from "@/pages/admin/AdminRoomsPage"
 import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
+import AdminMenuPage from "@/pages/admin/AdminMenuPage"
 import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
 import AdminLoginPage from "@/pages/admin/AdminLoginPage"
 import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
+import AdminRecruitmentCreatePage from "@/pages/admin/AdminRecruitmentCreatePage"
 import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
 import { isAdminAuthenticated } from "@/utils/adminAuth"
 
@@ -60,10 +62,12 @@ export default function App() {
       [routes.adminRooms]: "Quản lý phòng",
       [routes.adminRoomCreate]: "Thêm phòng",
       [routes.adminRoomEdit]: "Sửa phòng",
+      [routes.adminMenu]: "Quản lý thực đơn",
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
       [routes.adminRecruitments]: "Quản lý tuyển dụng",
+      [routes.adminRecruitmentCreate]: "Thêm tuyển dụng",
       [routes.adminRecruitmentEdit]: "Sửa tuyển dụng",
     }
 
@@ -101,6 +105,10 @@ export default function App() {
   else if (path === routes.adminRooms) {
     page = <AdminRoomsPage />
   }
+  // Thực đơn
+  else if (path === routes.adminMenu) {
+    page = <AdminMenuPage />
+  }
   // Sprint 2
   else if (path === routes.adminRoomBookings) {
     page = <AdminRoomBookingRequestsPage />
@@ -112,6 +120,9 @@ export default function App() {
     page = <AdminContactPage />
   }
   // Tuyển dụng · US.18–US.21
+  else if (path === routes.adminRecruitmentCreate) {
+    page = <AdminRecruitmentCreatePage />
+  }
   else if (path === routes.adminRecruitmentEdit) {
     page = <AdminRecruitmentEditPage />
   }
