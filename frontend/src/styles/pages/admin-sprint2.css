@@ -378,3 +378,12 @@
     width: 100%;
   }
 }
+
+
+/* Trạng thái đơn đặt phòng */
+.admin-booking-status-saving {
+  display: block;
+  margin-top: 5px;
+  color: #7f858a;
+  font-size: .66rem;
+}

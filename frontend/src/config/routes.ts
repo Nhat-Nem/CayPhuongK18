@@ -13,17 +13,21 @@ export const routes = {
   admin: "/admin",
   adminLogin: "/admin/dang-nhap",
 
-  // Sprint 1 - Quản lý phòng
+  // Quản lý phòng
   adminRooms: "/admin/phong",
   adminRoomCreate: "/admin/phong/them",
   adminRoomEdit: "/admin/phong/sua",
 
-  // Sprint 2
+  // Thực đơn
+  adminMenu: "/admin/thuc-don",
+
+  // Tiếp nhận
   adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",
   adminContact: "/admin/lien-he",
 
-  // Tuyển dụng · US.18–US.21
+  // Tuyển dụng
   adminRecruitments: "/admin/tuyen-dung",
+  adminRecruitmentCreate: "/admin/tuyen-dung/them",
   adminRecruitmentEdit: "/admin/tuyen-dung/sua",
 }

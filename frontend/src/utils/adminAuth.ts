@@ -1,38 +1,80 @@
-import { apiRequest } from '@/services/api'
+import { apiRequest } from "@/services/api"
 
-const ADMIN_TOKEN_KEY = 'cay-phuong-admin-token'
-const ADMIN_USER_KEY = 'cay-phuong-admin-user'
+const ADMIN_TOKEN_KEY = "cay-phuong-admin-token"
+const ADMIN_USER_KEY = "cay-phuong-admin-user"
+
+const DEMO_ADMIN = {
+  username: "admin",
+  email:
+    (import.meta.env.VITE_ADMIN_EMAIL as string | undefined)?.trim() ||
+    "admin@cayphuong.local",
+  password: "Admin@123",
+}
 
 export interface AdminUser {
   id: string
-  username: string
+  username?: string
   email: string
   full_name: string
-  role: 'ADMIN'
+  role: "ADMIN"
 }
 
 interface LoginResponse {
   access_token: string
-  user: AdminUser
+  user: {
+    id: string
+    username?: string
+    email: string
+    full_name: string
+    role: "ADMIN"
+  }
 }
 
 export function isAdminAuthenticated() {
   return Boolean(window.localStorage.getItem(ADMIN_TOKEN_KEY))
 }
 
-export async function loginAdmin(usernameOrEmail: string, password: string) {
-  const result = await apiRequest<LoginResponse>('/api/v1/auth', {
-    method: 'POST',
+function resolveBackendLoginEmail(usernameOrEmail: string) {
+  const value = usernameOrEmail.trim()
+
+  // Backend Auth hiện tìm User theo field email.
+  // Giao diện vẫn cho phép nhập tài khoản demo "admin", nên map nó
+  // sang email seed tương ứng trước khi POST /api/v1/auth.
+  if (value.toLowerCase() === DEMO_ADMIN.username) {
+    return DEMO_ADMIN.email
+  }
+
+  // Nếu người dùng nhập email trực tiếp thì gửi nguyên giá trị.
+  return value
+}
+
+export async function loginAdmin(
+  usernameOrEmail: string,
+  password: string,
+) {
+  const loginEmail = resolveBackendLoginEmail(usernameOrEmail)
+
+  const result = await apiRequest<LoginResponse>("/api/v1/auth", {
+    method: "POST",
     body: JSON.stringify({
-      // Backend chấp nhận cả username và email trong field email để giữ tương thích DTO hiện tại.
-      email: usernameOrEmail.trim(),
+      email: loginEmail,
       password,
     }),
   })
 
+  const user: AdminUser = {
+    ...result.user,
+    username:
+      result.user.username ||
+      (usernameOrEmail.includes("@")
+        ? result.user.email
+        : usernameOrEmail.trim()),
+  }
+
   window.localStorage.setItem(ADMIN_TOKEN_KEY, result.access_token)
-  window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(result.user))
-  return result.user
+  window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user))
+
+  return user
 }
 
 export function logoutAdmin() {
@@ -41,6 +83,7 @@ export function logoutAdmin() {
 }
 
 export const demoAdminAccount = {
-  username: 'admin',
-  password: 'Admin@123',
+  username: DEMO_ADMIN.username,
+  email: DEMO_ADMIN.email,
+  password: DEMO_ADMIN.password,
 }
