@@ -52,11 +52,7 @@ export default function AdminRecruitmentCreatePage() {
       }
     >
       <div className="admin-recruitment-api-note">
-        <span>
-          Nếu backend có {getRecruitmentApiPath()}, frontend sẽ POST vào API.
-          Nếu backend chưa có module tuyển dụng, dữ liệu được lưu prototype local
-          để hoàn thiện phần giao diện của Kiệt và Đông.
-        </span>
+        <span>Dữ liệu được lưu qua POST {getRecruitmentApiPath()}.</span>
       </div>
 
       <section className="admin-recruitment-edit-card">

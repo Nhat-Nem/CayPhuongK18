@@ -1,100 +1,200 @@
-import { dishes, type Dish } from "@/data/dishes"
+import { apiRequest } from "./api"
 
-export type MenuDish = Dish & {
+export type MenuGroup = "Món ăn" | "Tráng miệng"
+
+export type MenuCategory = {
   id: string
-  custom?: boolean
+  name: string
+  description: string
 }
 
-export type CreateMenuDishPayload = Omit<MenuDish, "id" | "custom">
+export type MenuDish = {
+  id: string
+  image: string
+  name: string
+  price: string
+  priceValue: number
+  group: MenuGroup
+  category: string
+  categoryId: string
+  description: string
+  ingredient: string
+  custom: true
+}
 
-const CUSTOM_MENU_KEY = "cay-phuong-custom-menu-v1"
+export type CreateMenuDishPayload = {
+  name: string
+  price: number
+  categoryId: number
+  description?: string
+  ingredient?: string
+  image?: string
+}
+
+type BackendCategory = {
+  id: string | number
+  name: string
+  description?: string | null
+}
+
+type BackendMenuItem = {
+  id: string | number
+  name: string
+  description?: string | null
+  price: string | number
+  ingredient?: string | null
+  image?: string | null
+  sold?: number
+  categoryId: string | number
+  category?: BackendCategory | null
+  createdAt?: string
+  updatedAt?: string
+}
+
 export const MENU_UPDATED_EVENT = "cay-phuong-menu-updated"
+export const MENU_ITEMS_API_PATH = "/api/v1/menu-items"
+export const CATEGORY_API_PATH = "/api/v1/category"
 
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/đ/g, "d")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+function formatPrice(value: string | number) {
+  const amount = Number(value)
+  if (!Number.isFinite(amount)) return String(value)
+  return `${new Intl.NumberFormat("vi-VN").format(amount)} VNĐ`
 }
 
-function builtInDishes(): MenuDish[] {
-  return dishes.map((dish, index) => ({
-    ...dish,
-    id: `menu-${String(index + 1).padStart(2, "0")}-${slugify(dish.name)}`,
-    custom: false,
-  }))
+function resolveGroup(categoryName: string): MenuGroup {
+  return categoryName.toLocaleLowerCase("vi").includes("tráng miệng")
+    ? "Tráng miệng"
+    : "Món ăn"
 }
 
-function readCustomDishes(): MenuDish[] {
-  try {
-    const raw = window.localStorage.getItem(CUSTOM_MENU_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as MenuDish[]
-    if (!Array.isArray(parsed)) return []
-
-    return parsed
-      .filter((item) => item && item.name)
-      .map((item) => ({
-        id: String(item.id),
-        image: String(item.image || "/assets/122ab.png"),
-        name: String(item.name),
-        price: String(item.price),
-        group: item.group === "Tráng miệng" ? "Tráng miệng" : "Món ăn",
-        category: String(item.category || "Món ăn"),
-        description: String(item.description || ""),
-        custom: true,
-      }))
-  } catch {
-    return []
+function normalizeCategory(row: BackendCategory): MenuCategory {
+  return {
+    id: String(row.id),
+    name: String(row.name ?? "").trim(),
+    description: String(row.description ?? "").trim(),
   }
 }
 
-function writeCustomDishes(items: MenuDish[]) {
-  window.localStorage.setItem(CUSTOM_MENU_KEY, JSON.stringify(items))
+function normalizeMenuItem(row: BackendMenuItem): MenuDish {
+  const categoryName = String(row.category?.name ?? "Chưa phân loại").trim()
+  const amount = Number(row.price)
+
+  return {
+    id: String(row.id),
+    image: String(row.image ?? "").trim() || "/assets/122ab.png",
+    name: String(row.name ?? "").trim(),
+    price: formatPrice(row.price),
+    priceValue: Number.isFinite(amount) ? amount : 0,
+    group: resolveGroup(categoryName),
+    category: categoryName,
+    categoryId: String(row.category?.id ?? row.categoryId ?? ""),
+    description: String(row.description ?? "").trim(),
+    ingredient: String(row.ingredient ?? "").trim(),
+    custom: true,
+  }
+}
+
+function emitMenuUpdated() {
   window.dispatchEvent(new Event(MENU_UPDATED_EVENT))
 }
 
-export function getMenuDishes(): MenuDish[] {
-  return [...builtInDishes(), ...readCustomDishes()]
+export async function getMenuCategories(): Promise<MenuCategory[]> {
+  const rows = await apiRequest<BackendCategory[]>(CATEGORY_API_PATH)
+  return rows.map(normalizeCategory)
 }
 
-export function getMenuDishById(id: string): MenuDish | undefined {
-  return getMenuDishes().find((item) => item.id === id)
+export async function createMenuCategory(payload: {
+  name: string
+  description?: string
+}): Promise<MenuCategory> {
+  const row = await apiRequest<BackendCategory>(CATEGORY_API_PATH, {
+    method: "POST",
+    body: JSON.stringify({
+      name: payload.name.trim(),
+      ...(payload.description?.trim()
+        ? { description: payload.description.trim() }
+        : {}),
+    }),
+  })
+
+  emitMenuUpdated()
+  return normalizeCategory(row)
 }
 
-export function addMenuDish(payload: CreateMenuDishPayload): MenuDish {
-  const custom = readCustomDishes()
-  const item: MenuDish = {
-    ...payload,
-    id: `custom-${Date.now()}-${slugify(payload.name) || "mon"}`,
-    custom: true,
-  }
-  writeCustomDishes([...custom, item])
-  return item
+export async function deleteMenuCategory(id: string): Promise<void> {
+  await apiRequest<{ message?: string }>(
+    `${CATEGORY_API_PATH}/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+  )
+  emitMenuUpdated()
 }
 
-export function updateMenuDish(
+export async function getMenuDishes(): Promise<MenuDish[]> {
+  const rows = await apiRequest<BackendMenuItem[]>(MENU_ITEMS_API_PATH)
+  return rows.map(normalizeMenuItem)
+}
+
+export async function getMenuDishById(
+  id: string,
+): Promise<MenuDish | undefined> {
+  if (!id) return undefined
+
+  const row = await apiRequest<BackendMenuItem>(
+    `${MENU_ITEMS_API_PATH}/${encodeURIComponent(id)}`,
+  )
+  return normalizeMenuItem(row)
+}
+
+export async function addMenuDish(
+  payload: CreateMenuDishPayload,
+): Promise<MenuDish> {
+  const row = await apiRequest<BackendMenuItem>(MENU_ITEMS_API_PATH, {
+    method: "POST",
+    body: JSON.stringify({
+      name: payload.name.trim(),
+      price: payload.price,
+      categoryId: payload.categoryId,
+      ...(payload.description?.trim()
+        ? { description: payload.description.trim() }
+        : {}),
+      ...(payload.ingredient?.trim()
+        ? { ingredient: payload.ingredient.trim() }
+        : {}),
+      ...(payload.image?.trim() ? { image: payload.image.trim() } : {}),
+    }),
+  })
+
+  emitMenuUpdated()
+  return normalizeMenuItem(row)
+}
+
+export async function updateMenuDish(
   id: string,
   payload: CreateMenuDishPayload,
-): MenuDish {
-  const custom = readCustomDishes()
-  const index = custom.findIndex((item) => item.id === id)
-  if (index < 0) throw new Error("Chỉ có thể sửa món được thêm từ giao diện quản trị.")
+): Promise<MenuDish> {
+  const row = await apiRequest<BackendMenuItem>(
+    `${MENU_ITEMS_API_PATH}/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: payload.name.trim(),
+        price: payload.price,
+        categoryId: payload.categoryId,
+        description: payload.description?.trim() || "",
+        ingredient: payload.ingredient?.trim() || "",
+        image: payload.image?.trim() || "",
+      }),
+    },
+  )
 
-  const item: MenuDish = { ...payload, id, custom: true }
-  custom[index] = item
-  writeCustomDishes(custom)
-  return item
+  emitMenuUpdated()
+  return normalizeMenuItem(row)
 }
 
-export function deleteMenuDish(id: string) {
-  const custom = readCustomDishes()
-  const next = custom.filter((item) => item.id !== id)
-  if (next.length === custom.length) {
-    throw new Error("Chỉ có thể xóa món được thêm từ giao diện quản trị.")
-  }
-  writeCustomDishes(next)
+export async function deleteMenuDish(id: string): Promise<void> {
+  await apiRequest<{ message?: string }>(
+    `${MENU_ITEMS_API_PATH}/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+  )
+  emitMenuUpdated()
 }

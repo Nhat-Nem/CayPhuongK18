@@ -9,13 +9,13 @@ import {
   type RecruitmentDataSource,
 } from "@/services/recruitmentApi"
 
-function sourceLabel(source: RecruitmentDataSource) {
-  return source === "api" ? "Dữ liệu backend" : "Prototype frontend"
+function sourceLabel(_source: RecruitmentDataSource) {
+  return "Dữ liệu backend"
 }
 
 export default function AdminRecruitmentsPage() {
   const [items, setItems] = useState<RecruitmentRecord[]>([])
-  const [source, setSource] = useState<RecruitmentDataSource>("prototype")
+  const [source, setSource] = useState<RecruitmentDataSource>("api")
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -70,13 +70,9 @@ export default function AdminRecruitmentsPage() {
     setDeleting(true)
 
     try {
-      const usedSource = await deleteRecruitment(item.id)
+      await deleteRecruitment(item.id)
       setToDelete(null)
-      setNotice(
-        usedSource === "api"
-          ? `Đã xóa vị trí “${item.title}” khỏi backend.`
-          : `Đã xóa vị trí “${item.title}” trong prototype frontend.`,
-      )
+      setNotice(`Đã xóa vị trí “${item.title}” khỏi backend.`)
       await loadItems()
     } catch (err) {
       setError(
@@ -103,15 +99,6 @@ export default function AdminRecruitmentsPage() {
         </a>
       }
     >
-      {source === "prototype" && !loading && (
-        <div className="admin-recruitment-api-note">
-          <span>
-            Khi backend có /api/v1/recruitments, trang này sẽ tự ưu tiên dữ liệu
-            API.
-          </span>
-        </div>
-      )}
-
       <section
         className="admin-room-stats"
         aria-label="Tổng quan tuyển dụng"
