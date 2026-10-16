@@ -228,17 +228,9 @@ export default function RoomDetailPage() {
                     src={resolveImageSource(image)}
                     alt={`${room.name} - ảnh nhỏ ${index + 1}`}
                   />
-
-                  <span>
-                    {index === 0 ? "Chính" : `Phụ ${index}`}
-                  </span>
                 </button>
               ))}
             </div>
-
-            <p className="detail-gallery-counter">
-              Ảnh {safeActive + 1} / {galleryLength}
-            </p>
           </section>
         )}
       </article>

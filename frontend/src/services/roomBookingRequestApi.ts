@@ -1,5 +1,11 @@
 import { apiRequest } from "./api"
 
+export type RoomBookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "COMPLETED"
+  | "CANCELLED"
+
 export interface CreateRoomBookingRequestPayload {
   customerName: string
   customerPhone: string
@@ -21,7 +27,7 @@ export interface RoomBookingRequestRecord {
   checkIn: string
   checkOut: string
   note: string
-  status: string
+  status: RoomBookingStatus
   createdAt: string
 }
 
@@ -47,7 +53,21 @@ function buildNote(guests: number, note?: string) {
   return lines.join("\n")
 }
 
-function normalizeRecord(row: BackendRoomBookingRequest): RoomBookingRequestRecord {
+function normalizeStatus(value?: string): RoomBookingStatus {
+  const normalized = String(value ?? "PENDING").trim().toUpperCase()
+
+  if (normalized === "CONFIRMED") return "CONFIRMED"
+  if (normalized === "COMPLETED") return "COMPLETED"
+  if (normalized === "CANCELED" || normalized === "CANCELLED") {
+    return "CANCELLED"
+  }
+
+  return "PENDING"
+}
+
+function normalizeRecord(
+  row: BackendRoomBookingRequest,
+): RoomBookingRequestRecord {
   const rawNote = String(row.note ?? "").trim()
   const guestFromNote = rawNote.match(GUEST_LINE)
   const guestsFromField = row.guests == null ? null : Number(row.guests)
@@ -71,7 +91,7 @@ function normalizeRecord(row: BackendRoomBookingRequest): RoomBookingRequestReco
     checkIn: String(row.checkIn ?? ""),
     checkOut: String(row.checkOut ?? ""),
     note,
-    status: String(row.status ?? "PENDING"),
+    status: normalizeStatus(row.status),
     createdAt: String(row.createdAt ?? ""),
   }
 }
@@ -105,4 +125,19 @@ export async function getRoomBookingRequests() {
 
   const rows = Array.isArray(response) ? response : response.data ?? []
   return rows.map(normalizeRecord)
+}
+
+export async function updateRoomBookingRequestStatus(
+  id: string,
+  status: RoomBookingStatus,
+) {
+  const response = await apiRequest<BackendRoomBookingRequest>(
+    `/api/v1/room-booking-requests/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    },
+  )
+
+  return normalizeRecord(response)
 }

@@ -25,6 +25,7 @@ export default function AdminRecruitmentsPage() {
 
   const loadItems = async () => {
     setLoading(true)
+
     try {
       const result = await getRecruitments()
       setItems(result.items)
@@ -57,13 +58,17 @@ export default function AdminRecruitmentsPage() {
     )
   }, [items, query])
 
-  const locations = new Set(items.map((item) => item.location).filter(Boolean))
+  const locations = new Set(
+    items.map((item) => item.location).filter(Boolean),
+  )
+
   const fullTime = items.filter((item) =>
     item.type.toLocaleLowerCase("vi").includes("toàn thời gian"),
   ).length
 
   const handleDelete = async (item: RecruitmentRecord) => {
     setDeleting(true)
+
     try {
       const usedSource = await deleteRecruitment(item.id)
       setToDelete(null)
@@ -74,7 +79,11 @@ export default function AdminRecruitmentsPage() {
       )
       await loadItems()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể xóa tuyển dụng.")
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không thể xóa tuyển dụng.",
+      )
     } finally {
       setDeleting(false)
     }
@@ -82,17 +91,31 @@ export default function AdminRecruitmentsPage() {
 
   return (
     <AdminRoomLayout
-      eyebrow="US.18–US.20 · TUYỂN DỤNG"
+      eyebrow="TUYỂN DỤNG"
       title="Quản lý danh sách tuyển dụng"
-      subtitle="T.05–T.14 · Giao diện xóa, sửa và quản lý danh sách tuyển dụng."
+      subtitle="Thêm, xem, sửa và xóa thông tin tuyển dụng."
+      primaryAction={
+        <a
+          className="admin-primary-button"
+          href={routes.adminRecruitmentCreate}
+        >
+          + Thêm tuyển dụng
+        </a>
+      }
     >
       {source === "prototype" && !loading && (
         <div className="admin-recruitment-api-note">
-          <span>Khi backend có /api/v1/recruitments, trang này sẽ tự ưu tiên dữ liệu API.</span>
+          <span>
+            Khi backend có /api/v1/recruitments, trang này sẽ tự ưu tiên dữ liệu
+            API.
+          </span>
         </div>
       )}
 
-      <section className="admin-room-stats" aria-label="Tổng quan tuyển dụng">
+      <section
+        className="admin-room-stats"
+        aria-label="Tổng quan tuyển dụng"
+      >
         <article>
           <span>Tổng vị trí</span>
           <strong>{items.length}</strong>
@@ -121,6 +144,7 @@ export default function AdminRecruitmentsPage() {
               placeholder="Tìm theo vị trí, loại công việc, địa điểm..."
             />
           </label>
+
           <span className="admin-room-result-count">
             {filteredItems.length} kết quả
           </span>
@@ -136,7 +160,9 @@ export default function AdminRecruitmentsPage() {
           </div>
         )}
 
-        {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
+        {error && (
+          <div className="admin-room-form-notice error">⚠ {error}</div>
+        )}
 
         {loading && (
           <div className="admin-room-empty">
@@ -156,6 +182,7 @@ export default function AdminRecruitmentsPage() {
                   <th aria-label="Thao tác" />
                 </tr>
               </thead>
+
               <tbody>
                 {filteredItems.map((item) => (
                   <tr key={item.id}>
@@ -174,12 +201,15 @@ export default function AdminRecruitmentsPage() {
                       <div className="admin-room-row-actions">
                         <a
                           className="admin-icon-button"
-                          href={`${routes.adminRecruitmentEdit}?id=${encodeURIComponent(item.id)}`}
+                          href={`${routes.adminRecruitmentEdit}?id=${encodeURIComponent(
+                            item.id,
+                          )}`}
                           aria-label={`Sửa ${item.title}`}
                           title="Sửa tuyển dụng"
                         >
                           ✎
                         </a>
+
                         <button
                           className="admin-icon-button danger"
                           type="button"
@@ -200,8 +230,10 @@ export default function AdminRecruitmentsPage() {
 
         {!loading && filteredItems.length === 0 && (
           <div className="admin-room-empty">
-            <strong>Không tìm thấy thông tin tuyển dụng phù hợp</strong>
-            <span>Hãy thử một từ khóa khác.</span>
+            <strong>Chưa có thông tin tuyển dụng</strong>
+            <span>
+              Bấm “+ Thêm tuyển dụng” để tạo vị trí tuyển dụng mới.
+            </span>
           </div>
         )}
       </section>

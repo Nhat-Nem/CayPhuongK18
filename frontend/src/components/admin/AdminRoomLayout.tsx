@@ -77,6 +77,7 @@ export default function AdminRoomLayout({
           <a
             className={
               path === routes.adminRecruitments ||
+              path === routes.adminRecruitmentCreate ||
               path === routes.adminRecruitmentEdit
                 ? "active"
                 : ""
