@@ -12,6 +12,9 @@ import { TableBookingRequestsModule } from './table-booking-requests/table-booki
 import { RoomBookingRequestsModule } from './room-booking-requests/room-booking-requests.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WalkInVisitsModule } from './walk-in-visits/walk-in-visits.module';
+import { MenuItemsModule } from './menu-items/menu-items.module';
+import { CategoryModule } from './category/category.module';
+import { RecruitmentsModule } from './recruitments/recruitments.module';
 
 @Module({
   imports: [
@@ -44,6 +47,12 @@ import { WalkInVisitsModule } from './walk-in-visits/walk-in-visits.module';
     ReviewsModule,
 
     WalkInVisitsModule,
+
+    MenuItemsModule,
+
+    CategoryModule,
+
+    RecruitmentsModule,
   ],
   controllers: [AppController],
 
