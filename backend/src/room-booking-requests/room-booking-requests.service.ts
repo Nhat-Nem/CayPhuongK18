@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomBookingRequest } from './entities/room-booking-request.entity';
 import { Repository } from 'typeorm';
 import { CreateRoomBookingRequestDto } from './dto/create-room-booking-request.dto';
 import { RoomBookingLogger } from './room-booking-requests.logger';
+import { RoomBookingRequestStatus } from './dto/update-room-booking-request-status.dto';
 
 @Injectable()
 export class RoomBookingRequestsService {
@@ -40,5 +41,37 @@ export class RoomBookingRequestsService {
         this.roomBookingLogger.log(`Create Room Booking Request successfully at ${this.getCurrentTime()}`)
         
         return this.roomBookingRequestRepository.save(request)
+    }
+
+    // Cap nhat trang thai
+    async updateStatus(id: string, status: RoomBookingRequestStatus) {
+        const request = await this.roomBookingRequestRepository.findOneBy({ id })
+        
+        if (!request) {
+            throw new NotFoundException("This Booking Request Not Found")
+        }
+
+        request.status = status
+
+        const result = await this.roomBookingRequestRepository.save(request)
+
+        this.roomBookingLogger.log(`Update room booking request ${id} successfully at ${this.getCurrentTime()}`)
+    
+        return result
+    }
+
+    // Xoa yeu cau
+    async remove(id: string) {
+        const request = await this.roomBookingRequestRepository.findOneBy({ id })
+
+        if (!request) {
+            throw new NotFoundException("This Request Booking Not Found")
+        }
+
+        await this.roomBookingRequestRepository.remove(request)
+
+        this.roomBookingLogger.log(`Delete room booking request ${id} successfully at ${this.getCurrentTime()}`)
+
+        return { message: "Delete booking request successfully" }
     }
 }
