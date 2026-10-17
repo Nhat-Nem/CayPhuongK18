@@ -29,6 +29,9 @@ type RoomTextField = Exclude<keyof RoomFormValues, "secondaryImages">
 interface RoomFormProps {
   mode: "create" | "edit"
   room?: RoomPrototype
+  onSaved?: () => void | Promise<void>
+  onCancel?: () => void
+  inModal?: boolean
 }
 
 const createInitialValues = (room?: RoomPrototype): RoomFormValues => ({
@@ -43,7 +46,13 @@ const createInitialValues = (room?: RoomPrototype): RoomFormValues => ({
   secondaryImages: room?.images.slice(1, MAX_ROOM_IMAGES) ?? [],
 })
 
-export default function RoomForm({ mode, room }: RoomFormProps) {
+export default function RoomForm({
+  mode,
+  room,
+  onSaved,
+  onCancel,
+  inModal = false,
+}: RoomFormProps) {
   const [values, setValues] = useState<RoomFormValues>(() =>
     createInitialValues(room),
   )
@@ -195,6 +204,11 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
         await updateRoom(room.id, payload)
       }
 
+      if (onSaved) {
+        await onSaved()
+        return
+      }
+
       window.location.href = `${routes.adminRooms}?saved=${
         mode === "create" ? "created" : "updated"
       }`
@@ -209,7 +223,10 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
     (values.primaryImage ? 1 : 0) + values.secondaryImages.length
 
   return (
-    <form className="admin-room-form" onSubmit={handleSubmit}>
+    <form
+      className={`admin-room-form${inModal ? " admin-room-form--modal" : ""}`}
+      onSubmit={handleSubmit}
+    >
       <section className="admin-room-form-card">
         <div className="admin-room-form-heading">
           <div>
@@ -227,6 +244,7 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
             <span>Mã phòng *</span>
             <input
               required
+              maxLength={50}
               value={values.code}
               onChange={(e) => updateField("code", e.target.value)}
               placeholder="Ví dụ: P004"
@@ -467,9 +485,19 @@ export default function RoomForm({ mode, room }: RoomFormProps) {
       )}
 
       <div className="admin-room-form-actions">
-        <a className="admin-secondary-button" href={routes.adminRooms}>
-          Hủy
-        </a>
+        {onCancel ? (
+          <button
+            className="admin-secondary-button"
+            type="button"
+            onClick={onCancel}
+          >
+            Hủy
+          </button>
+        ) : (
+          <a className="admin-secondary-button" href={routes.adminRooms}>
+            Hủy
+          </a>
+        )}
 
         <button
           className="admin-primary-button"
