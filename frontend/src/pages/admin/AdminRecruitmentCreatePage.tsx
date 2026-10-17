@@ -1,10 +1,7 @@
 import { useState, type FormEvent } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import { routes } from "@/config/routes"
-import {
-  createRecruitment,
-  getRecruitmentApiPath,
-} from "@/services/recruitmentApi"
+import { createRecruitment } from "@/services/recruitmentApi"
 
 export default function AdminRecruitmentCreatePage() {
   const [title, setTitle] = useState("")
@@ -51,10 +48,6 @@ export default function AdminRecruitmentCreatePage() {
         </a>
       }
     >
-      <div className="admin-recruitment-api-note">
-        <span>Dữ liệu được lưu qua POST {getRecruitmentApiPath()}.</span>
-      </div>
-
       <section className="admin-recruitment-edit-card">
         <div className="admin-s2-section-heading">
           <div>

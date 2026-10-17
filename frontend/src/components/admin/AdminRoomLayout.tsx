@@ -38,13 +38,6 @@ export default function AdminRoomLayout({
           >
             <span>▦</span> Danh sách phòng
           </a>
-          <a
-            className={path === routes.adminRoomCreate ? "active" : ""}
-            href={routes.adminRoomCreate}
-          >
-            <span>＋</span> Thêm phòng
-          </a>
-
           <p>THỰC ĐƠN</p>
           <a
             className={path === routes.adminMenu ? "active" : ""}
