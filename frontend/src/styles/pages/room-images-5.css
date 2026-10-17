@@ -151,6 +151,10 @@
   font-size: .75rem;
 }
 
+.admin-room-secondary-add > span {
+  color: #fff !important;
+}
+
 .admin-room-secondary-add input[type="file"] {
   position: absolute;
   width: 1px;

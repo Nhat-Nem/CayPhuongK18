@@ -12,7 +12,7 @@ import {
 export default function AdminRecruitmentEditPage() {
   const id = new URLSearchParams(window.location.search).get("id") ?? ""
   const [item, setItem] = useState<RecruitmentRecord | null>(null)
-  const [source, setSource] = useState<RecruitmentDataSource>("prototype")
+  const [source, setSource] = useState<RecruitmentDataSource>("api")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -103,11 +103,9 @@ export default function AdminRecruitmentEditPage() {
         </a>
       }
     >
-      {source === "prototype" && (
-        <div className="admin-recruitment-api-note">
-          <span>Khi backend có {getRecruitmentApiPath()}, trang này sẽ tự ưu tiên dữ liệu API.</span>
-        </div>
-      )}
+      <div className="admin-recruitment-api-note">
+        <span>Dữ liệu được đọc và cập nhật qua {getRecruitmentApiPath()}.</span>
+      </div>
 
       <section className="admin-recruitment-edit-card">
         <div className="admin-s2-section-heading">

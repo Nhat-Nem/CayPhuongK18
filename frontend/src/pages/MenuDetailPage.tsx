@@ -1,19 +1,48 @@
+import { useEffect, useState } from "react"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
-import { getMenuDishById, getMenuDishes } from "@/services/menuStore"
+import { getMenuDishById, getMenuDishes, type MenuDish } from "@/services/menuStore"
 
 export default function MenuDetailPage() {
   const id = new URLSearchParams(window.location.search).get("dish") ?? ""
-  const allDishes = getMenuDishes()
-  const dish = getMenuDishById(id) ?? allDishes[0]
-  const related = allDishes.filter((item) => item.id !== dish?.id).slice(0, 3)
+  const [dish, setDish] = useState<MenuDish | null>(null)
+  const [related, setRelated] = useState<MenuDish[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  if (!dish) {
+  useEffect(() => {
+    if (!id) {
+      setError("Thiếu mã món ăn.")
+      setLoading(false)
+      return
+    }
+
+    Promise.all([getMenuDishById(id), getMenuDishes()])
+      .then(([current, all]) => {
+        if (!current) throw new Error("Không tìm thấy món ăn.")
+        setDish(current)
+        setRelated(all.filter((item) => item.id !== current.id).slice(0, 3))
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  if (loading) {
+    return (
+      <Shell>
+        <Hero image="06f7b.png" title="ẨM THỰC" />
+        <section className="section centered"><h2>Đang tải món ăn...</h2></section>
+      </Shell>
+    )
+  }
+
+  if (!dish || error) {
     return (
       <Shell>
         <Hero image="06f7b.png" title="ẨM THỰC" />
         <section className="section centered">
           <h2>Không tìm thấy món ăn</h2>
+          <p>{error}</p>
           <a className="button-link" href="/menu">Quay lại thực đơn</a>
         </section>
       </Shell>
@@ -29,15 +58,13 @@ export default function MenuDetailPage() {
       />
       <section className="section sage menu-detail-section">
         <nav className="dish-breadcrumb" aria-label="Đường dẫn">
-          <a href="/menu">Thực đơn</a><span>/</span><span>{dish.group}</span><span>/</span><strong>{dish.name}</strong>
+          <a href="/menu">Thực đơn</a><span>/</span><span>{dish.category}</span><span>/</span><strong>{dish.name}</strong>
         </nav>
 
         <article className="dish-detail-hero">
           <div className="dish-detail-media">
             <img className="dish-detail-main-image" src={dish.image} alt={dish.name} />
-            <div className="dish-detail-thumbnails">
-              <img src={dish.image} alt={dish.name} />
-            </div>
+            <div className="dish-detail-thumbnails"><img src={dish.image} alt={dish.name} /></div>
           </div>
           <div className="dish-detail-info">
             <p className="dish-detail-category">{dish.group.toUpperCase()} · {dish.category.toUpperCase()}</p>
@@ -46,7 +73,7 @@ export default function MenuDetailPage() {
             <strong className="dish-detail-price">{dish.price}</strong>
             <div className="dish-detail-facts">
               <div><span>Danh mục</span><strong>{dish.category}</strong></div>
-              <div><span>Nhóm</span><strong>{dish.group}</strong></div>
+              <div><span>Nguyên liệu</span><strong>{dish.ingredient || "Theo món"}</strong></div>
               <div><span>Phục vụ</span><strong>Mỗi ngày</strong></div>
             </div>
             <a className="dish-order-link" href="/lien-he?type=table">Liên hệ đặt món <span>→</span></a>
