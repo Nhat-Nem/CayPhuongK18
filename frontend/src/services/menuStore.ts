@@ -129,9 +129,27 @@ export async function deleteMenuCategory(id: string): Promise<void> {
   emitMenuUpdated()
 }
 
+function compareMenuItemsNewestFirst(a: BackendMenuItem, b: BackendMenuItem) {
+  const aCreatedAt = a.createdAt ? Date.parse(a.createdAt) : Number.NaN
+  const bCreatedAt = b.createdAt ? Date.parse(b.createdAt) : Number.NaN
+
+  if (Number.isFinite(aCreatedAt) && Number.isFinite(bCreatedAt)) {
+    const byCreatedAt = bCreatedAt - aCreatedAt
+    if (byCreatedAt !== 0) return byCreatedAt
+  }
+
+  return String(b.id).localeCompare(String(a.id), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
+
 export async function getMenuDishes(): Promise<MenuDish[]> {
   const rows = await apiRequest<BackendMenuItem[]>(MENU_ITEMS_API_PATH)
-  return rows.map(normalizeMenuItem)
+
+  return [...rows]
+    .sort(compareMenuItemsNewestFirst)
+    .map(normalizeMenuItem)
 }
 
 export async function getMenuDishById(

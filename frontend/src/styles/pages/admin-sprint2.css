@@ -387,3 +387,13 @@
   color: #7f858a;
   font-size: .66rem;
 }
+
+/* US.08 form shown as modal, matching the menu create experience */
+.admin-s2-form--modal {
+  margin-top: 4px;
+}
+
+.admin-s2-form--modal label > small {
+  color: #92979b;
+  font-size: .68rem;
+}

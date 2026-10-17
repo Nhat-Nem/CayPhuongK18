@@ -176,3 +176,8 @@
   .admin-recruitment-form-actions { flex-direction: column-reverse; }
   .admin-recruitment-form-actions > * { width: 100%; }
 }
+
+/* Recruitment create form inside the shared admin modal */
+.admin-form-modal .admin-recruitment-form {
+  margin-top: 4px;
+}
