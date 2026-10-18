@@ -7,9 +7,23 @@ import { routes } from "@/config/routes"
 import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
 import {
   deleteRecruitment,
+  employmentTypeLabel,
+  formatRecruitmentSalary,
   getRecruitments,
+  normalizeEmploymentType,
   type RecruitmentDataSource,
 } from "@/services/recruitmentApi"
+
+
+function compareNewestIdFirst(
+  a: { id: string | number },
+  b: { id: string | number },
+) {
+  return String(b.id).localeCompare(String(a.id), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
 
 function sourceLabel(_source: RecruitmentDataSource) {
   return "Dữ liệu backend"
@@ -31,7 +45,7 @@ export default function AdminRecruitmentsPage() {
 
     try {
       const result = await getRecruitments()
-      setItems(result.items)
+      setItems([...result.items].sort(compareNewestIdFirst))
       setSource(result.source)
       setError("")
     } catch (err) {
@@ -54,7 +68,13 @@ export default function AdminRecruitmentsPage() {
     if (!keyword) return items
 
     return items.filter((item) =>
-      [item.title, item.type, item.location, item.description]
+      [
+        item.title,
+        employmentTypeLabel(item.type),
+        item.location,
+        item.salary,
+        item.description,
+      ]
         .join(" ")
         .toLocaleLowerCase("vi")
         .includes(keyword),
@@ -65,8 +85,8 @@ export default function AdminRecruitmentsPage() {
     items.map((item) => item.location).filter(Boolean),
   )
 
-  const fullTime = items.filter((item) =>
-    item.type.toLocaleLowerCase("vi").includes("toàn thời gian"),
+  const fullTime = items.filter(
+    (item) => normalizeEmploymentType(item.type) === "fulltime",
   ).length
 
   const handleDelete = async (item: RecruitmentRecord) => {
@@ -169,6 +189,7 @@ export default function AdminRecruitmentsPage() {
                   <th>Vị trí tuyển dụng</th>
                   <th>Hình thức</th>
                   <th>Địa điểm</th>
+                  <th>Lương</th>
                   <th>Mô tả</th>
                   <th aria-label="Thao tác" />
                 </tr>
@@ -181,8 +202,13 @@ export default function AdminRecruitmentsPage() {
                       <strong>{item.title}</strong>
                       <small>{item.id}</small>
                     </td>
-                    <td>{item.type || "—"}</td>
+                    <td>{employmentTypeLabel(item.type)}</td>
                     <td>{item.location || "—"}</td>
+                    <td>
+                      <strong className="admin-recruitment-salary">
+                        {formatRecruitmentSalary(item.salary)}
+                      </strong>
+                    </td>
                     <td>
                       <span className="admin-recruitment-description">
                         {item.description || "Chưa có mô tả"}

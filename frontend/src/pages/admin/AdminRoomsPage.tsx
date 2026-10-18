@@ -13,6 +13,17 @@ import {
 } from "@/data/roomPrototype"
 import { deleteRoom, getRooms } from "@/services/roomApi"
 
+
+function compareNewestIdFirst(
+  a: { id: string | number },
+  b: { id: string | number },
+) {
+  return String(b.id).localeCompare(String(a.id), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
+
 function initialNotice() {
   const saved = new URLSearchParams(window.location.search).get("saved")
   if (saved === "created") return "Đã thêm phòng mới vào database."
@@ -33,7 +44,8 @@ export default function AdminRoomsPage() {
   const loadRooms = async () => {
     setLoading(true)
     try {
-      setRooms(await getRooms())
+      const roomRows = await getRooms()
+      setRooms([...roomRows].sort(compareNewestIdFirst))
       setError("")
     } catch (err) {
       setError(

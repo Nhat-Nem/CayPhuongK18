@@ -13,6 +13,18 @@ import {
   type WalkInRecord,
 } from "@/services/walkInApi"
 
+
+function compareWalkInsNewestFirst(a: WalkInRecord, b: WalkInRecord) {
+  const aTime = Date.parse(a.createdAt)
+  const bTime = Date.parse(b.createdAt)
+
+  if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+    return bTime - aTime
+  }
+
+  return b.id - a.id
+}
+
 export default function AdminWalkInPage() {
   const [rooms, setRooms] = useState<RoomPrototype[]>([])
   const [rows, setRows] = useState<WalkInRecord[]>([])
@@ -26,7 +38,7 @@ export default function AdminWalkInPage() {
     try {
       const [roomData, walkIns] = await Promise.all([getRooms(), getWalkIns()])
       setRooms(roomData)
-      setRows(walkIns)
+      setRows([...walkIns].sort(compareWalkInsNewestFirst))
       setError("")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải dữ liệu")

@@ -12,8 +12,9 @@ export default function RecruitmentCreateForm({
   onCancel,
 }: RecruitmentCreateFormProps) {
   const [title, setTitle] = useState("")
-  const [type, setType] = useState("Toàn thời gian")
+  const [type, setType] = useState("fulltime")
   const [location, setLocation] = useState("Tây Ninh")
+  const [salary, setSalary] = useState("")
   const [description, setDescription] = useState("")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -26,8 +27,9 @@ export default function RecruitmentCreateForm({
     try {
       const result = await createRecruitment({
         title: title.trim(),
-        type: type.trim(),
+        type,
         location: location.trim(),
+        salary: salary.trim(),
         description: description.trim(),
       })
 
@@ -64,13 +66,14 @@ export default function RecruitmentCreateForm({
 
       <label>
         <span>Hình thức làm việc *</span>
-        <input
+        <select
           required
-          maxLength={50}
           value={type}
           onChange={(event) => setType(event.target.value)}
-          placeholder="Ví dụ: Toàn thời gian"
-        />
+        >
+          <option value="fulltime">Toàn thời gian</option>
+          <option value="part-time">Bán thời gian</option>
+        </select>
       </label>
 
       <label>
@@ -82,6 +85,22 @@ export default function RecruitmentCreateForm({
           onChange={(event) => setLocation(event.target.value)}
           placeholder="Ví dụ: Tây Ninh"
         />
+      </label>
+
+      <label className="admin-recruitment-full">
+        <span>Lương (VNĐ/tháng)</span>
+        <input
+          type="number"
+          min="0"
+          step="1000"
+          inputMode="numeric"
+          value={salary}
+          onChange={(event) => setSalary(event.target.value)}
+          placeholder="Ví dụ: 8000000"
+        />
+        <small className="admin-recruitment-field-hint">
+          Để trống nếu muốn hiển thị “Thỏa thuận”.
+        </small>
       </label>
 
       <label className="admin-recruitment-full">

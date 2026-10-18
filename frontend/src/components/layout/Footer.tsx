@@ -26,6 +26,7 @@ export default function Footer() {
           <a href="/phong">Phòng nghỉ</a>
           <a href="/menu">Thực đơn</a>
           <a href="/uu-dai">Ưu đãi</a>
+          <a href="/#dia-diem-du-lich">Địa điểm du lịch</a>
         </div>
         <div className="footer-column">
           <h3>Thông tin</h3>

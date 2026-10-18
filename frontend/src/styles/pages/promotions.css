@@ -1,0 +1,37 @@
+.offer-card-image { position: relative; }
+
+.offer-discount-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  min-width: 72px;
+  min-height: 72px;
+  padding: 8px;
+  border-radius: 50%;
+  background: #173d6d;
+  color: #fff;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1rem;
+  box-shadow: 0 8px 22px #173d6d38;
+}
+
+.offers-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 50px 24px;
+  border: 1px dashed #cfd3cf;
+  border-radius: 14px;
+  background: #ffffff80;
+  color: #6f7473;
+  text-align: center;
+}
+.offers-empty strong { color: #17345f; font-size: 1.05rem; }
+.offers-empty a { color: #23487a; font-family: "Montserrat:SemiBold", sans-serif; }
+.offers-empty.compact { width: 100%; padding: 30px 20px; }
+
+.offer-dynamic-terms {
+  grid-template-columns: 1fr !important;
+}

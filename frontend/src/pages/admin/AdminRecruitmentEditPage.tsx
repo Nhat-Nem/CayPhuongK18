@@ -6,13 +6,11 @@ import {
   getRecruitmentApiPath,
   getRecruitmentById,
   updateRecruitment,
-  type RecruitmentDataSource,
 } from "@/services/recruitmentApi"
 
 export default function AdminRecruitmentEditPage() {
   const id = new URLSearchParams(window.location.search).get("id") ?? ""
   const [item, setItem] = useState<RecruitmentRecord | null>(null)
-  const [source, setSource] = useState<RecruitmentDataSource>("api")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -25,10 +23,7 @@ export default function AdminRecruitmentEditPage() {
     }
 
     getRecruitmentById(id)
-      .then((result) => {
-        setItem(result.item)
-        setSource(result.source)
-      })
+      .then((result) => setItem(result.item))
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
   }, [id])
@@ -39,16 +34,24 @@ export default function AdminRecruitmentEditPage() {
 
     setSaving(true)
     setError("")
+
     try {
       const result = await updateRecruitment(item.id, {
         title: item.title.trim(),
-        type: item.type.trim(),
+        type: item.type,
         location: item.location.trim(),
+        salary: item.salary.trim(),
         description: item.description.trim(),
       })
-      window.location.href = `${routes.adminRecruitments}?saved=updated&source=${result.source}`
+
+      window.location.href =
+        `${routes.adminRecruitments}?saved=updated&source=${result.source}`
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể cập nhật tuyển dụng.")
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Không thể cập nhật tuyển dụng.",
+      )
     } finally {
       setSaving(false)
     }
@@ -96,7 +99,7 @@ export default function AdminRecruitmentEditPage() {
     <AdminRoomLayout
       eyebrow="US.19 · TUYỂN DỤNG"
       title="Sửa thông tin tuyển dụng"
-      subtitle="T.09–T.10 · Chỉnh sửa nội dung vị trí tuyển dụng và lưu thay đổi."
+      subtitle="Chỉnh sửa nội dung vị trí tuyển dụng và lưu thay đổi."
       primaryAction={
         <a className="admin-text-link" href={routes.adminRecruitments}>
           ← Danh sách tuyển dụng
@@ -135,7 +138,7 @@ export default function AdminRecruitmentEditPage() {
 
           <label>
             <span>Hình thức làm việc</span>
-            <input
+            <select
               required
               value={item.type}
               onChange={(event) =>
@@ -143,8 +146,10 @@ export default function AdminRecruitmentEditPage() {
                   current ? { ...current, type: event.target.value } : current,
                 )
               }
-              placeholder="Ví dụ: Toàn thời gian"
-            />
+            >
+              <option value="fulltime">Toàn thời gian</option>
+              <option value="part-time">Bán thời gian</option>
+            </select>
           </label>
 
           <label>
@@ -161,6 +166,28 @@ export default function AdminRecruitmentEditPage() {
               }
               placeholder="Ví dụ: Tây Ninh"
             />
+          </label>
+
+          <label className="admin-recruitment-full">
+            <span>Lương (VNĐ/tháng)</span>
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              inputMode="numeric"
+              value={item.salary}
+              onChange={(event) =>
+                setItem((current) =>
+                  current
+                    ? { ...current, salary: event.target.value }
+                    : current,
+                )
+              }
+              placeholder="Ví dụ: 8000000"
+            />
+            <small className="admin-recruitment-field-hint">
+              Để trống nếu muốn hiển thị “Thỏa thuận”.
+            </small>
           </label>
 
           <label className="admin-recruitment-full">
@@ -183,7 +210,12 @@ export default function AdminRecruitmentEditPage() {
             <a className="admin-secondary-button" href={routes.adminRecruitments}>
               Hủy
             </a>
-            <button className="admin-primary-button" type="submit" disabled={saving}>
+
+            <button
+              className="admin-primary-button"
+              type="submit"
+              disabled={saving}
+            >
               {saving ? "Đang lưu..." : "Lưu thay đổi"}
             </button>
           </div>

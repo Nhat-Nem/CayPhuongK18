@@ -81,6 +81,7 @@
 }
 
 .admin-recruitment-form input,
+.admin-recruitment-form select,
 .admin-recruitment-form textarea {
   width: 100%;
   border: 1px solid #d8d9d5;
@@ -90,9 +91,14 @@
   outline: 0;
 }
 
-.admin-recruitment-form input {
+.admin-recruitment-form input,
+.admin-recruitment-form select {
   height: 46px;
   padding: 0 13px;
+}
+
+.admin-recruitment-form select {
+  cursor: pointer;
 }
 
 .admin-recruitment-form textarea {
@@ -103,6 +109,7 @@
 }
 
 .admin-recruitment-form input:focus,
+.admin-recruitment-form select:focus,
 .admin-recruitment-form textarea:focus {
   border-color: #597aa1;
   box-shadow: 0 0 0 3px #23487a12;
@@ -180,4 +187,18 @@
 /* Recruitment create form inside the shared admin modal */
 .admin-form-modal .admin-recruitment-form {
   margin-top: 4px;
+}
+
+
+.admin-recruitment-field-hint {
+  color: #92979b;
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.admin-recruitment-salary {
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .78rem;
+  white-space: nowrap;
 }
