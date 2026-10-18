@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
+import AdminFormModal from "@/components/admin/AdminFormModal"
+import RecruitmentCreateForm from "@/components/admin/RecruitmentCreateForm"
 import DeleteRecruitmentDialog from "@/components/admin/DeleteRecruitmentDialog"
 import { routes } from "@/config/routes"
 import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
@@ -22,6 +24,7 @@ export default function AdminRecruitmentsPage() {
   const [notice, setNotice] = useState("")
   const [toDelete, setToDelete] = useState<RecruitmentRecord | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [showCreate, setShowCreate] = useState(false)
 
   const loadItems = async () => {
     setLoading(true)
@@ -91,12 +94,13 @@ export default function AdminRecruitmentsPage() {
       title="Quản lý danh sách tuyển dụng"
       subtitle="Thêm, xem, sửa và xóa thông tin tuyển dụng."
       primaryAction={
-        <a
+        <button
           className="admin-primary-button"
-          href={routes.adminRecruitmentCreate}
+          type="button"
+          onClick={() => setShowCreate(true)}
         >
           + Thêm tuyển dụng
-        </a>
+        </button>
       }
     >
       <section
@@ -224,6 +228,23 @@ export default function AdminRecruitmentsPage() {
           </div>
         )}
       </section>
+
+      <AdminFormModal
+        open={showCreate}
+        eyebrow="TUYỂN DỤNG"
+        title="Thêm thông tin tuyển dụng"
+        size="medium"
+        onClose={() => setShowCreate(false)}
+      >
+        <RecruitmentCreateForm
+          onCancel={() => setShowCreate(false)}
+          onSaved={async () => {
+            setShowCreate(false)
+            setNotice("Đã thêm vị trí tuyển dụng mới.")
+            await loadItems()
+          }}
+        />
+      </AdminFormModal>
 
       <DeleteRecruitmentDialog
         recruitment={toDelete}

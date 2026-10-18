@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
+import AdminFormModal from "@/components/admin/AdminFormModal"
+import RoomForm from "@/components/admin/RoomForm"
 import DeleteRoomDialog from "@/components/admin/DeleteRoomDialog"
 import { resolveImageSource } from "@/config/assets"
 import { routes } from "@/config/routes"
@@ -23,6 +25,7 @@ export default function AdminRoomsPage() {
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<"ALL" | RoomStatus>("ALL")
   const [roomToDelete, setRoomToDelete] = useState<RoomPrototype | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
   const [notice, setNotice] = useState(initialNotice)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -75,9 +78,13 @@ export default function AdminRoomsPage() {
       title="Danh sách phòng"
       subtitle="US.02 · Dữ liệu phòng lấy từ GET /api/v1/rooms. Trạng thái backend dùng AVAILABLE / UNAVAILABLE."
       primaryAction={
-        <a className="admin-primary-button" href={routes.adminRoomCreate}>
+        <button
+          className="admin-primary-button"
+          type="button"
+          onClick={() => setShowCreate(true)}
+        >
           + Thêm phòng
-        </a>
+        </button>
       }
     >
       <section className="admin-room-stats" aria-label="Tổng quan phòng">
@@ -232,6 +239,25 @@ export default function AdminRoomsPage() {
           </div>
         )}
       </section>
+
+      <AdminFormModal
+        open={showCreate}
+        eyebrow="QUẢN LÝ PHÒNG"
+        title="Thêm phòng mới"
+        size="wide"
+        onClose={() => setShowCreate(false)}
+      >
+        <RoomForm
+          mode="create"
+          inModal
+          onCancel={() => setShowCreate(false)}
+          onSaved={async () => {
+            setShowCreate(false)
+            setNotice("Đã thêm phòng mới vào database.")
+            await loadRooms()
+          }}
+        />
+      </AdminFormModal>
 
       <DeleteRoomDialog
         room={roomToDelete}

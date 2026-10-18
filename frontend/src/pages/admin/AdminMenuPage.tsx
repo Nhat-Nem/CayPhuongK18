@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   addMenuDish,
@@ -11,6 +11,7 @@ import {
   type MenuCategory,
   type MenuDish,
 } from "@/services/menuStore"
+import { fileToMenuImage } from "@/utils/menuImage"
 
 const EMPTY_FORM = {
   name: "",
@@ -34,6 +35,7 @@ export default function AdminMenuPage() {
   const [categoryName, setCategoryName] = useState("")
   const [categoryDescription, setCategoryDescription] = useState("")
   const [categorySaving, setCategorySaving] = useState(false)
+  const [processingImage, setProcessingImage] = useState(false)
 
   const refresh = async () => {
     setLoading(true)
@@ -96,6 +98,26 @@ export default function AdminMenuPage() {
     })
     setError("")
     setOpen(true)
+  }
+
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setProcessingImage(true)
+    setError("")
+
+    try {
+      const image = await fileToMenuImage(file)
+      setForm((current) => ({ ...current, image }))
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Không thể xử lý ảnh món ăn.",
+      )
+    } finally {
+      setProcessingImage(false)
+      event.target.value = ""
+    }
   }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -393,20 +415,35 @@ export default function AdminMenuPage() {
               <label>
                 <span>Ảnh món</span>
                 <input
-                  value={form.image}
-                  maxLength={500}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, image: event.target.value }))
-                  }
-                  placeholder="/assets/ten-anh.jpg hoặc URL ảnh"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={processingImage}
+                  onChange={(event) => void handleImageChange(event)}
                 />
                 <small>
-                  Backend hiện nhận field image là chuỗi tối đa 500 ký tự.
+                  {processingImage
+                    ? "Đang xử lý ảnh..."
+                    : "Chọn ảnh JPG, PNG hoặc WEBP từ máy · tối đa 8 MB"}
                 </small>
               </label>
 
               {form.image && (
-                <img className="admin-menu-preview" src={form.image} alt="Xem trước món ăn" />
+                <>
+                  <img
+                    className="admin-menu-preview"
+                    src={form.image}
+                    alt="Xem trước món ăn"
+                  />
+                  <button
+                    className="admin-secondary-button"
+                    type="button"
+                    onClick={() =>
+                      setForm((current) => ({ ...current, image: "" }))
+                    }
+                  >
+                    Xóa ảnh đã chọn
+                  </button>
+                </>
               )}
 
               <label>
@@ -439,8 +476,8 @@ export default function AdminMenuPage() {
                 <button className="admin-secondary-button" type="button" onClick={closeModal}>
                   Hủy
                 </button>
-                <button className="admin-primary-button" type="submit" disabled={saving}>
-                  {saving ? "Đang lưu..." : "Lưu món"}
+                <button className="admin-primary-button" type="submit" disabled={saving || processingImage}>
+                  {saving ? "Đang lưu..." : processingImage ? "Đang xử lý ảnh..." : "Lưu món"}
                 </button>
               </div>
             </form>
