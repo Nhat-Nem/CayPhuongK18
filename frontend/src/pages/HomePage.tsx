@@ -129,8 +129,17 @@ export default function HomePage() {
       <FoodAlbum />
       <ActivityAlbumMarquee />
       <TestimonialsSection />
-      <section id="tin-tuc" className="section pearl centered">
-        <h2 className="home-title-reveal">BẢN ĐỒ DU LỊCH</h2>
+      <section id="dia-diem-du-lich" className="section pearl centered">
+        <div className="home-section-heading home-title-reveal">
+          <div>
+            <p className="eyebrow">US.23 · KHÁM PHÁ ĐỊA PHƯƠNG</p>
+            <h2>ĐỊA ĐIỂM DU LỊCH TÂY NINH</h2>
+          </div>
+          <p>
+            Tham khảo các điểm đến nổi bật để kết hợp hành trình ăn uống, nghỉ
+            ngơi và khám phá địa phương thuận tiện hơn.
+          </p>
+        </div>
         <img
           className="map-wide"
           src={`${A}16b53.png`}

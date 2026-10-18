@@ -30,4 +30,7 @@ export const routes = {
   adminRecruitments: "/admin/tuyen-dung",
   adminRecruitmentCreate: "/admin/tuyen-dung/them",
   adminRecruitmentEdit: "/admin/tuyen-dung/sua",
+
+  // Sprint 4 · Khuyến mãi
+  adminPromotions: "/admin/khuyen-mai",
 }

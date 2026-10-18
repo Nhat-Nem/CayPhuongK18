@@ -10,9 +10,14 @@
 }
 
 .admin-room-sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: fixed;
+  z-index: 50;
+  inset: 0 auto 0 0;
+  width: 280px;
+  height: 100dvh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 28px 22px;
@@ -155,6 +160,8 @@
 }
 
 .admin-room-main {
+  grid-column: 2;
+  min-width: 0;
   width: min(100%, 1500px);
   margin: 0 auto;
   padding: 38px clamp(28px, 4vw, 62px) 70px;
@@ -755,7 +762,10 @@
 
 @media (max-width: 1050px) {
   .admin-room-app { grid-template-columns: 220px minmax(0, 1fr); }
-  .admin-room-sidebar { padding-inline: 16px; }
+  .admin-room-sidebar {
+    width: 220px;
+    padding-inline: 16px;
+  }
   .admin-room-main { padding-inline: 24px; }
   .admin-room-stats { grid-template-columns: 1fr 1fr 1fr; }
   .admin-room-form-grid { grid-template-columns: 1fr; }
@@ -766,14 +776,19 @@
   .admin-room-app { display: block; }
   .admin-room-sidebar {
     position: static;
+    width: auto;
     height: auto;
+    overflow: visible;
     padding: 15px 18px;
   }
   .admin-room-brand { padding-bottom: 14px; }
   .admin-room-nav { grid-template-columns: 1fr 1fr; margin-top: 12px; }
   .admin-room-nav p, .admin-room-sidebar-note { display: none; }
   .admin-room-logout { margin-top: 12px; }
-  .admin-room-main { padding: 26px 16px 50px; }
+  .admin-room-main {
+    grid-column: auto;
+    padding: 26px 16px 50px;
+  }
   .admin-room-topbar { align-items: flex-start; flex-direction: column; }
   .admin-room-stats { grid-template-columns: 1fr; }
   .admin-room-toolbar { align-items: stretch; flex-direction: column; }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import Shell from "@/components/layout/Shell"
 import { routes } from "@/config/routes"
 import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
-import { getRecruitmentById } from "@/services/recruitmentApi"
+import { employmentTypeLabel, formatRecruitmentSalary, getRecruitmentById } from "@/services/recruitmentApi"
 
 export default function CareerDetailPage() {
   const id = new URLSearchParams(window.location.search).get("id") ?? ""
@@ -34,7 +34,7 @@ export default function CareerDetailPage() {
           <>
             <h1>{item.title}</h1>
             <p className="career-detail-meta">
-              {item.type} · {item.location}
+              {employmentTypeLabel(item.type)} · {item.location}
             </p>
           </>
         ) : (
@@ -55,7 +55,9 @@ export default function CareerDetailPage() {
               <span>VỊ TRÍ</span>
               <strong>{item.title}</strong>
               <span>HÌNH THỨC</span>
-              <strong>{item.type}</strong>
+              <strong>{employmentTypeLabel(item.type)}</strong>
+              <span>LƯƠNG</span>
+              <strong>{formatRecruitmentSalary(item.salary)}</strong>
               <span>ĐỊA ĐIỂM</span>
               <strong>{item.location}</strong>
               <a

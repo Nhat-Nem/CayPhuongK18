@@ -80,6 +80,14 @@ export default function AdminRoomLayout({
             <span>▤</span> Danh sách tuyển dụng
           </a>
 
+          <p>SPRINT 4 · US.24–US.27</p>
+          <a
+            className={path === routes.adminPromotions ? "active" : ""}
+            href={routes.adminPromotions}
+          >
+            <span>%</span> Quản lý khuyến mãi
+          </a>
+
           <p>WEBSITE</p>
           <a href={routes.rooms}>
             <span>↗</span> Xem trang phòng
@@ -92,6 +100,12 @@ export default function AdminRoomLayout({
           </a>
           <a href={routes.careers}>
             <span>↗</span> Xem trang tuyển dụng
+          </a>
+          <a href={routes.tourism}>
+            <span>↗</span> Xem địa điểm du lịch
+          </a>
+          <a href={routes.offers}>
+            <span>↗</span> Xem trang ưu đãi
           </a>
         </nav>
 

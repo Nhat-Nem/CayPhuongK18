@@ -13,6 +13,17 @@ import {
 } from "@/services/menuStore"
 import { fileToMenuImage } from "@/utils/menuImage"
 
+
+function compareNewestIdFirst(
+  a: { id: string | number },
+  b: { id: string | number },
+) {
+  return String(b.id).localeCompare(String(a.id), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
+
 const EMPTY_FORM = {
   name: "",
   price: "",
@@ -47,7 +58,7 @@ export default function AdminMenuPage() {
         getMenuCategories(),
       ])
       setItems(menuRows)
-      setCategories(categoryRows)
+      setCategories([...categoryRows].sort(compareNewestIdFirst))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải thực đơn.")
     } finally {

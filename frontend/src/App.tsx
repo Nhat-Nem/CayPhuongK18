@@ -25,6 +25,7 @@ import AdminLoginPage from "@/pages/admin/AdminLoginPage"
 import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
 import AdminRecruitmentCreatePage from "@/pages/admin/AdminRecruitmentCreatePage"
 import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
+import AdminPromotionsPage from "@/pages/admin/AdminPromotionsPage"
 import { isAdminAuthenticated } from "@/utils/adminAuth"
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
       [routes.adminRecruitments]: "Quản lý tuyển dụng",
       [routes.adminRecruitmentCreate]: "Thêm tuyển dụng",
       [routes.adminRecruitmentEdit]: "Sửa tuyển dụng",
+      [routes.adminPromotions]: "Quản lý khuyến mãi",
     }
 
     let title = titles[path]
@@ -128,6 +130,10 @@ export default function App() {
   }
   else if (path === routes.adminRecruitments) {
     page = <AdminRecruitmentsPage />
+  }
+  // Sprint 4 · Khuyến mãi
+  else if (path === routes.adminPromotions) {
+    page = <AdminPromotionsPage />
   }
   // Khách hàng
   else if (path === "/phong/chi-tiet") {

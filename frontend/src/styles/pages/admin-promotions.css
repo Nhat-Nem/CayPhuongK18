@@ -1,0 +1,98 @@
+.admin-promotion-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+
+.admin-promotion-storage-note {
+  display: flex;
+  gap: 7px;
+  margin: 0 18px 14px;
+  padding: 11px 13px;
+  border: 1px solid #e4d4b7;
+  border-radius: 8px;
+  background: #fff9ed;
+  color: #806442;
+  font-size: .73rem;
+  line-height: 1.5;
+}
+
+.admin-promotion-percent {
+  color: #173d6d;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .9rem;
+}
+
+.admin-promotion-type {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #edf3f8;
+  color: #23487a;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.admin-promotion-status {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: .7rem;
+  white-space: nowrap;
+}
+.admin-promotion-status.active { background: #e5f5eb; color: #397650; }
+.admin-promotion-status.upcoming { background: #edf3fb; color: #315c8b; }
+.admin-promotion-status.ended { background: #f1eeee; color: #857878; }
+
+.admin-promotion-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.admin-promotion-form label { display: grid; gap: 7px; }
+.admin-promotion-form label > span {
+  color: #4d555d;
+  font-family: "Montserrat:Medium", sans-serif;
+  font-size: .74rem;
+}
+
+.admin-promotion-form input,
+.admin-promotion-form select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  background: #fcfcfa;
+  color: #323a43;
+  outline: 0;
+}
+
+.admin-promotion-form input:focus,
+.admin-promotion-form select:focus {
+  border-color: #23487a;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-promotion-full { grid-column: 1 / -1; }
+
+.admin-promotion-percent-input { position: relative; }
+.admin-promotion-percent-input input { padding-right: 40px; }
+.admin-promotion-percent-input strong {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: #6f777b;
+}
+
+.admin-promotion-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .admin-promotion-form { grid-template-columns: 1fr; }
+  .admin-promotion-full { grid-column: auto; }
+  .admin-promotion-storage-note { flex-direction: column; }
+}

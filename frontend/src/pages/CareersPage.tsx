@@ -4,7 +4,7 @@ import { routes } from "@/config/routes"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
-import { getRecruitments } from "@/services/recruitmentApi"
+import { employmentTypeLabel, formatRecruitmentSalary, getRecruitments } from "@/services/recruitmentApi"
 
 export default function CareersPage() {
   const [careerOpenings, setCareerOpenings] = useState<RecruitmentRecord[]>([])
@@ -90,9 +90,12 @@ export default function CareersPage() {
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <div>
                   <p>
-                    {opening.type} · {opening.location}
+                    {employmentTypeLabel(opening.type)} · {opening.location}
                   </p>
                   <h3>{opening.title}</h3>
+                  <strong className="career-list-salary">
+                    {formatRecruitmentSalary(opening.salary)}
+                  </strong>
                   <small>{opening.description}</small>
                 </div>
                 <a

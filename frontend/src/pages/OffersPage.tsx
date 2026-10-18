@@ -1,26 +1,35 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { A } from "@/config/assets"
-import { offers } from "@/data/offers"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
+import {
+  formatPromotionDate,
+  getCustomerPromotions,
+  promotionApplyTypeLabel,
+  promotionImage,
+} from "@/services/promotionStore"
 
 export default function OffersPage() {
   const [category, setCategory] = useState("Tất cả")
-  const filteredOffers =
-    category === "Tất cả"
-      ? offers
-      : offers.filter((offer) => offer.category === category)
+  const promotions = useMemo(() => getCustomerPromotions(), [])
+
+  const filteredOffers = promotions.filter((promotion) => {
+    if (category === "Tất cả") return true
+    if (category === "Khách sạn") return promotion.applyType === 1
+    return promotion.applyType === 2
+  })
+
   return (
     <Shell>
       <Hero
         image="dd726.png"
         title="ƯU ĐÃI"
-        subtitle="Từ các gói nghỉ dưỡng thư giãn, ẩm thực đặc sắc đến những hành trình khám phá thiên nhiên và văn hóa độc đáo."
+        subtitle="Khám phá các chương trình giảm giá dành cho dịch vụ lưu trú và nhà hàng tại Cây Phượng K18."
       />
       <section className="section sage offers-section">
         <div className="offers-heading">
           <div>
-            <p className="eyebrow">ƯU ĐÃI DÀNH RIÊNG CHO BẠN</p>
+            <p className="eyebrow">US.24 · CHƯƠNG TRÌNH ƯU ĐÃI</p>
             <h2>
               Thêm trải nghiệm,
               <br />
@@ -28,13 +37,13 @@ export default function OffersPage() {
             </h2>
           </div>
           <p>
-            Khám phá các chương trình dành cho kỳ nghỉ, gia đình và ẩm thực. Mỗi
-            ưu đãi đều được thiết kế để hành trình tại Cây Phượng K18 thêm trọn
-            vẹn.
+            Theo dõi mức giảm, thời gian áp dụng và dịch vụ được hưởng ưu đãi để
+            lựa chọn chương trình phù hợp với chuyến đi của bạn.
           </p>
         </div>
+
         <div className="offer-filters" aria-label="Lọc ưu đãi">
-          {["Tất cả", "Lưu trú", "Ẩm thực"].map((item) => (
+          {["Tất cả", "Khách sạn", "Nhà hàng"].map((item) => (
             <button
               className={category === item ? "active" : ""}
               onClick={() => setCategory(item)}
@@ -45,31 +54,41 @@ export default function OffersPage() {
             </button>
           ))}
         </div>
-        <div className="offers-showcase">
-          {filteredOffers.map((offer, index) => (
-            <article
-              className={`offer-card ${
-                category === "Tất cả" && index === 0 ? "offer-featured" : ""
-              }`}
-              key={offer.title}
-            >
-              <div className="offer-card-image">
-                <img src={`${A}${offer.image}`} alt="" />
-                <span>{offer.category}</span>
-              </div>
-              <div className="offer-card-content">
-                <p className="offer-date">{offer.date}</p>
-                <h3>{offer.title}</h3>
-                <p>{offer.text}</p>
-                <a href="/uu-dai/chi-tiet">
-                  Xem chi tiết ưu đãi <span>→</span>
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+
+        {filteredOffers.length > 0 ? (
+          <div className="offers-showcase">
+            {filteredOffers.map((offer, index) => (
+              <article
+                className={`offer-card ${category === "Tất cả" && index === 0 ? "offer-featured" : ""}`}
+                key={offer.id}
+              >
+                <div className="offer-card-image">
+                  <img src={`${A}${promotionImage(offer.applyType)}`} alt="" />
+                  <span>{promotionApplyTypeLabel(offer.applyType)}</span>
+                  <strong className="offer-discount-badge">-{offer.discountPercent}%</strong>
+                </div>
+                <div className="offer-card-content">
+                  <p className="offer-date">
+                    {formatPromotionDate(offer.startDate)} – {formatPromotionDate(offer.endDate)}
+                  </p>
+                  <h3>{offer.name}</h3>
+                  <p>
+                    Giảm {offer.discountPercent}% cho dịch vụ {promotionApplyTypeLabel(offer.applyType).toLocaleLowerCase("vi")} trong thời gian chương trình.
+                  </p>
+                  <a href={`/uu-dai/chi-tiet?id=${encodeURIComponent(offer.id)}`}>
+                    Xem chi tiết ưu đãi <span>→</span>
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="offers-empty">
+            <strong>Chưa có chương trình phù hợp</strong>
+            <span>Vui lòng quay lại sau để xem các ưu đãi mới.</span>
+          </div>
+        )}
       </section>
     </Shell>
   )
 }
-

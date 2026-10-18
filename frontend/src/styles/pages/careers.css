@@ -36,3 +36,12 @@
 .careers-cta > a:hover { background: #f3e9d2; color: #70463a; transform: translateY(-3px); box-shadow: 0 12px 28px #11182735; }
 .careers-cta > a span { font-size: 1.15rem; transition: transform .2s; }
 .careers-cta > a:hover span { transform: translateX(4px); }
+
+
+.career-list-salary {
+  display: block;
+  margin: 0 0 8px;
+  color: #23487a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .86rem;
+}

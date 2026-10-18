@@ -23,3 +23,7 @@
 
 /* Room images: 1 main + up to 4 secondary images, carousel max 5. */
 @import "./styles/pages/room-images-5.css";
+
+/* Sprint 4 · US.23–US.27 */
+@import "./styles/pages/promotions.css";
+@import "./styles/pages/admin-promotions.css";
