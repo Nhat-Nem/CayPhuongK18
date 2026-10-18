@@ -25,7 +25,7 @@ export class RecruitmentsController {
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles("ADMIN")
-    create(dto: CreateRecruitmentDto) {
+    create(@Body() dto: CreateRecruitmentDto) {
         return this.recruimentService.create(dto)
     }
 
