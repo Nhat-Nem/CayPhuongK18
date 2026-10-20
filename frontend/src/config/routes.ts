@@ -21,6 +21,9 @@ export const routes = {
   // Thực đơn
   adminMenu: "/admin/thuc-don",
 
+  // Đơn hàng
+  adminOrders: "/admin/don-hang",
+
   // Tiếp nhận
   adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",

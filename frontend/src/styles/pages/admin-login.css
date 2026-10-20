@@ -327,3 +327,27 @@
     padding: 38px 20px 60px;
   }
 }
+
+
+/* Admin + Staff demo accounts */
+.admin-login-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.admin-login-demo-grid .admin-login-demo {
+  margin-top: 0;
+}
+
+.admin-login-demo--staff {
+  border-color: #bfd2e7 !important;
+  background: #f4f8fc !important;
+}
+
+@media (max-width: 1180px) {
+  .admin-login-demo-grid {
+    grid-template-columns: 1fr;
+  }
+}

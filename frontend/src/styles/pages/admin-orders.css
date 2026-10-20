@@ -1,0 +1,308 @@
+/* Sprint 5 frontend only - order UI */
+
+.admin-order-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-order-stat-money {
+  font-size: clamp(1rem, 1.7vw, 1.45rem) !important;
+}
+
+.admin-order-table th,
+.admin-order-table td {
+  vertical-align: middle;
+}
+
+.admin-order-table td:first-child,
+.admin-order-table td:nth-child(2) {
+  min-width: 135px;
+}
+
+.admin-order-cell-subtext {
+  display: block;
+  margin-top: 5px;
+  color: #858b90;
+  font-size: .7rem;
+  line-height: 1.35;
+}
+
+.admin-order-note-preview {
+  display: -webkit-box;
+  max-width: 230px;
+  overflow: hidden;
+  color: #6d7379;
+  font-size: .78rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-order-money,
+.admin-order-item-subtotal {
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  white-space: nowrap;
+}
+
+.admin-order-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-order-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-order-form label > span,
+.admin-order-items-heading span {
+  color: #5f666d;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .68rem;
+  letter-spacing: .04em;
+}
+
+.admin-order-form input,
+.admin-order-form textarea,
+.admin-order-add-item select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d7d8d4;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #29323d;
+  font: inherit;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.admin-order-form input {
+  min-height: 46px;
+  padding: 0 13px;
+}
+
+.admin-order-form textarea {
+  min-height: 92px;
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.admin-order-form input:focus,
+.admin-order-form textarea:focus,
+.admin-order-add-item select:focus {
+  border-color: #597aa1;
+  box-shadow: 0 0 0 3px #23487a10;
+}
+
+.admin-order-form-full {
+  grid-column: 1 / -1;
+}
+
+.admin-order-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.admin-order-editor,
+.admin-order-items-section,
+.admin-order-item-list {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-order-divider {
+  height: 1px;
+  background: #e4e2dc;
+}
+
+.admin-order-items-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-order-items-heading h3 {
+  margin: 4px 0 0;
+  color: #17345f;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1.15rem;
+}
+
+.admin-order-items-heading > strong {
+  color: #915c37;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.admin-order-add-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.admin-order-add-item select {
+  min-height: 44px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.admin-order-item-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto 145px 38px;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid #e0ded8;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.admin-order-item-info {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+}
+
+.admin-order-item-info img,
+.admin-order-item-placeholder {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 9px;
+}
+
+.admin-order-item-info img {
+  object-fit: cover;
+  background: #eeeae1;
+}
+
+.admin-order-item-placeholder {
+  display: grid;
+  place-items: center;
+  background: #eeeae1;
+  color: #70463a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .72rem;
+}
+
+.admin-order-item-info strong,
+.admin-order-item-info small {
+  display: block;
+}
+
+.admin-order-item-info strong {
+  overflow: hidden;
+  color: #29323d;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-order-item-info small {
+  margin-top: 5px;
+  color: #8a8f94;
+  font-size: .7rem;
+}
+
+.admin-order-quantity {
+  display: inline-grid;
+  grid-template-columns: 34px 40px 34px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #d9d9d5;
+  border-radius: 9px;
+  background: #faf9f6;
+}
+
+.admin-order-quantity button {
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: #17345f;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.admin-order-quantity button:hover:not(:disabled) {
+  background: #17345f0b;
+}
+
+.admin-order-quantity button:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.admin-order-quantity span {
+  text-align: center;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .76rem;
+}
+
+.admin-order-item-subtotal {
+  font-size: .78rem;
+  text-align: right;
+}
+
+.admin-order-remove-item {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #efcbc7;
+  border-radius: 8px;
+  background: #fff7f6;
+  color: #a3433d;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.admin-order-remove-item:hover {
+  background: #fbe8e6;
+}
+
+.admin-order-empty-items {
+  padding: 24px;
+  border: 1px dashed #d5d4cf;
+  border-radius: 10px;
+  color: #84898e;
+  text-align: center;
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .admin-order-stats,
+  .admin-order-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-form-full {
+    grid-column: auto;
+  }
+
+  .admin-order-form-actions {
+    flex-direction: column;
+  }
+
+  .admin-order-add-item {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-order-item-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .admin-order-item-info {
+    grid-column: 1 / -1;
+  }
+
+  .admin-order-item-subtotal {
+    text-align: left;
+  }
+}

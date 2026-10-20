@@ -18,6 +18,7 @@ import AdminRoomsPage from "@/pages/admin/AdminRoomsPage"
 import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
 import AdminMenuPage from "@/pages/admin/AdminMenuPage"
+import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
 import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
@@ -26,7 +27,7 @@ import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
 import AdminRecruitmentCreatePage from "@/pages/admin/AdminRecruitmentCreatePage"
 import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
 import AdminPromotionsPage from "@/pages/admin/AdminPromotionsPage"
-import { isAdminAuthenticated } from "@/utils/adminAuth"
+import { getAuthenticatedUser, isAdminAuthenticated } from "@/utils/adminAuth"
 
 export default function App() {
   const [language, setLanguage] = useState<Language>(() => {
@@ -64,6 +65,7 @@ export default function App() {
       [routes.adminRoomCreate]: "Thêm phòng",
       [routes.adminRoomEdit]: "Sửa phòng",
       [routes.adminMenu]: "Quản lý thực đơn",
+      [routes.adminOrders]: "Quản lý đơn hàng",
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
@@ -82,6 +84,7 @@ export default function App() {
     document.title = `${title ?? "Cây Phượng K18"} | Cây Phượng K18`
   }, [path])
   const isAdminPage = path === routes.admin || path.startsWith("/admin/")
+  const authenticatedUser = getAuthenticatedUser()
 
   let page: ReactNode
 
@@ -93,7 +96,16 @@ export default function App() {
   else if (isAdminPage && !isAdminAuthenticated()) {
     page = <AdminLoginPage redirectTo={requestedAdminPath} />
   }
-  // /admin là trang gốc quản trị -> vào danh sách phòng Sprint 1.
+  // Nhân viên chỉ dùng khu vực đơn hàng. Nếu gõ URL quản trị khác,
+  // frontend vẫn đưa về đúng màn hình mà backend cấp cho STAFF.
+  else if (
+    isAdminPage &&
+    authenticatedUser?.role === "STAFF" &&
+    path !== routes.adminOrders
+  ) {
+    page = <AdminOrdersPage />
+  }
+  // /admin là trang gốc quản trị -> vào danh sách phòng.
   else if (path === routes.admin) {
     page = <AdminRoomsPage />
   }
@@ -110,6 +122,10 @@ export default function App() {
   // Thực đơn
   else if (path === routes.adminMenu) {
     page = <AdminMenuPage />
+  }
+  // Đơn hàng
+  else if (path === routes.adminOrders) {
+    page = <AdminOrdersPage />
   }
   // Sprint 2
   else if (path === routes.adminRoomBookings) {

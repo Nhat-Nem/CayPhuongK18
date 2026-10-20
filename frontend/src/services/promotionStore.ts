@@ -1,3 +1,5 @@
+import { apiRequest } from "./api"
+
 export type PromotionApplyType = 1 | 2
 
 export interface PromotionRecord {
@@ -7,94 +9,94 @@ export interface PromotionRecord {
   startDate: string
   endDate: string
   applyType: PromotionApplyType
+  backendStatus: "ACTIVE" | "INACTIVE"
 }
 
-const STORAGE_KEY = "cayphuongk18_promotions_v1"
+type BackendPromotion = {
+  id: string | number
+  name: string
+  description?: string | null
+  discountType: "PERCENTAGE" | "FIXED_AMOUNT"
+  discountValue: string | number
+  appliesTo: "HOTEL" | "RESTAURANT"
+  startDate: string
+  endDate: string
+  status?: "ACTIVE" | "INACTIVE" | string
+  createdAt?: string
+  updatedAt?: string
+}
 
-const defaultPromotions: PromotionRecord[] = [
-  {
-    id: "promo-hotel-20",
-    name: "Ưu đãi lưu trú cuối năm",
-    discountPercent: 20,
-    startDate: "2026-10-01",
-    endDate: "2026-12-31",
-    applyType: 1,
-  },
-  {
-    id: "promo-food-15",
-    name: "Ưu đãi ẩm thực gia đình",
-    discountPercent: 15,
-    startDate: "2026-10-15",
-    endDate: "2026-11-30",
-    applyType: 2,
-  },
-]
+const API_PATH = "/api/v1/promotions"
 
-function normalizePromotion(item: Partial<PromotionRecord>): PromotionRecord | null {
-  const applyType = Number(item.applyType)
-  const discountPercent = Number(item.discountPercent)
+function dateOnly(value: string) {
+  return String(value ?? "").slice(0, 10)
+}
 
-  if (!item.id || !item.name) return null
-  if (applyType !== 1 && applyType !== 2) return null
-  if (!Number.isFinite(discountPercent)) return null
-
+function normalizePromotion(row: BackendPromotion): PromotionRecord {
   return {
-    id: String(item.id),
-    name: String(item.name).trim(),
-    discountPercent,
-    startDate: String(item.startDate ?? ""),
-    endDate: String(item.endDate ?? ""),
-    applyType: applyType as PromotionApplyType,
+    id: String(row.id),
+    name: String(row.name ?? "").trim(),
+    discountPercent: Number(row.discountValue) || 0,
+    startDate: dateOnly(row.startDate),
+    endDate: dateOnly(row.endDate),
+    applyType: row.appliesTo === "HOTEL" ? 1 : 2,
+    backendStatus: row.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
   }
 }
 
-function write(items: PromotionRecord[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
-}
-
-export function getPromotions(): PromotionRecord[] {
-  const raw = window.localStorage.getItem(STORAGE_KEY)
-
-  if (raw === null) {
-    write(defaultPromotions)
-    return [...defaultPromotions]
-  }
-
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-
-    return parsed
-      .map((item) => normalizePromotion(item))
-      .filter((item): item is PromotionRecord => Boolean(item))
-  } catch {
-    return []
+function toBackendPayload(payload: Omit<PromotionRecord, "id" | "backendStatus">) {
+  return {
+    name: payload.name.trim(),
+    discountType: "PERCENTAGE" as const,
+    discountValue: payload.discountPercent,
+    appliesTo: payload.applyType === 1 ? ("HOTEL" as const) : ("RESTAURANT" as const),
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    status: "ACTIVE" as const,
   }
 }
 
-export function createPromotion(payload: Omit<PromotionRecord, "id">) {
-  const item: PromotionRecord = {
-    ...payload,
-    id: `promo-${Date.now()}`,
-  }
-  const next = [item, ...getPromotions()]
-  write(next)
-  return item
+export async function getPromotions(): Promise<PromotionRecord[]> {
+  const rows = await apiRequest<BackendPromotion[]>(API_PATH)
+  return rows.map(normalizePromotion)
 }
 
-export function updatePromotion(id: string, payload: Omit<PromotionRecord, "id">) {
-  const next = getPromotions().map((item) =>
-    item.id === id ? { ...payload, id } : item,
+export async function createPromotion(
+  payload: Omit<PromotionRecord, "id" | "backendStatus">,
+) {
+  const row = await apiRequest<BackendPromotion>(API_PATH, {
+    method: "POST",
+    body: JSON.stringify(toBackendPayload(payload)),
+  })
+  return normalizePromotion(row)
+}
+
+export async function updatePromotion(
+  id: string,
+  payload: Omit<PromotionRecord, "id" | "backendStatus">,
+) {
+  const row = await apiRequest<BackendPromotion>(
+    `${API_PATH}/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(toBackendPayload(payload)),
+    },
   )
-  write(next)
+  return normalizePromotion(row)
 }
 
-export function deletePromotion(id: string) {
-  write(getPromotions().filter((item) => item.id !== id))
+export async function deletePromotion(id: string) {
+  await apiRequest<{ message?: string }>(
+    `${API_PATH}/${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+  )
 }
 
-export function getPromotionById(id: string) {
-  return getPromotions().find((item) => item.id === id) ?? null
+export async function getPromotionById(id: string) {
+  const row = await apiRequest<BackendPromotion>(
+    `${API_PATH}/${encodeURIComponent(id)}`,
+  )
+  return normalizePromotion(row)
 }
 
 export function promotionApplyTypeLabel(type: PromotionApplyType) {
@@ -106,12 +108,15 @@ export function promotionImage(type: PromotionApplyType) {
 }
 
 export function formatPromotionDate(value: string) {
-  const [year, month, day] = value.split("-")
+  const normalized = dateOnly(value)
+  const [year, month, day] = normalized.split("-")
   if (!year || !month || !day) return value
   return `${day}/${month}/${year}`
 }
 
 export function promotionStatus(item: PromotionRecord) {
+  if (item.backendStatus === "INACTIVE") return "ended" as const
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const start = new Date(`${item.startDate}T00:00:00`)
@@ -123,12 +128,17 @@ export function promotionStatus(item: PromotionRecord) {
 }
 
 export function promotionStatusLabel(item: PromotionRecord) {
+  if (item.backendStatus === "INACTIVE") return "Đã tắt"
+
   const status = promotionStatus(item)
   if (status === "active") return "Đang áp dụng"
   if (status === "upcoming") return "Sắp diễn ra"
   return "Đã kết thúc"
 }
 
-export function getCustomerPromotions() {
-  return getPromotions().filter((item) => promotionStatus(item) !== "ended")
+export async function getCustomerPromotions() {
+  const rows = await getPromotions()
+  return rows.filter(
+    (item) => item.backendStatus === "ACTIVE" && promotionStatus(item) !== "ended",
+  )
 }

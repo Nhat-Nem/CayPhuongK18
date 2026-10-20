@@ -1,14 +1,31 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
 import {
   getCustomerPromotions,
   promotionApplyTypeLabel,
   promotionImage,
+  type PromotionRecord,
 } from "@/services/promotionStore"
 
 export default function OfferCards() {
-  const offers = getCustomerPromotions().slice(0, 3)
+  const [offers, setOffers] = useState<PromotionRecord[]>([])
   const [position, setPosition] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getCustomerPromotions()
+      .then((rows) => setOffers(rows.slice(0, 3)))
+      .catch(() => setOffers([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="offers-empty compact">
+        <strong>Đang tải chương trình ưu đãi...</strong>
+      </div>
+    )
+  }
 
   if (offers.length === 0) {
     return (

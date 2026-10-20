@@ -27,3 +27,9 @@
 /* Sprint 4 · US.23–US.27 */
 @import "./styles/pages/promotions.css";
 @import "./styles/pages/admin-promotions.css";
+
+/* Visual alignment from the supplied frontend reference. */
+@import "./styles/pages/reference-ui-polish.css";
+
+/* Order management frontend prototype */
+@import "./styles/pages/admin-orders.css";
