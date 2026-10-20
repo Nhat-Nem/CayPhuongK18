@@ -15,6 +15,7 @@ import { WalkInVisitsModule } from './walk-in-visits/walk-in-visits.module';
 import { MenuItemsModule } from './menu-items/menu-items.module';
 import { CategoryModule } from './category/category.module';
 import { RecruitmentsModule } from './recruitments/recruitments.module';
+import { PromotionsModule } from './promotions/promotions.module';
 
 @Module({
   imports: [
@@ -53,6 +54,8 @@ import { RecruitmentsModule } from './recruitments/recruitments.module';
     CategoryModule,
 
     RecruitmentsModule,
+
+    PromotionsModule,
   ],
   controllers: [AppController],
 
