@@ -33,7 +33,7 @@ export class RecruitmentsService {
 
     // Tim theo id
     async findOne(id: string) {
-        const recruiment =  this.recruitmentReposiroty.findOne({
+        const recruiment = await this.recruitmentReposiroty.findOne({
             where: { id }
         })
 
@@ -63,7 +63,11 @@ export class RecruitmentsService {
             throw new NotFoundException("Recruitment Not Found")
         }
 
-        Object.assign(recruitment, dto)
+        Object.assign(recruitment, {
+            ...dto, 
+            employmentType: 
+                dto.employment_type ?? recruitment.employmentType
+        })
 
         this.recruitmentLogger.log(`Update recruitment successfully at ${this.getCurrentTime()}`)
 

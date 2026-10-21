@@ -25,6 +25,11 @@ export class CreateRecruitmentDto {
 
     @IsOptional()
     @IsString()
+    @MaxLength(50)
+    employment_type?: string
+
+    @IsOptional()
+    @IsString()
     @MaxLength(255)
     location?: string
 
