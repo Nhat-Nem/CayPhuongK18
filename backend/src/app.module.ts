@@ -16,6 +16,7 @@ import { MenuItemsModule } from './menu-items/menu-items.module';
 import { CategoryModule } from './category/category.module';
 import { RecruitmentsModule } from './recruitments/recruitments.module';
 import { PromotionsModule } from './promotions/promotions.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -56,6 +57,8 @@ import { PromotionsModule } from './promotions/promotions.module';
     RecruitmentsModule,
 
     PromotionsModule,
+
+    OrdersModule,
   ],
   controllers: [AppController],
 
