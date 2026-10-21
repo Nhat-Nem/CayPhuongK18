@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
@@ -22,6 +22,7 @@ export class PromotionsController {
     }
 
     // Tao
+    @Post()
     create(@Body() dto: CreatePromotionDto) {
         return this.promotionService.create(dto)
     }
