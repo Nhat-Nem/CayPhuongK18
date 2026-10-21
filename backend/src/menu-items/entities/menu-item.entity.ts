@@ -18,7 +18,7 @@ export class MenuItem {
     @Column({ type: "text", nullable: true })
     ingredient: string | null
 
-    @Column({ type: "varchar", length: 500, nullable: true })
+    @Column({ type: "longtext", nullable: true })
     image: string | null
 
     @Column({ type: "int", default: 0 })
