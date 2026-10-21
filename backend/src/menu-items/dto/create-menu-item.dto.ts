@@ -22,7 +22,6 @@ export class CreateMenuItemDto {
 
     @IsOptional()
     @IsString()
-    @MaxLength(500)
     image?: string
 
     @Type(() => Number)
