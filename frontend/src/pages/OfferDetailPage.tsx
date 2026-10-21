@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
@@ -7,11 +8,41 @@ import {
   getPromotionById,
   promotionApplyTypeLabel,
   promotionImage,
+  type PromotionRecord,
 } from "@/services/promotionStore"
 
 export default function OfferDetailPage() {
   const id = new URLSearchParams(window.location.search).get("id")
-  const item = id ? getPromotionById(id) : getCustomerPromotions()[0] ?? null
+  const [item, setItem] = useState<PromotionRecord | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if (id) {
+          setItem(await getPromotionById(id))
+          return
+        }
+
+        const rows = await getCustomerPromotions()
+        setItem(rows[0] ?? null)
+      } catch {
+        setItem(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    void load()
+  }, [id])
+
+  if (loading) {
+    return (
+      <Shell>
+        <Hero image="dd726.png" title="ƯU ĐÃI" subtitle="Đang tải chương trình ưu đãi..." />
+      </Shell>
+    )
+  }
 
   if (!item) {
     return (

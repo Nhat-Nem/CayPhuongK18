@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
@@ -7,17 +7,30 @@ import {
   getCustomerPromotions,
   promotionApplyTypeLabel,
   promotionImage,
+  type PromotionRecord,
 } from "@/services/promotionStore"
 
 export default function OffersPage() {
   const [category, setCategory] = useState("Tất cả")
-  const promotions = useMemo(() => getCustomerPromotions(), [])
+  const [promotions, setPromotions] = useState<PromotionRecord[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredOffers = promotions.filter((promotion) => {
-    if (category === "Tất cả") return true
-    if (category === "Khách sạn") return promotion.applyType === 1
-    return promotion.applyType === 2
-  })
+  useEffect(() => {
+    getCustomerPromotions()
+      .then(setPromotions)
+      .catch(() => setPromotions([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filteredOffers = useMemo(
+    () =>
+      promotions.filter((promotion) => {
+        if (category === "Tất cả") return true
+        if (category === "Khách sạn") return promotion.applyType === 1
+        return promotion.applyType === 2
+      }),
+    [category, promotions],
+  )
 
   return (
     <Shell>
@@ -29,7 +42,7 @@ export default function OffersPage() {
       <section className="section sage offers-section">
         <div className="offers-heading">
           <div>
-            <p className="eyebrow">US.24 · CHƯƠNG TRÌNH ƯU ĐÃI</p>
+            <p className="eyebrow">CHƯƠNG TRÌNH ƯU ĐÃI</p>
             <h2>
               Thêm trải nghiệm,
               <br />
@@ -55,7 +68,11 @@ export default function OffersPage() {
           ))}
         </div>
 
-        {filteredOffers.length > 0 ? (
+        {loading ? (
+          <div className="offers-empty">
+            <strong>Đang tải chương trình ưu đãi...</strong>
+          </div>
+        ) : filteredOffers.length > 0 ? (
           <div className="offers-showcase">
             {filteredOffers.map((offer, index) => (
               <article

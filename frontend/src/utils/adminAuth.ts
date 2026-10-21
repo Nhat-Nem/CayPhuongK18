@@ -11,40 +11,66 @@ const DEMO_ADMIN = {
   password: "Admin@123",
 }
 
+const DEMO_STAFF = {
+  username: "staff",
+  email:
+    (import.meta.env.VITE_STAFF_EMAIL as string | undefined)?.trim() ||
+    "staff@cayphuong.local",
+  password: "Staff@123",
+}
+
+export type PortalRole = "ADMIN" | "STAFF"
+
 export interface AdminUser {
   id: string
   username?: string
   email: string
   full_name: string
-  role: "ADMIN"
+  role: PortalRole
 }
 
 interface LoginResponse {
   access_token: string
-  user: {
-    id: string
-    username?: string
-    email: string
-    full_name: string
-    role: "ADMIN"
-  }
+  user: AdminUser
 }
 
 export function isAdminAuthenticated() {
   return Boolean(window.localStorage.getItem(ADMIN_TOKEN_KEY))
 }
 
+export function getAuthenticatedUser(): AdminUser | null {
+  const raw = window.localStorage.getItem(ADMIN_USER_KEY)
+  if (!raw) return null
+
+  try {
+    const user = JSON.parse(raw) as AdminUser
+    if (user.role !== "ADMIN" && user.role !== "STAFF") return null
+    return user
+  } catch {
+    return null
+  }
+}
+
+export function isStaffAuthenticated() {
+  return getAuthenticatedUser()?.role === "STAFF"
+}
+
+export function isAdminRole() {
+  return getAuthenticatedUser()?.role === "ADMIN"
+}
+
 function resolveBackendLoginEmail(usernameOrEmail: string) {
   const value = usernameOrEmail.trim()
+  const normalized = value.toLowerCase()
 
-  // Backend Auth hiện tìm User theo field email.
-  // Giao diện vẫn cho phép nhập tài khoản demo "admin", nên map nó
-  // sang email seed tương ứng trước khi POST /api/v1/auth.
-  if (value.toLowerCase() === DEMO_ADMIN.username) {
+  if (normalized === DEMO_ADMIN.username) {
     return DEMO_ADMIN.email
   }
 
-  // Nếu người dùng nhập email trực tiếp thì gửi nguyên giá trị.
+  if (normalized === DEMO_STAFF.username) {
+    return DEMO_STAFF.email
+  }
+
   return value
 }
 
@@ -86,4 +112,10 @@ export const demoAdminAccount = {
   username: DEMO_ADMIN.username,
   email: DEMO_ADMIN.email,
   password: DEMO_ADMIN.password,
+}
+
+export const demoStaffAccount = {
+  username: DEMO_STAFF.username,
+  email: DEMO_STAFF.email,
+  password: DEMO_STAFF.password,
 }

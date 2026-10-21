@@ -1,8 +1,8 @@
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 const MAX_SOURCE_SIZE = 8 * 1024 * 1024
 
-// MySQL TEXT chứa tối đa khoảng 65 KB. Giữ data URL dưới 50 KB để còn dư
-// an toàn cho prefix data:image/... và payload JSON của request.
+// Backend lưu field image bằng LONGTEXT. Frontend vẫn nén data URL xuống khoảng
+// 50 KB để request nhẹ hơn và ảnh tải nhanh hơn.
 const TARGET_DATA_URL_LENGTH = 50_000
 
 function readFileAsDataUrl(file: File): Promise<string> {

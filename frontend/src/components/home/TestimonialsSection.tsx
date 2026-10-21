@@ -6,24 +6,28 @@ const testimonials = [
     stars: 5,
     text: "Cá lóc nướng muối ớt ở đây ngon xuất sắc! Không gian rất thoáng và yên tĩnh, nhân viên nhiệt tình chu đáo. Cả gia đình mình ai cũng thích, nhất định sẽ quay lại.",
     initials: "LP",
+    service: "Ẩm thực",
   },
   {
     name: "Anh Minh Tuấn",
     stars: 5,
     text: "Mâm cơm Cây Phượng đúng như tên gọi — đầy đặn, thơm ngon và rất hợp vị. Gà ta nướng lu ăn kèm muối ớt xanh thật tuyệt. Giá cả hợp lý, phục vụ rất tốt.",
     initials: "MT",
+    service: "Ẩm thực",
   },
   {
     name: "Gia đình Bảo Châu",
     stars: 5,
     text: "Lần đầu đến Cây Phượng K18 cho dịp sinh nhật ba, được phục vụ rất chu đáo. Bánh canh Trảng Bàng sợi dai ngon, nước dùng trong và ngọt tự nhiên. Sẽ giới thiệu cho bạn bè.",
     initials: "BC",
+    service: "Dịch vụ",
   },
   {
     name: "Chị Thu Hà",
     stars: 5,
     text: "Không gian xanh mát, thoáng đãng — ăn cơm mà như đang ngồi giữa vườn. Bò cuốn lá lốt thơm lừng, chấm mắm nêm đúng vị miền Nam. Quán giữ được nét mộc mạc rất đáng quý.",
     initials: "TH",
+    service: "Phòng nghỉ",
   },
 ]
 
@@ -33,9 +37,11 @@ export default function TestimonialsSection() {
 
   useEffect(() => {
     if (paused) return
+
     const timer = window.setInterval(() => {
       setActive((current) => (current + 1) % testimonials.length)
     }, 5500)
+
     return () => window.clearInterval(timer)
   }, [paused])
 
@@ -43,13 +49,33 @@ export default function TestimonialsSection() {
     setActive((next + testimonials.length) % testimonials.length)
   }
 
+  const shownTestimonials = [
+    ...testimonials.slice(active),
+    ...testimonials.slice(0, active),
+  ]
+
   return (
     <section className="section testimonials-section">
       <div className="testimonials-heading home-title-reveal">
-        <p className="eyebrow">ĐÁNH GIÁ</p>
-        <h2>Khách hàng nói gì về chúng tôi</h2>
-        <p>Những cảm nhận chân thật từ thực khách đã trải nghiệm ẩm thực và không gian tại Cây Phượng K18.</p>
+        <h2 className="single-line-heading">Những trải nghiệm đáng nhớ</h2>
+        <p>
+          Khám phá những điều thực khách yêu thích sau mỗi bữa ăn và kỳ nghỉ
+          tại Cây Phượng.
+        </p>
       </div>
+
+      <div className="reviews-overall" aria-label="Điểm đánh giá 4.9 trên 5">
+        <strong>
+          4.9<small>/5</small>
+        </strong>
+        <div>
+          <span className="reviews-overall-stars" aria-hidden="true">
+            ★★★★★
+          </span>
+          <p>Dựa trên 128 đánh giá</p>
+        </div>
+      </div>
+
       <div
         className="testimonials-slider"
         onMouseEnter={() => setPaused(true)}
@@ -57,51 +83,43 @@ export default function TestimonialsSection() {
         onFocusCapture={() => setPaused(true)}
         onBlurCapture={() => setPaused(false)}
       >
-        <button
-          className="testimonial-arrow"
-          onClick={() => showTestimonial(active - 1)}
-          aria-label="Xem đánh giá trước"
-        >
-          ←
-        </button>
-        <div className="testimonials-viewport" aria-live="polite">
-          <div
-            className="testimonials-track"
-            style={{ transform: `translateX(-${active * 100}%)` }}
-          >
-            {testimonials.map((t, i) => (
-              <article
-                key={t.name}
-                className={`testimonial-card${i === active ? " testimonial-active" : ""}`}
-                aria-hidden={i !== active}
+        <div className="testimonials-grid">
+          {shownTestimonials.slice(0, 3).map((testimonial) => (
+            <article className="testimonial-card" key={testimonial.name}>
+              <div
+                className="testimonial-stars"
+                role="img"
+                aria-label={`${testimonial.stars} trên 5 sao`}
               >
-                <div className="testimonial-stars">
-                  {"★".repeat(t.stars)}
-                </div>
-                <p className="testimonial-text">"{t.text}"</p>
+                <span aria-hidden="true">
+                  {"★".repeat(testimonial.stars)}
+                </span>
+              </div>
+
+              <p className="testimonial-text">“{testimonial.text}”</p>
+
+              <div className="testimonial-card-footer">
                 <div className="testimonial-author">
-                  <div className="testimonial-avatar">{t.initials}</div>
+                  <div className="testimonial-avatar">
+                    {testimonial.initials}
+                  </div>
                   <div>
-                    <strong>{t.name}</strong>
+                    <strong>{testimonial.name}</strong>
+                    <span>{testimonial.service}</span>
                   </div>
                 </div>
-                <span className="testimonial-number">
-                  {String(i + 1).padStart(2, "0")} /{" "}
-                  {String(testimonials.length).padStart(2, "0")}
-                </span>
-              </article>
-            ))}
-          </div>
+
+                <div className="verified-guest">
+                  <span aria-hidden="true">✓</span>
+                  Đã xác thực
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
-        <button
-          className="testimonial-arrow"
-          onClick={() => showTestimonial(active + 1)}
-          aria-label="Xem đánh giá tiếp theo"
-        >
-          →
-        </button>
       </div>
-      <div className="testimonial-dots" aria-label="Chọn đánh giá">
+
+      <div className="slider-dots" aria-label="Chọn đánh giá">
         {testimonials.map((testimonial, index) => (
           <button
             className={index === active ? "active" : ""}
@@ -115,5 +133,3 @@ export default function TestimonialsSection() {
     </section>
   )
 }
-
-

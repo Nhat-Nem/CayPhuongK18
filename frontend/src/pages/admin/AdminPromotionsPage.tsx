@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import AdminFormModal from "@/components/admin/AdminFormModal"
 import {
@@ -31,15 +31,34 @@ const emptyForm: FormState = {
 }
 
 export default function AdminPromotionsPage() {
-  const [items, setItems] = useState<PromotionRecord[]>(() => getPromotions())
+  const [items, setItems] = useState<PromotionRecord[]>([])
   const [query, setQuery] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
-  const reload = () => setItems(getPromotions())
+  const reload = async () => {
+    setLoading(true)
+    setError("")
+
+    try {
+      setItems(await getPromotions())
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Không thể tải khuyến mãi từ backend.",
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void reload()
+  }, [])
 
   const filteredItems = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase("vi")
@@ -78,7 +97,7 @@ export default function AdminPromotionsPage() {
     setShowForm(true)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
 
@@ -95,8 +114,8 @@ export default function AdminPromotionsPage() {
       setError("Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc.")
       return
     }
-    if (form.endDate < form.startDate) {
-      setError("Ngày kết thúc không được trước ngày bắt đầu.")
+    if (form.endDate <= form.startDate) {
+      setError("Ngày kết thúc phải sau ngày bắt đầu.")
       return
     }
 
@@ -108,32 +127,50 @@ export default function AdminPromotionsPage() {
       applyType: Number(form.applyType) as PromotionApplyType,
     }
 
-    if (editingId) {
-      updatePromotion(editingId, payload)
-      setNotice(`Đã cập nhật chương trình “${payload.name}”.`)
-    } else {
-      createPromotion(payload)
-      setNotice(`Đã thêm chương trình “${payload.name}”.`)
-    }
+    setSaving(true)
 
-    setShowForm(false)
-    setEditingId(null)
-    setForm(emptyForm)
-    reload()
+    try {
+      if (editingId) {
+        await updatePromotion(editingId, payload)
+        setNotice(`Đã cập nhật chương trình “${payload.name}”.`)
+      } else {
+        await createPromotion(payload)
+        setNotice(`Đã thêm chương trình “${payload.name}”.`)
+      }
+
+      setShowForm(false)
+      setEditingId(null)
+      setForm(emptyForm)
+      await reload()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Không thể lưu chương trình khuyến mãi.",
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleDelete = (item: PromotionRecord) => {
+  const handleDelete = async (item: PromotionRecord) => {
     if (!window.confirm(`Xóa chương trình “${item.name}”?`)) return
-    deletePromotion(item.id)
-    setNotice(`Đã xóa chương trình “${item.name}”.`)
-    reload()
+
+    setError("")
+    try {
+      await deletePromotion(item.id)
+      setNotice(`Đã xóa chương trình “${item.name}”.`)
+      await reload()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Không thể xóa chương trình khuyến mãi.",
+      )
+    }
   }
 
   return (
     <AdminRoomLayout
-      eyebrow="SPRINT 4 · US.24–US.27"
+      eyebrow="KHUYẾN MÃI"
       title="Quản lý khuyến mãi"
-      subtitle="Thêm, sửa và xóa các chương trình ưu đãi hiển thị cho khách hàng."
+      subtitle="Thêm, sửa và xóa chương trình ưu đãi được lưu trực tiếp qua backend."
       primaryAction={
         <button className="admin-primary-button" type="button" onClick={openCreate}>
           + Thêm khuyến mãi
@@ -144,7 +181,7 @@ export default function AdminPromotionsPage() {
         <article>
           <span>Tổng chương trình</span>
           <strong>{items.length}</strong>
-          <small>Đã tạo trên frontend</small>
+          <small>Trong database</small>
         </article>
         <article>
           <span>Đang áp dụng</span>
@@ -157,6 +194,10 @@ export default function AdminPromotionsPage() {
           <small>Khách sạn / Nhà hàng</small>
         </article>
       </section>
+
+      {error && !showForm && (
+        <div className="admin-room-form-notice error">⚠ {error}</div>
+      )}
 
       <section className="admin-room-panel">
         <div className="admin-room-toolbar admin-promotion-toolbar">
@@ -173,11 +214,8 @@ export default function AdminPromotionsPage() {
         </div>
 
         <div className="admin-promotion-storage-note">
-          <strong>Frontend Sprint 4:</strong>
-          <span>
-            Dữ liệu khuyến mãi đang lưu trên trình duyệt. Khi backend có API khuyến mãi,
-            chỉ cần thay service lưu trữ mà không cần đổi giao diện này.
-          </span>
+          <strong>Backend:</strong>
+          <span>Dữ liệu đang đồng bộ qua /api/v1/promotions.</span>
         </div>
 
         {notice && (
@@ -188,7 +226,11 @@ export default function AdminPromotionsPage() {
           </div>
         )}
 
-        {filteredItems.length > 0 ? (
+        {loading ? (
+          <div className="admin-room-empty">
+            <strong>Đang tải khuyến mãi...</strong>
+          </div>
+        ) : filteredItems.length > 0 ? (
           <div className="admin-room-table-wrap">
             <table className="admin-room-table admin-promotion-table">
               <thead>
@@ -207,10 +249,7 @@ export default function AdminPromotionsPage() {
                   const status = promotionStatus(item)
                   return (
                     <tr key={item.id}>
-                      <td>
-                        <strong>{item.name}</strong>
-                        <small>{item.id}</small>
-                      </td>
+                      <td><strong>{item.name}</strong></td>
                       <td>
                         <strong className="admin-promotion-percent">
                           {item.discountPercent}%
@@ -242,7 +281,7 @@ export default function AdminPromotionsPage() {
                           <button
                             className="admin-icon-button danger"
                             type="button"
-                            onClick={() => handleDelete(item)}
+                            onClick={() => void handleDelete(item)}
                             title="Xóa khuyến mãi"
                             aria-label={`Xóa ${item.name}`}
                           >
@@ -341,8 +380,8 @@ export default function AdminPromotionsPage() {
             <button className="admin-secondary-button" type="button" onClick={() => setShowForm(false)}>
               Hủy
             </button>
-            <button className="admin-primary-button" type="submit">
-              {editingId ? "Lưu thay đổi" : "+ Thêm khuyến mãi"}
+            <button className="admin-primary-button" type="submit" disabled={saving}>
+              {saving ? "Đang lưu..." : editingId ? "Lưu thay đổi" : "+ Thêm khuyến mãi"}
             </button>
           </div>
         </form>

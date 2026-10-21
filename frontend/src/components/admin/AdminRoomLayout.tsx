@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { routes } from "@/config/routes"
-import { logoutAdmin } from "@/utils/adminAuth"
+import { getAuthenticatedUser, logoutAdmin } from "@/utils/adminAuth"
 
 interface AdminRoomLayoutProps {
   title: string
@@ -18,95 +18,112 @@ export default function AdminRoomLayout({
   eyebrow = "QUẢN LÝ PHÒNG",
 }: AdminRoomLayoutProps) {
   const path = window.location.pathname.replace(/\/+$/, "") || "/"
+  const currentUser = getAuthenticatedUser()
+  const isStaff = currentUser?.role === "STAFF"
+  const portalHome = isStaff ? routes.adminOrders : routes.adminRooms
 
   return (
     <div className="admin-room-app">
       <aside className="admin-room-sidebar">
-        <a className="admin-room-brand" href={routes.adminRooms}>
+        <a className="admin-room-brand" href={portalHome}>
           <span>CP</span>
           <div>
             <strong>Cây Phượng K18</strong>
-            <small>Quản trị hệ thống</small>
+            <small>{isStaff ? "Khu vực nhân viên" : "Quản trị hệ thống"}</small>
           </div>
         </a>
 
         <nav className="admin-room-nav" aria-label="Điều hướng quản trị">
-          <p>PHÒNG</p>
+          {!isStaff && (
+            <>
+              <p>PHÒNG</p>
+              <a
+                className={path === routes.adminRooms ? "active" : ""}
+                href={routes.adminRooms}
+              >
+                <span>▦</span> Danh sách phòng
+              </a>
+
+              <p>THỰC ĐƠN</p>
+              <a
+                className={path === routes.adminMenu ? "active" : ""}
+                href={routes.adminMenu}
+              >
+                <span>▤</span> Quản lý thực đơn
+              </a>
+            </>
+          )}
+
+          <p>ĐƠN HÀNG</p>
           <a
-            className={path === routes.adminRooms ? "active" : ""}
-            href={routes.adminRooms}
+            className={path === routes.adminOrders ? "active" : ""}
+            href={routes.adminOrders}
           >
-            <span>▦</span> Danh sách phòng
-          </a>
-          <p>THỰC ĐƠN</p>
-          <a
-            className={path === routes.adminMenu ? "active" : ""}
-            href={routes.adminMenu}
-          >
-            <span>▤</span> Quản lý thực đơn
+            <span>▣</span> Quản lý đơn hàng
           </a>
 
-          <p>TIẾP NHẬN</p>
-          <a
-            className={path === routes.adminRoomBookings ? "active" : ""}
-            href={routes.adminRoomBookings}
-          >
-            <span>▤</span> Tiếp nhận đặt phòng
-          </a>
-          <a
-            className={path === routes.adminWalkIns ? "active" : ""}
-            href={routes.adminWalkIns}
-          >
-            <span>♙</span> Khách vãng lai
-          </a>
-          <a
-            className={path === routes.adminContact ? "active" : ""}
-            href={routes.adminContact}
-          >
-            <span>☎</span> Thông tin liên hệ
-          </a>
+          {!isStaff && (
+            <>
+              <p>TIẾP NHẬN</p>
+              <a
+                className={path === routes.adminRoomBookings ? "active" : ""}
+                href={routes.adminRoomBookings}
+              >
+                <span>▤</span> Tiếp nhận đặt phòng
+              </a>
+              <a
+                className={path === routes.adminWalkIns ? "active" : ""}
+                href={routes.adminWalkIns}
+              >
+                <span>♙</span> Khách vãng lai
+              </a>
+              <a
+                className={path === routes.adminContact ? "active" : ""}
+                href={routes.adminContact}
+              >
+                <span>☎</span> Thông tin liên hệ
+              </a>
 
-          <p>TUYỂN DỤNG · US.18–US.21</p>
-          <a
-            className={
-              path === routes.adminRecruitments ||
-              path === routes.adminRecruitmentCreate ||
-              path === routes.adminRecruitmentEdit
-                ? "active"
-                : ""
-            }
-            href={routes.adminRecruitments}
-          >
-            <span>▤</span> Danh sách tuyển dụng
-          </a>
+              <p>TUYỂN DỤNG</p>
+              <a
+                className={
+                  path === routes.adminRecruitments ||
+                  path === routes.adminRecruitmentCreate ||
+                  path === routes.adminRecruitmentEdit
+                    ? "active"
+                    : ""
+                }
+                href={routes.adminRecruitments}
+              >
+                <span>▤</span> Danh sách tuyển dụng
+              </a>
 
-          <p>SPRINT 4 · US.24–US.27</p>
-          <a
-            className={path === routes.adminPromotions ? "active" : ""}
-            href={routes.adminPromotions}
-          >
-            <span>%</span> Quản lý khuyến mãi
-          </a>
+              <p>KHUYẾN MÃI</p>
+              <a
+                className={path === routes.adminPromotions ? "active" : ""}
+                href={routes.adminPromotions}
+              >
+                <span>%</span> Quản lý khuyến mãi
+              </a>
 
-          <p>WEBSITE</p>
-          <a href={routes.rooms}>
-            <span>↗</span> Xem trang phòng
-          </a>
-          <a href={routes.menu}>
-            <span>↗</span> Xem trang thực đơn
-          </a>
-          <a href={routes.contact}>
-            <span>↗</span> Xem trang liên hệ
-          </a>
-          <a href={routes.careers}>
-            <span>↗</span> Xem trang tuyển dụng
-          </a>
-          <a href={routes.tourism}>
-            <span>↗</span> Xem địa điểm du lịch
-          </a>
-          <a href={routes.offers}>
-            <span>↗</span> Xem trang ưu đãi
-          </a>
+              <p>WEBSITE</p>
+              <a href={routes.rooms}>
+                <span>↗</span> Xem trang phòng
+              </a>
+              <a href={routes.menu}>
+                <span>↗</span> Xem trang thực đơn
+              </a>
+              <a href={routes.contact}>
+                <span>↗</span> Xem trang liên hệ
+              </a>
+              <a href={routes.careers}>
+                <span>↗</span> Xem trang tuyển dụng
+              </a>
+              <a href={routes.offers}>
+                <span>↗</span> Xem trang ưu đãi
+              </a>
+            </>
+          )}
         </nav>
 
         <button
@@ -119,7 +136,6 @@ export default function AdminRoomLayout({
         >
           <span>↪</span> Đăng xuất
         </button>
-
       </aside>
 
       <main className="admin-room-main">

@@ -3,6 +3,8 @@ import logoImg from "@/imports/logo.png"
 import { routes } from "@/config/routes"
 import {
   demoAdminAccount,
+  demoStaffAccount,
+  getAuthenticatedUser,
   isAdminAuthenticated,
   loginAdmin,
 } from "@/utils/adminAuth"
@@ -19,13 +21,6 @@ export default function AdminLoginPage({
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
 
-  const safeRedirect =
-    redirectTo &&
-    redirectTo !== routes.adminLogin &&
-    (redirectTo === routes.admin || redirectTo.startsWith("/admin/"))
-      ? redirectTo
-      : routes.adminRooms
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
@@ -36,16 +31,34 @@ export default function AdminLoginPage({
     }
 
     try {
-      await loginAdmin(username, password)
-      // Sau khi đăng nhập luôn chuyển vào khu vực Admin,
-      // mặc định là /admin/phong.
+      const user = await loginAdmin(username, password)
+
+      if (user.role === "STAFF") {
+        window.location.assign(routes.adminOrders)
+        return
+      }
+
+      const safeRedirect =
+        redirectTo &&
+        redirectTo !== routes.adminLogin &&
+        (redirectTo === routes.admin || redirectTo.startsWith("/admin/"))
+          ? redirectTo
+          : routes.adminRooms
+
       window.location.assign(safeRedirect)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Tên đăng nhập hoặc mật khẩu không đúng.")
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Tên đăng nhập hoặc mật khẩu không đúng.",
+      )
     }
   }
 
   const alreadyLoggedIn = isAdminAuthenticated()
+  const currentUser = getAuthenticatedUser()
+  const currentPortal =
+    currentUser?.role === "STAFF" ? routes.adminOrders : routes.adminRooms
 
   return (
     <main className="admin-login-page">
@@ -59,10 +72,11 @@ export default function AdminLoginPage({
         </a>
 
         <div className="admin-login-visual-copy">
-          <p>HỆ THỐNG QUẢN TRỊ</p>
+          <p>HỆ THỐNG QUẢN LÝ</p>
           <h1>Quản lý Cây Phượng K18</h1>
           <span>
-            Khu vực quản trị các chức năng Sprint 1 và Sprint 2.
+            Admin quản trị hệ thống. Nhân viên sử dụng khu vực đơn hàng để
+            ghi nhận và điều chỉnh món khách yêu cầu.
           </span>
         </div>
       </section>
@@ -73,16 +87,17 @@ export default function AdminLoginPage({
             ← Quay lại website
           </a>
 
-          <p className="admin-login-eyebrow">ADMIN PORTAL</p>
-          <h2>Đăng nhập quản trị</h2>
+          <p className="admin-login-eyebrow">ADMIN & STAFF PORTAL</p>
+          <h2>Đăng nhập hệ thống</h2>
           <p className="admin-login-intro">
-            Nhập tài khoản quản trị để truy cập khu vực quản lý Cây Phượng K18.
+            Sử dụng tài khoản Admin hoặc Nhân viên để truy cập đúng khu vực
+            được phân quyền.
           </p>
 
           {alreadyLoggedIn && (
             <div className="admin-login-success">
-              Bạn đang đăng nhập.{" "}
-              <a href={routes.adminRooms}>Vào trang quản trị →</a>
+              Bạn đang đăng nhập với quyền {currentUser?.role || "quản lý"}.{" "}
+              <a href={currentPortal}>Vào hệ thống →</a>
             </div>
           )}
 
@@ -126,15 +141,28 @@ export default function AdminLoginPage({
             </button>
           </form>
 
-          <div className="admin-login-demo">
-            <strong>Tài khoản demo</strong>
-            <span>
-              Tên đăng nhập: <code>{demoAdminAccount.username}</code>
-            </span>
-            <span>
-              Mật khẩu: <code>{demoAdminAccount.password}</code>
-            </span>
-            <small>Tài khoản demo được tạo tự động ở backend khi chạy local.</small>
+          <div className="admin-login-demo-grid">
+            <div className="admin-login-demo">
+              <strong>Tài khoản Admin</strong>
+              <span>
+                Tên đăng nhập: <code>{demoAdminAccount.username}</code>
+              </span>
+              <span>
+                Mật khẩu: <code>{demoAdminAccount.password}</code>
+              </span>
+              <small>Quản trị toàn bộ khu vực quản lý.</small>
+            </div>
+
+            <div className="admin-login-demo admin-login-demo--staff">
+              <strong>Tài khoản Nhân viên</strong>
+              <span>
+                Tên đăng nhập: <code>{demoStaffAccount.username}</code>
+              </span>
+              <span>
+                Mật khẩu: <code>{demoStaffAccount.password}</code>
+              </span>
+              <small>Truy cập chức năng Quản lý Order của Sprint 5.</small>
+            </div>
           </div>
         </div>
       </section>
