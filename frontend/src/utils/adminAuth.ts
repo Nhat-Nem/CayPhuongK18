@@ -38,14 +38,21 @@ export function isAdminAuthenticated() {
   return Boolean(window.localStorage.getItem(ADMIN_TOKEN_KEY))
 }
 
+function normalizePortalRole(value: unknown): PortalRole | null {
+  const role = String(value ?? "").trim().toUpperCase()
+  if (role === "ADMIN" || role === "STAFF") return role
+  return null
+}
+
 export function getAuthenticatedUser(): AdminUser | null {
   const raw = window.localStorage.getItem(ADMIN_USER_KEY)
   if (!raw) return null
 
   try {
-    const user = JSON.parse(raw) as AdminUser
-    if (user.role !== "ADMIN" && user.role !== "STAFF") return null
-    return user
+    const user = JSON.parse(raw) as Partial<AdminUser>
+    const role = normalizePortalRole(user.role)
+    if (!role || !user.email) return null
+    return { ...user, role } as AdminUser
   } catch {
     return null
   }
@@ -88,8 +95,14 @@ export async function loginAdmin(
     }),
   })
 
+  const normalizedRole = normalizePortalRole(result.user?.role)
+  if (!normalizedRole) {
+    throw new Error("Tài khoản chưa có quyền ADMIN hoặc STAFF trong backend.")
+  }
+
   const user: AdminUser = {
     ...result.user,
+    role: normalizedRole,
     username:
       result.user.username ||
       (usernameOrEmail.includes("@")
