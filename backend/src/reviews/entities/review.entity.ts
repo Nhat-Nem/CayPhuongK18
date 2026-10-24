@@ -20,6 +20,9 @@ export class Review {
   @Column({ type: 'text', nullable: true })
   note: string | null;
 
+  @Column({ name: "is_featured", type: "boolean", default: false })
+  isFeatured: boolean
+
   @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
