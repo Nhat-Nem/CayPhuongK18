@@ -17,6 +17,8 @@ import { CategoryModule } from './category/category.module';
 import { RecruitmentsModule } from './recruitments/recruitments.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { OrdersModule } from './orders/orders.module';
+import { ReportsModule } from './reports/reports.module';
+import { RoomStaysModule } from './room-stays/room-stays.module';
 
 @Module({
   imports: [
@@ -59,6 +61,10 @@ import { OrdersModule } from './orders/orders.module';
     PromotionsModule,
 
     OrdersModule,
+
+    ReportsModule,
+
+    RoomStaysModule,
   ],
   controllers: [AppController],
 
