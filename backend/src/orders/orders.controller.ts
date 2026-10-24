@@ -8,6 +8,8 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -97,5 +99,25 @@ export class OrdersController {
         @Body() dto: UpdateOrderDto
     ) {
         return this.ordersService.update(id, dto)
+    }
+
+    // PATCH /api/v1/orders/:id/status
+    // Update trạng thái đơn hàng
+    @Patch(":id/status")
+    updateStatus(
+        @Param('id') id: string,
+        @Body() dto: UpdateOrderStatusDto
+    ) {
+        return this.ordersService.updateStatus(id, dto)
+    }
+
+    // PATCH /api/v1/orders/:id/payemnt
+    // Cập nhật trnag5 thái thanh toán
+    @Patch(":id/payment")
+    recordPayment(
+        @Param("id") id: string, 
+        @Body() dto: RecordOrderPaymentDto 
+    ) {
+        return this.ordersService.recordPayment(id, dto)
     }
 }
