@@ -14,6 +14,9 @@ export class TableBookingRequest {
     @Column({ name: "customer_email", type: "varchar", length: 255, nullable: true })
     customerEmail: string | null
 
+    @Column({ type: 'text', nullable: true })
+    note: string | null
+
     @Column({ type: "varchar", length: 50, default: "PEDING" })
     status: string
 

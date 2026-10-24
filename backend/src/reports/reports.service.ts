@@ -18,7 +18,7 @@ export class ReportsService {
         return [
             nextDay.getFullYear(),
             String(nextDay.getMonth() + 1).padStart(2, '0'),
-            String(nextDay.getDate() + 1).padStart(2, '0'),
+            String(nextDay.getDate()).padStart(2, '0'),
         ].join("-") + ` 00:00:00`
     }
 
