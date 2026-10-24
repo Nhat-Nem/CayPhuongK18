@@ -506,3 +506,29 @@
     margin-bottom: 3px;
   }
 }
+
+
+.testimonials-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 180px;
+  align-content: center;
+  padding: 32px 24px;
+  border: 1px dashed #d8d0c2;
+  border-radius: 16px;
+  background: #fffefa;
+  color: #315440;
+  text-align: center;
+}
+
+.testimonials-empty-state strong {
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: 1rem;
+}
+
+.testimonials-empty-state p {
+  margin: 0;
+  color: #676d70;
+  font-size: .86rem;
+}

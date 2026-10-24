@@ -5,6 +5,7 @@ import type { RecruitmentRecord } from "@/data/recruitmentPrototype"
 import {
   getRecruitmentApiPath,
   getRecruitmentById,
+  normalizeEmploymentType,
   updateRecruitment,
 } from "@/services/recruitmentApi"
 
@@ -38,7 +39,7 @@ export default function AdminRecruitmentEditPage() {
     try {
       const result = await updateRecruitment(item.id, {
         title: item.title.trim(),
-        type: item.type,
+        type: normalizeEmploymentType(item.type),
         location: item.location.trim(),
         salary: item.salary.trim(),
         description: item.description.trim(),
@@ -140,10 +141,12 @@ export default function AdminRecruitmentEditPage() {
             <span>Hình thức làm việc</span>
             <select
               required
-              value={item.type}
+              value={normalizeEmploymentType(item.type)}
               onChange={(event) =>
                 setItem((current) =>
-                  current ? { ...current, type: event.target.value } : current,
+                  current
+                    ? { ...current, type: normalizeEmploymentType(event.target.value) }
+                    : current,
                 )
               }
             >

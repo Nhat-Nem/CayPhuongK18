@@ -42,6 +42,8 @@ export function normalizeEmploymentType(value?: string | null) {
   if (
     normalized === "fulltime" ||
     normalized === "full-time" ||
+    normalized === "full_time" ||
+    normalized === "full time" ||
     normalized === "toàn thời gian" ||
     normalized === "toan thoi gian"
   ) {
@@ -51,6 +53,8 @@ export function normalizeEmploymentType(value?: string | null) {
   if (
     normalized === "part-time" ||
     normalized === "parttime" ||
+    normalized === "part_time" ||
+    normalized === "part time" ||
     normalized === "bán thời gian" ||
     normalized === "ban thoi gian"
   ) {
@@ -82,11 +86,19 @@ export function formatRecruitmentSalary(value?: string | null) {
   return `${new Intl.NumberFormat("vi-VN").format(numeric)} VNĐ/tháng`
 }
 
+function firstNonEmpty(...values: Array<string | null | undefined>) {
+  return values.find((value) => String(value ?? "").trim() !== "") ?? ""
+}
+
 function normalizeRecruitment(row: BackendRecruitment): RecruitmentRecord {
+  // Ưu tiên property TypeORM (employmentType), dùng snake_case làm fallback.
+  // Bỏ qua chuỗi rỗng để tránh mặc định nhầm thành fulltime.
+  const employmentValue = firstNonEmpty(row.employmentType, row.employment_type)
+
   return {
     id: String(row.id),
     title: String(row.title ?? "").trim(),
-    type: normalizeEmploymentType(row.employment_type ?? row.employmentType),
+    type: normalizeEmploymentType(employmentValue),
     location: String(row.location ?? "").trim(),
     description: String(row.description ?? "").trim(),
     salary: String(row.salary ?? "").trim(),
@@ -98,7 +110,8 @@ function toBackendPayload(payload: Omit<RecruitmentRecord, "id">) {
     title: payload.title.trim(),
     description: payload.description.trim() || undefined,
 
-    // Theo request mới: snake_case + giá trị kỹ thuật fulltime / part-time.
+    // Đúng tên field trong CreateRecruitmentDto / UpdateRecruitmentDto.
+    // Giá trị trong API luôn là fulltime hoặc part-time, không gửi nhãn tiếng Việt.
     employment_type: normalizeEmploymentType(payload.type),
 
     location: payload.location.trim() || undefined,
