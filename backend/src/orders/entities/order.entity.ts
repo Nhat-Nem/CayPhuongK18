@@ -8,6 +8,17 @@ export enum OrderStatus {
     CANCELLED = "CANCELLED"
 }
 
+export enum PaymentStatus {
+    UNPAID = "UNPAID",
+    PAID = "PAID"
+}
+
+export enum PaymentMethod {
+    CASH = "CASH",
+    BANK_TRANSFER = "BAN_TRANSFER",
+    CARD = "CARD"
+}
+
 @Entity("orders")
 export class Order {
     @PrimaryGeneratedColumn({ type: "bigint" })
@@ -24,6 +35,15 @@ export class Order {
 
     @Column({ name: "total_amount", type: "decimal", precision: 12, scale: 2, default: 0 })
     totalAmount: string 
+
+    @Column({ name: "payment_status", type: "enum", enum: PaymentStatus, default: PaymentStatus.UNPAID })
+    paymentStatus: PaymentStatus
+    
+    @Column({ name: "payment_method", type: "enum", enum: PaymentMethod, nullable: true })
+    paymentMethod: PaymentMethod | null
+
+    @Column({ name: "paid_at", type: "datetime", nullable: true })
+    paidAt: Date | null
 
     @Column({ name: "created_by", type: "bigint", nullable: true  })
     createdBy: string | null

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order, OrderStatus } from './entities/order.entity';
+import { Order, OrderStatus, PaymentStatus } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { OrderItem } from './entities/order-item.entity';
 import { MenuItem } from '../menu-items/entities/menu-item.entity';
@@ -9,6 +9,8 @@ import { AddOrderItemDto } from './dto/add-order-item.dto';
 import { UpdateOrderItemDto } from './dto/update-order-item.dto';
 import { UpdateOrderNoteDto } from './dto/update-order-note.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
 
 @Injectable()
 export class OrdersService {
@@ -180,5 +182,55 @@ export class OrdersService {
             relations: { items: { menuItem: true } },
             order: { createdAt: "DESC" }
         })
+    }
+
+    // Cap nhat trang thai
+    async updateStatus(id: string, dto: UpdateOrderStatusDto) {
+        const order = await this.findOne(id)
+
+        if (
+            order.status === OrderStatus.COMPLETED || 
+            order.status === OrderStatus.CANCELLED
+        ) {
+            throw new BadRequestException("Completed or Cancelled orders cannot change status")
+        }
+
+        if (dto.status === OrderStatus.PENDING) {
+            throw new BadRequestException("Cannot change an order back to PENDING")
+        }
+
+        if (
+            dto.status === OrderStatus.CANCELLED && 
+            order.paymentStatus === PaymentStatus.PAID
+        ) {
+            throw new BadRequestException("Cannot cancel a paid order")
+        }
+
+        order.status = dto.status
+
+        return this.orderRepository.save(order)
+    }
+
+    // Ghi nhan thanh toan
+    async recordPayment(id: string, dto: RecordOrderPaymentDto) {
+        const order = await this.findOne(id)
+
+        if (order.status === OrderStatus.CANCELLED) {
+            throw new BadRequestException("Cannot pay for a cancelled order")
+        }
+
+        if (order.paymentStatus === PaymentStatus.PAID) {
+            throw new BadRequestException("This order has already been paid")
+        }
+
+        if (Number(order.totalAmount) <= 0) {
+            throw new BadRequestException("Cannot record payment for an empty order")
+        }
+
+        order.paymentStatus = PaymentStatus.PAID
+        order.paymentMethod = dto.paymentMethod
+        order.paidAt = new Date()
+
+        return this.orderRepository.save(order)
     }
 }
