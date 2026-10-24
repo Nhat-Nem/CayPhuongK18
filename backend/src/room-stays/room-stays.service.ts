@@ -69,77 +69,83 @@ export class RoomStaysService {
             if (activeStay) {
                 throw new BadRequestException("The room is currently occupied.")
             }
-
-            let bookingRequestId: string | null = null
-            let walkInVisitId: string | null = null
+            
+            let bookingRequestId: string | null = null;
+            let walkInVisitId: string | null = null;
 
             if (hasBooking) {
-                const request = await bookingRepository.findOneBy({
-                    id: dto.bookingRequestId!,
-                })
+                const request = await bookingRepository.findOne({
+                    where: { id: dto.bookingRequestId! },
+                    lock: { mode: 'pessimistic_write' },
+                });
 
                 if (!request) {
-                    throw new NotFoundException("Booking request not found")
+                    throw new NotFoundException('Booking request not found');
                 }
 
                 if (request.status !== 'CONFIRMED') {
-                    throw new BadRequestException("Check-in is permitted only once the request has been confirmed")
+                    throw new BadRequestException(
+                        'Check-in is permitted only once the request has been confirmed',
+                    );
                 }
 
-                bookingRequestId = request.id
+                bookingRequestId = request.id;
             } else {
-                const visit = await walkInRepository.findOneBy({
-                    id: dto.walkInVisitId
-                })
+                const visit = await walkInRepository.findOne({
+                    where: { id: dto.walkInVisitId! },
+                    lock: { mode: 'pessimistic_write' },
+                });
 
                 if (!visit) {
-                    throw new NotFoundException("No walk-in guests found")
+                    throw new NotFoundException('No walk-in guests found');
                 }
 
                 if (visit.serviceType !== 'ROOM') {
-                    throw new BadRequestException("These guests are not using room services.")
+                    throw new BadRequestException(
+                        'These guests are not using room services.',
+                    );
                 }
 
-                if (visit.status !== "PENDING") {
-                    throw new BadRequestException('Walk-in guests not in a "waiting for check-in" status')
-                }
-                
-                walkInVisitId = visit.id
-
-                const stay = stayRepository.create({
-                    roomId: String(room.id),
-                    bookingRequestId,
-                    walkInVisitId,
-                    roomPrice: String(room.price),
-                    totalAmount: '0.00',
-                    paymentStatus: RoomStayPaymentStatus.UNPAID,
-                    paymentMethod: null,
-                    status: RoomStayStatus.CHECKED_IN,
-                    checkInAt: new Date(),
-                    checkOutAt: null,
-                    paidAt: null
-                })
-
-                const savedStay = await stayRepository.save(stay)
-
-                // Cập nhật trạng thái nguồn sau khi tạo lượt lưu trú
-                if (hasBooking) {
-                    const request = await bookingRepository.findOneBy({
-                        id: dto.bookingRequestId
-                    })
-
-                    if (request) {
-                        request.status = 'COMPLETED' as any
-                        await bookingRepository.save(request)
-                    }
-                } else {
-                    await walkInRepository.update(dto.walkInVisitId!, {
-                        status: "SERVING"
-                    })
+                if (visit.status !== 'PENDING') {
+                    throw new BadRequestException(
+                        'Walk-in guests are not waiting for check-in',
+                    );
                 }
 
-                return savedStay
+                walkInVisitId = visit.id;
             }
+
+            // Tạo lượt lưu trú cho cả booking và walk-in
+            const stay = stayRepository.create({
+                roomId: String(room.id),
+                bookingRequestId,
+                walkInVisitId,
+                roomPrice: String(room.price),
+                totalAmount: '0.00',
+                paymentStatus: RoomStayPaymentStatus.UNPAID,
+                paymentMethod: null,
+                status: RoomStayStatus.CHECKED_IN,
+                checkInAt: new Date(),
+                checkOutAt: null,
+                paidAt: null,
+            });
+
+            const savedStay = await stayRepository.save(stay);
+
+            // Cập nhật trạng thái nguồn
+            if (hasBooking) {
+                await bookingRepository.update(
+                    dto.bookingRequestId!,
+                    { status: 'COMPLETED' as any },
+                );
+            } else {
+                await walkInRepository.update(
+                    dto.walkInVisitId!,
+                    { status: 'SERVING' },
+                );
+            }
+
+            return savedStay;
         })
     }
 
@@ -162,8 +168,10 @@ export class RoomStaysService {
 
             const now = new Date()
             const milliseconds = now.getTime() - new Date(stay.checkInAt).getTime()
-            const hours = Math.max(1, Math.ceil(milliseconds / (60 * 60 * 1000)))
-            const amount = hours * Number(stay.roomPrice)
+            
+            const night = Math.max(1, Math.ceil(milliseconds / (24 * 60 * 60 * 1000)))
+
+            const amount = night * Number(stay.roomPrice)
 
             stay.checkOutAt = now
             stay.totalAmount = amount.toFixed(2)
