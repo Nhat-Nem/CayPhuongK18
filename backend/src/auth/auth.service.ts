@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
+import { User, UserRole } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginDTO } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
@@ -37,7 +37,7 @@ export class AuthService {
         }
 
         // 4. Chỉ cho phép ADMIN đăng nhập trang quản trị
-        if (!["ADMIN", "STAFF"].includes(user.role)) {
+        if (![UserRole.ADMIN, UserRole.STAFF].includes(user.role)) {
             throw new UnauthorizedException("Bạn không có quyền truy cập hệ thống quản trị")
         }
 

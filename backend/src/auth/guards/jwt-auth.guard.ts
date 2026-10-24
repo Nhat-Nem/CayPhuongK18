@@ -14,7 +14,11 @@ export class JwtAuthGuard implements CanActivate {
             throw new UnauthorizedException("Vui lòng đăng nhập")
         }
 
-        const token = authHeader.substring(7)
+        const [type, token] = authHeader.split(" ")
+
+        if (type !== 'Bearer' || !token) {
+            throw new UnauthorizedException("Authorization header không hợp lệ")
+        }
 
         try {
             const payload = await this.jwtService.verifyAsync(token)
