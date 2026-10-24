@@ -24,16 +24,20 @@ import { RoomStaysModule } from './room-stays/room-stays.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+          type: 'mysql' as const,
+          host: configService.get<string>('DB_HOST'),
+          port: Number(configService.get<string>('DB_PORT') ?? 3306),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_DATABASE'),
 
-      autoLoadEntities: true,
-      synchronize: true
+          autoLoadEntities: true,
+          synchronize: true,
+      }),
     }),
 
     RoomsModule,
