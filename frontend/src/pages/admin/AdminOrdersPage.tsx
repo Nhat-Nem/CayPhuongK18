@@ -15,8 +15,6 @@ import {
 } from "@/services/orderApi"
 
 const EMPTY_FORM = {
-  customerName: "",
-  tableNumber: "",
   note: "",
 }
 
@@ -35,18 +33,37 @@ function formatDateTime(value: string) {
 }
 
 function orderCode(id: string) {
-  return `#${id.slice(-6)}`
+  return `#${String(id).slice(-6)}`
+}
+
+function orderLabel(order: OrderRecord) {
+  return order.code?.trim() || orderCode(order.id)
+}
+
+function orderStatusLabel(status: OrderRecord["status"]) {
+  const labels: Record<OrderRecord["status"], string> = {
+    PENDING: "Chờ xử lý",
+    CONFIRMED: "Đã xác nhận",
+    COMPLETED: "Hoàn thành",
+    CANCELLED: "Đã hủy",
+  }
+  return labels[status] ?? status
+}
+
+function paymentStatusLabel(status: OrderRecord["paymentStatus"]) {
+  return status === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"
 }
 
 function itemSummary(order: OrderRecord) {
-  if (order.items.length === 0) return "Chưa có món"
+  const items = order.items ?? []
+  if (items.length === 0) return "Chưa có món"
 
-  const totalQuantity = order.items.reduce(
-    (total, item) => total + item.quantity,
+  const totalQuantity = items.reduce(
+    (total, item) => total + Number(item.quantity || 0),
     0,
   )
 
-  return `${order.items.length} món · ${totalQuantity} phần`
+  return `${items.length} món · ${totalQuantity} phần`
 }
 
 function itemName(item: OrderItemRecord) {
@@ -101,10 +118,10 @@ export default function AdminOrdersPage() {
     return orders.filter((order) =>
       [
         order.id,
-        order.customerName,
-        order.tableNumber,
+        order.code,
+        order.status,
         order.note,
-        ...order.items.map(itemName),
+        ...((order.items ?? []).map(itemName)),
       ]
         .filter(Boolean)
         .join(" ")
@@ -144,8 +161,6 @@ export default function AdminOrdersPage() {
       const fresh = await getOrderById(order.id)
       setEditingOrder(fresh)
       setEditingForm({
-        customerName: fresh.customerName ?? "",
-        tableNumber: fresh.tableNumber ?? "",
         note: fresh.note ?? "",
       })
       setSelectedMenuItemId((current) => current || menuItems[0]?.id || "")
@@ -166,8 +181,6 @@ export default function AdminOrdersPage() {
 
     try {
       const created = await createOrder({
-        customerName: createForm.customerName.trim() || undefined,
-        tableNumber: createForm.tableNumber.trim() || undefined,
         note: createForm.note.trim() || undefined,
       })
       setCreateOpen(false)
@@ -189,8 +202,6 @@ export default function AdminOrdersPage() {
     setError("")
     try {
       const updated = await updateOrder(editingOrder.id, {
-        customerName: editingForm.customerName.trim(),
-        tableNumber: editingForm.tableNumber.trim(),
         note: editingForm.note.trim(),
       })
       await syncEditor(updated)
@@ -300,7 +311,7 @@ export default function AdminOrdersPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm mã đơn, khách, bàn, món..."
+              placeholder="Tìm mã đơn, trạng thái, ghi chú, món..."
             />
           </label>
 
@@ -322,7 +333,7 @@ export default function AdminOrdersPage() {
               <thead>
                 <tr>
                   <th>Đơn hàng</th>
-                  <th>Khách / Bàn</th>
+                  <th>Trạng thái</th>
                   <th>Món</th>
                   <th>Ghi chú</th>
                   <th>Tổng tiền</th>
@@ -334,16 +345,16 @@ export default function AdminOrdersPage() {
                 {filteredOrders.map((order) => (
                   <tr key={order.id}>
                     <td>
-                      <strong>{orderCode(order.id)}</strong>
+                      <strong>{orderLabel(order)}</strong>
                       <small className="admin-order-cell-subtext">
                         {formatDateTime(order.createdAt)}
                       </small>
                     </td>
 
                     <td>
-                      <strong>{order.customerName || "Khách lẻ"}</strong>
+                      <strong>{orderStatusLabel(order.status)}</strong>
                       <small className="admin-order-cell-subtext">
-                        {order.tableNumber ? `Bàn ${order.tableNumber}` : "Chưa nhập bàn"}
+                        {paymentStatusLabel(order.paymentStatus)}
                       </small>
                     </td>
 
@@ -382,34 +393,10 @@ export default function AdminOrdersPage() {
       <AdminFormModal
         open={createOpen}
         eyebrow="TẠO ĐƠN"
-        title="Tạo đơn hàng cho khách"
+        title="Tạo đơn hàng"
         onClose={() => setCreateOpen(false)}
       >
         <form className="admin-order-form" onSubmit={submitCreate}>
-          <label>
-            <span>Tên khách hàng</span>
-            <input
-              value={createForm.customerName}
-              onChange={(event) =>
-                setCreateForm((current) => ({ ...current, customerName: event.target.value }))
-              }
-              placeholder="Ví dụ: Anh Minh"
-              maxLength={255}
-            />
-          </label>
-
-          <label>
-            <span>Số bàn</span>
-            <input
-              value={createForm.tableNumber}
-              onChange={(event) =>
-                setCreateForm((current) => ({ ...current, tableNumber: event.target.value }))
-              }
-              placeholder="Ví dụ: 05"
-              maxLength={50}
-            />
-          </label>
-
           <label className="admin-order-form-full">
             <span>Ghi chú đơn hàng</span>
             <textarea
@@ -435,37 +422,13 @@ export default function AdminOrdersPage() {
       <AdminFormModal
         open={Boolean(editingOrder)}
         eyebrow="CHI TIẾT ĐƠN"
-        title={editingOrder ? `Chỉnh sửa đơn ${orderCode(editingOrder.id)}` : "Chỉnh sửa đơn"}
+        title={editingOrder ? `Chỉnh sửa đơn ${orderLabel(editingOrder)}` : "Chỉnh sửa đơn"}
         onClose={() => setEditingOrder(null)}
         size="wide"
       >
         {editingOrder && (
           <div className="admin-order-editor">
             <form className="admin-order-form" onSubmit={saveOrderInfo}>
-              <label>
-                <span>Tên khách hàng</span>
-                <input
-                  value={editingForm.customerName}
-                  onChange={(event) =>
-                    setEditingForm((current) => ({ ...current, customerName: event.target.value }))
-                  }
-                  placeholder="Tên khách"
-                  maxLength={255}
-                />
-              </label>
-
-              <label>
-                <span>Số bàn</span>
-                <input
-                  value={editingForm.tableNumber}
-                  onChange={(event) =>
-                    setEditingForm((current) => ({ ...current, tableNumber: event.target.value }))
-                  }
-                  placeholder="Số bàn"
-                  maxLength={50}
-                />
-              </label>
-
               <label className="admin-order-form-full">
                 <span>Ghi chú</span>
                 <textarea
@@ -487,6 +450,12 @@ export default function AdminOrdersPage() {
             <div className="admin-order-divider" />
 
             <section className="admin-order-items-section">
+              {editingOrder.status !== "PENDING" && (
+                <div className="admin-room-form-notice">
+                  Đơn đang ở trạng thái {orderStatusLabel(editingOrder.status)}. Theo quy tắc backend, chỉ đơn “Chờ xử lý” mới được thêm, sửa hoặc xóa món.
+                </div>
+              )}
+
               <div className="admin-order-items-heading">
                 <div>
                   <span>MÓN TRONG ĐƠN</span>
@@ -499,7 +468,12 @@ export default function AdminOrdersPage() {
                 <select
                   value={selectedMenuItemId}
                   onChange={(event) => setSelectedMenuItemId(event.target.value)}
-                  disabled={loadingMenu || menuItems.length === 0 || saving}
+                  disabled={
+                    loadingMenu ||
+                    menuItems.length === 0 ||
+                    saving ||
+                    editingOrder.status !== "PENDING"
+                  }
                 >
                   {menuItems.length === 0 ? (
                     <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món"}</option>
@@ -516,19 +490,23 @@ export default function AdminOrdersPage() {
                   className="admin-primary-button"
                   type="button"
                   onClick={() => void addDish()}
-                  disabled={!selectedMenuItemId || saving}
+                  disabled={
+                    !selectedMenuItemId ||
+                    saving ||
+                    editingOrder.status !== "PENDING"
+                  }
                 >
                   ＋ Thêm món
                 </button>
               </div>
 
-              {editingOrder.items.length === 0 ? (
+              {(editingOrder.items ?? []).length === 0 ? (
                 <div className="admin-order-empty-items">
                   Chưa có món trong đơn. Chọn món phía trên để thêm.
                 </div>
               ) : (
                 <div className="admin-order-item-list">
-                  {editingOrder.items.map((item) => (
+                  {(editingOrder.items ?? []).map((item) => (
                     <article className="admin-order-item-row" key={item.id}>
                       <div className="admin-order-item-info">
                         {item.menuItem?.image ? (
@@ -547,27 +525,31 @@ export default function AdminOrdersPage() {
                         <button
                           type="button"
                           onClick={() => void changeQuantity(item, item.quantity - 1)}
-                          disabled={item.quantity <= 1 || saving}
+                          disabled={
+                            item.quantity <= 1 ||
+                            saving ||
+                            editingOrder.status !== "PENDING"
+                          }
                           title="Giảm số lượng"
                         >−</button>
                         <span>{item.quantity}</span>
                         <button
                           type="button"
                           onClick={() => void changeQuantity(item, item.quantity + 1)}
-                          disabled={saving}
+                          disabled={saving || editingOrder.status !== "PENDING"}
                           title="Tăng số lượng"
                         >＋</button>
                       </div>
 
                       <strong className="admin-order-item-subtotal">
-                        {formatMoney(Number(item.subtotal))}
+                        {formatMoney(Number(item.unitPrice) * Number(item.quantity))}
                       </strong>
 
                       <button
                         className="admin-order-remove-item"
                         type="button"
                         onClick={() => void removeDish(item)}
-                        disabled={saving}
+                        disabled={saving || editingOrder.status !== "PENDING"}
                         title="Xóa món khỏi đơn"
                       >×</button>
                     </article>
