@@ -17,7 +17,7 @@ export class TableBookingRequest {
     @Column({ type: 'text', nullable: true })
     note: string | null
 
-    @Column({ type: "varchar", length: 50, default: "PEDING" })
+    @Column({ type: "varchar", length: 50, default: "PENDING" })
     status: string
 
     @CreateDateColumn({ name: "created_at", type: "datetime" })

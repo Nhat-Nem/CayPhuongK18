@@ -166,10 +166,18 @@ export class RoomStaysService {
                 throw new BadRequestException("This stay has been checked out")
             }
 
+            // Tính toán số đêm lưu trú và tổng số tiền
             const now = new Date()
-            const milliseconds = now.getTime() - new Date(stay.checkInAt).getTime()
+            const checkIn = new Date(stay.checkInAt)
             
-            const night = Math.max(1, Math.ceil(milliseconds / (24 * 60 * 60 * 1000)))
+            // Lấy mốc 00:00:00 của mỗi ngày để so sánh ngày lịch, loại bỏ ảnh hưởng của giờ
+            const startOfDay = (d: Date) => 
+                new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+            
+            const diffDays = Math.round((startOfDay(now) - startOfDay(checkIn)) / (24 * 60 * 60 * 1000))
+
+            // Tối thiểu 1 đêm (check-in và check-out cùng ngày vẫn tính 1 đêm)
+            const night = Math.max(1, diffDays)
 
             const amount = night * Number(stay.roomPrice)
 
