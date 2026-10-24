@@ -48,7 +48,10 @@ export class RecruitmentsService {
 
     // Tao
     async create(dto: CreateRecruitmentDto) {
-        const recruitment = this.recruitmentReposiroty.create(dto)
+        const recruitment = this.recruitmentReposiroty.create({
+            ...dto, 
+            employmentType: dto.employment_type
+        })
 
         this.recruitmentLogger.log(`Create recruitment successfully at ${this.getCurrentTime()}`)
         
