@@ -66,31 +66,15 @@ export function isAdminRole() {
   return getAuthenticatedUser()?.role === "ADMIN"
 }
 
-function resolveBackendLoginEmail(usernameOrEmail: string) {
-  const value = usernameOrEmail.trim()
-  const normalized = value.toLowerCase()
-
-  if (normalized === DEMO_ADMIN.username) {
-    return DEMO_ADMIN.email
-  }
-
-  if (normalized === DEMO_STAFF.username) {
-    return DEMO_STAFF.email
-  }
-
-  return value
-}
-
 export async function loginAdmin(
   usernameOrEmail: string,
   password: string,
 ) {
-  const loginEmail = resolveBackendLoginEmail(usernameOrEmail)
-
   const result = await apiRequest<LoginResponse>("/api/v1/auth", {
     method: "POST",
     body: JSON.stringify({
-      email: loginEmail,
+      // The backend accepts either the account email or username.
+      email: usernameOrEmail.trim(),
       password,
     }),
   })
