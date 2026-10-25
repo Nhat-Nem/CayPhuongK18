@@ -19,6 +19,7 @@ import { PromotionsModule } from './promotions/promotions.module';
 import { OrdersModule } from './orders/orders.module';
 import { ReportsModule } from './reports/reports.module';
 import { RoomStaysModule } from './room-stays/room-stays.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -69,6 +70,8 @@ import { RoomStaysModule } from './room-stays/room-stays.module';
     ReportsModule,
 
     RoomStaysModule,
+
+    UserModule,
   ],
   controllers: [AppController],
 
