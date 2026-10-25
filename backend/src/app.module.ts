@@ -41,8 +41,12 @@ import { UserModule } from './user/user.module';
         const password = configService.get<string>('DB_PASSWORD');
         const database = configService.get<string>('DB_DATABASE');
 
-        const portValue = configService.get<string>('DB_PORT');
-        const port = portValue ? Number(portValue) : 4000;
+        const port = Number(
+          configService.get<string>('DB_PORT') ?? 3306,
+        );
+
+        const sslEnabled =
+          configService.get<string>('DB_SSL') === 'true';
 
         if (!host || !username || !password || !database) {
           throw new Error('Thiếu biến môi trường kết nối database');
@@ -60,11 +64,14 @@ import { UserModule } from './user/user.module';
           password,
           database,
 
-          // Bắt buộc TLS khi kết nối TiDB Cloud
-          ssl: {
-            minVersion: 'TLSv1.2' as const,
-            rejectUnauthorized: true,
-          },
+          ...(sslEnabled
+            ? {
+                ssl: {
+                  minVersion: 'TLSv1.2' as const,
+                  rejectUnauthorized: true,
+                },
+              }
+            : {}),
 
           autoLoadEntities: true,
           synchronize: false,
