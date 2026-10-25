@@ -23,22 +23,53 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? '.env.production.local'
+          : '.env',
+    }),
 
+    
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get<string>('DB_HOST');
+        const username = configService.get<string>('DB_USERNAME');
+        const password = configService.get<string>('DB_PASSWORD');
+        const database = configService.get<string>('DB_DATABASE');
+
+        const portValue = configService.get<string>('DB_PORT');
+        const port = portValue ? Number(portValue) : 4000;
+
+        if (!host || !username || !password || !database) {
+          throw new Error('Thiếu biến môi trường kết nối database');
+        }
+
+        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+          throw new Error('DB_PORT không hợp lệ');
+        }
+
+        return {
           type: 'mysql' as const,
-          host: configService.get<string>('DB_HOST'),
-          port: Number(configService.get<string>('DB_PORT') ?? 3306),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          database: configService.get<string>('DB_DATABASE'),
+          host,
+          port,
+          username,
+          password,
+          database,
+
+          // Bắt buộc TLS khi kết nối TiDB Cloud
+          ssl: {
+            minVersion: 'TLSv1.2' as const,
+            rejectUnauthorized: true,
+          },
 
           autoLoadEntities: true,
-          synchronize: true,
-      }),
+          synchronize: false,
+        };
+      },
     }),
 
     RoomsModule,
