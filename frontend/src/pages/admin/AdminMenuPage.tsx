@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   addMenuDish,
@@ -11,7 +11,6 @@ import {
   type MenuCategory,
   type MenuDish,
 } from "@/services/menuStore"
-import { fileToMenuImage } from "@/utils/menuImage"
 
 
 function compareNewestIdFirst(
@@ -40,13 +39,14 @@ export default function AdminMenuPage() {
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [localImagePreview, setLocalImagePreview] = useState("")
+  const [localImageName, setLocalImageName] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [categoryName, setCategoryName] = useState("")
   const [categoryDescription, setCategoryDescription] = useState("")
   const [categorySaving, setCategorySaving] = useState(false)
-  const [processingImage, setProcessingImage] = useState(false)
 
   const refresh = async () => {
     setLoading(true)
@@ -83,7 +83,16 @@ export default function AdminMenuPage() {
     )
   }, [items, query])
 
+  const clearLocalImagePreview = () => {
+    setLocalImagePreview((current) => {
+      if (current) URL.revokeObjectURL(current)
+      return ""
+    })
+    setLocalImageName("")
+  }
+
   const closeModal = () => {
+    clearLocalImagePreview()
     setOpen(false)
     setEditingId(null)
     setForm(EMPTY_FORM)
@@ -91,6 +100,7 @@ export default function AdminMenuPage() {
   }
 
   const openCreate = () => {
+    clearLocalImagePreview()
     setEditingId(null)
     setForm({ ...EMPTY_FORM, categoryId: categories[0]?.id ?? "" })
     setError("")
@@ -98,6 +108,7 @@ export default function AdminMenuPage() {
   }
 
   const openEdit = (item: MenuDish) => {
+    clearLocalImagePreview()
     setEditingId(item.id)
     setForm({
       name: item.name,
@@ -111,29 +122,32 @@ export default function AdminMenuPage() {
     setOpen(true)
   }
 
-  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+
+  const handleLocalImageSelect = (file?: File) => {
+    clearLocalImagePreview()
     if (!file) return
 
-    setProcessingImage(true)
-    setError("")
-
-    try {
-      const image = await fileToMenuImage(file)
-      setForm((current) => ({ ...current, image }))
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Không thể xử lý ảnh món ăn.",
-      )
-    } finally {
-      setProcessingImage(false)
-      event.target.value = ""
+    if (!file.type.startsWith("image/")) {
+      setError("Vui lòng chọn một tệp hình ảnh hợp lệ.")
+      return
     }
+
+    const previewUrl = URL.createObjectURL(file)
+    setLocalImagePreview(previewUrl)
+    setLocalImageName(file.name)
+    setError("")
   }
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
+
+    if (localImagePreview) {
+      setError(
+        `Ảnh “${localImageName}” mới chỉ được xem trước trên trình duyệt. Hãy sao chép tệp vào frontend/public/assets, sau đó nhập đường dẫn /assets/${localImageName} bên dưới rồi mới lưu. Website không tự tải tệp lên khi chưa có nơi lưu ảnh.`,
+      )
+      return
+    }
 
     const priceValue = Number(form.price)
     const categoryId = Number(form.categoryId)
@@ -145,6 +159,13 @@ export default function AdminMenuPage() {
 
     if (!Number.isInteger(categoryId) || categoryId < 1) {
       setError("Vui lòng chọn danh mục món ăn.")
+      return
+    }
+
+    if (/^data:image\//i.test(form.image.trim())) {
+      setError(
+        "Không thể lưu ảnh tải lên trực tiếp vì cột image của database không chứa được dữ liệu Base64. Hãy dùng đường dẫn ảnh có sẵn như /assets/f975d.png hoặc URL ảnh HTTPS.",
+      )
       return
     }
 
@@ -424,33 +445,56 @@ export default function AdminMenuPage() {
               </label>
 
               <label>
-                <span>Ảnh món</span>
+                <span>Chọn ảnh từ máy tính (xem trước)</span>
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={processingImage}
-                  onChange={(event) => void handleImageChange(event)}
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                  onChange={(event) => handleLocalImageSelect(event.target.files?.[0])}
                 />
                 <small>
-                  {processingImage
-                    ? "Đang xử lý ảnh..."
-                    : "Chọn ảnh JPG, PNG hoặc WEBP từ máy · tối đa 8 MB"}
+                  Không cần Cloudinary. Tệp được chọn chỉ xem trước trên máy này; để ảnh lưu được và mọi người cùng thấy, hãy chép ảnh vào frontend/public/assets rồi nhập đường dẫn ở ô bên dưới và đẩy thay đổi lên GitHub để triển khai lại.
                 </small>
               </label>
 
-              {form.image && (
+              <label>
+                <span>Đường dẫn ảnh đã có trong dự án</span>
+                <input
+                  type="text"
+                  value={form.image}
+                  onChange={(event) => {
+                    clearLocalImagePreview()
+                    setForm((current) => ({ ...current, image: event.target.value }))
+                  }}
+                  placeholder="/assets/ten-anh.png hoặc https://..."
+                />
+                <small>
+                  Ví dụ: /assets/f975d.png. Không nhập dữ liệu Base64 (data:image/...).
+                </small>
+              </label>
+
+              {(localImagePreview || form.image) && (
                 <>
                   <img
                     className="admin-menu-preview"
-                    src={form.image}
+                    src={localImagePreview || form.image}
                     alt="Xem trước món ăn"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none"
+                    }}
+                    onLoad={(event) => {
+                      event.currentTarget.style.display = "block"
+                    }}
                   />
+                  {localImagePreview && (
+                    <small>Đang xem trước tệp mới: {localImageName}</small>
+                  )}
                   <button
                     className="admin-secondary-button"
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      clearLocalImagePreview()
                       setForm((current) => ({ ...current, image: "" }))
-                    }
+                    }}
                   >
                     Xóa ảnh đã chọn
                   </button>
@@ -487,8 +531,8 @@ export default function AdminMenuPage() {
                 <button className="admin-secondary-button" type="button" onClick={closeModal}>
                   Hủy
                 </button>
-                <button className="admin-primary-button" type="submit" disabled={saving || processingImage}>
-                  {saving ? "Đang lưu..." : processingImage ? "Đang xử lý ảnh..." : "Lưu món"}
+                <button className="admin-primary-button" type="submit" disabled={saving}>
+                  {saving ? "Đang lưu..." : "Lưu món"}
                 </button>
               </div>
             </form>
