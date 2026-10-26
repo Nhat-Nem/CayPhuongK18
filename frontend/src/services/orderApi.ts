@@ -58,6 +58,12 @@ export async function getOrderById(id: string) {
   return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}`)
 }
 
+export async function deleteOrder(id: string): Promise<void> {
+  await apiRequest<{ message?: string }>(`${ORDERS_API_PATH}/${encodeId(id)}`, {
+    method: "DELETE",
+  })
+}
+
 export async function createOrder(payload: OrderPayload) {
   return apiRequest<OrderRecord>(ORDERS_API_PATH, {
     method: "POST",

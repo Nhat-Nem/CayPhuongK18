@@ -435,10 +435,17 @@ export default function RoomForm({
                 </div>
               ))}
 
-              {values.secondaryImages.length === 0 && (
-                <div className="admin-room-secondary-empty">
-                  Chưa có ảnh phụ
-                </div>
+              {Array.from(
+                { length: MAX_SECONDARY_IMAGES - values.secondaryImages.length },
+                (_, index) => (
+                  <div
+                    className="admin-room-secondary-empty"
+                    key={`secondary-placeholder-${values.secondaryImages.length + index}`}
+                  >
+                    <span className="admin-room-secondary-empty-icon" aria-hidden="true">▧</span>
+                    <span>Ảnh phụ {values.secondaryImages.length + index + 1}</span>
+                  </div>
+                ),
               )}
             </div>
 

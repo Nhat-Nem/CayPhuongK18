@@ -5,6 +5,7 @@ import { getMenuDishes, type MenuDish } from "@/services/menuStore"
 import {
   addOrderItem,
   createOrder,
+  deleteOrder,
   getOrderById,
   getOrders,
   removeOrderItem,
@@ -16,6 +17,11 @@ import {
 
 const EMPTY_FORM = {
   note: "",
+}
+
+type DraftOrderItem = {
+  menuItemId: string
+  quantity: number
 }
 
 function formatMoney(value: number) {
@@ -81,6 +87,8 @@ export default function AdminOrdersPage() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState(EMPTY_FORM)
+  const [createItems, setCreateItems] = useState<DraftOrderItem[]>([])
+  const [selectedCreateMenuItemId, setSelectedCreateMenuItemId] = useState("")
 
   const [editingOrder, setEditingOrder] = useState<OrderRecord | null>(null)
   const [editingForm, setEditingForm] = useState(EMPTY_FORM)
@@ -149,10 +157,40 @@ export default function AdminOrdersPage() {
     [orders],
   )
 
+  const createItemsTotal = useMemo(() => createItems.reduce((total, draft) => {
+    const dish = menuItems.find((item) => item.id === draft.menuItemId)
+    return total + Number(dish?.priceValue ?? 0) * draft.quantity
+  }, 0), [createItems, menuItems])
+
   const openCreate = () => {
     setCreateForm(EMPTY_FORM)
+    setCreateItems([])
+    setSelectedCreateMenuItemId(menuItems[0]?.id ?? "")
     setError("")
     setCreateOpen(true)
+  }
+
+  const addCreateDish = () => {
+    if (!selectedCreateMenuItemId) return
+    setCreateItems((current) => {
+      const existing = current.find((item) => item.menuItemId === selectedCreateMenuItemId)
+      if (existing) {
+        return current.map((item) => item.menuItemId === selectedCreateMenuItemId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item)
+      }
+      return [...current, { menuItemId: selectedCreateMenuItemId, quantity: 1 }]
+    })
+  }
+
+  const changeCreateDishQuantity = (menuItemId: string, quantity: number) => {
+    if (quantity < 1) {
+      setCreateItems((current) => current.filter((item) => item.menuItemId !== menuItemId))
+      return
+    }
+    setCreateItems((current) => current.map((item) => item.menuItemId === menuItemId
+      ? { ...item, quantity }
+      : item))
   }
 
   const openEditor = async (order: OrderRecord) => {
@@ -183,12 +221,48 @@ export default function AdminOrdersPage() {
       const created = await createOrder({
         note: createForm.note.trim() || undefined,
       })
+
+      let itemAddError = ""
+      for (const draft of createItems) {
+        try {
+          await addOrderItem(created.id, draft.menuItemId, draft.quantity)
+        } catch (err) {
+          itemAddError = err instanceof Error ? err.message : "Không thể thêm một số món vào đơn."
+          break
+        }
+      }
+
       setCreateOpen(false)
       setCreateForm(EMPTY_FORM)
+      setCreateItems([])
       await refreshOrders()
       await openEditor(created)
+      if (itemAddError) {
+        setError(`Đơn đã được tạo nhưng một số món chưa thêm được: ${itemAddError}`)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tạo đơn hàng.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const removeOrder = async (order: OrderRecord) => {
+    if (order.status !== "PENDING") {
+      setError("Chỉ có thể xóa đơn đang ở trạng thái Chờ xử lý.")
+      return
+    }
+
+    if (!window.confirm(`Bạn có chắc muốn xóa đơn ${orderLabel(order)}? Toàn bộ món trong đơn cũng sẽ bị xóa.`)) return
+
+    setSaving(true)
+    setError("")
+    try {
+      await deleteOrder(order.id)
+      if (editingOrder?.id === order.id) setEditingOrder(null)
+      await refreshOrders()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể xóa đơn hàng.")
     } finally {
       setSaving(false)
     }
@@ -373,14 +447,25 @@ export default function AdminOrdersPage() {
                     </td>
 
                     <td>
-                      <button
-                        className="admin-icon-button"
-                        type="button"
-                        onClick={() => void openEditor(order)}
-                        title="Mở và chỉnh sửa đơn hàng"
-                      >
-                        ✎
-                      </button>
+                      <div className="admin-room-row-actions">
+                        <button
+                          className="admin-icon-button"
+                          type="button"
+                          onClick={() => void openEditor(order)}
+                          title="Mở và chỉnh sửa đơn hàng"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="admin-icon-button danger"
+                          type="button"
+                          onClick={() => void removeOrder(order)}
+                          disabled={saving || order.status !== "PENDING"}
+                          title={order.status === "PENDING" ? "Xóa đơn hàng" : "Chỉ xóa được đơn đang chờ xử lý"}
+                        >
+                          ⌫
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -393,27 +478,105 @@ export default function AdminOrdersPage() {
       <AdminFormModal
         open={createOpen}
         eyebrow="TẠO ĐƠN"
-        title="Tạo đơn hàng"
-        onClose={() => setCreateOpen(false)}
+        title="Tạo đơn hàng mới"
+        onClose={() => { if (!saving) setCreateOpen(false) }}
+        size="wide"
       >
-        <form className="admin-order-form" onSubmit={submitCreate}>
-          <label className="admin-order-form-full">
-            <span>Ghi chú đơn hàng</span>
-            <textarea
-              value={createForm.note}
-              onChange={(event) =>
-                setCreateForm((current) => ({ ...current, note: event.target.value }))
-              }
-              placeholder="Ví dụ: ít cay, không hành..."
-            />
-          </label>
+        <form className="admin-order-editor" onSubmit={submitCreate}>
+          <div className="admin-order-form">
+            <label className="admin-order-form-full">
+              <span>Ghi chú</span>
+              <textarea
+                value={createForm.note}
+                onChange={(event) =>
+                  setCreateForm((current) => ({ ...current, note: event.target.value }))
+                }
+                placeholder="Yêu cầu đặc biệt của khách..."
+              />
+            </label>
+          </div>
 
-          <div className="admin-order-form-actions admin-order-form-full">
-            <button className="admin-secondary-button" type="button" onClick={() => setCreateOpen(false)}>
+          <div className="admin-order-divider" />
+
+          <section className="admin-order-items-section">
+            <div className="admin-order-items-heading">
+              <div>
+                <span>MÓN TRONG ĐƠN</span>
+                <h3>Thêm và điều chỉnh món ăn</h3>
+              </div>
+              <strong>{formatMoney(createItemsTotal)}</strong>
+            </div>
+
+            <div className="admin-order-add-item">
+              <select
+                value={selectedCreateMenuItemId}
+                onChange={(event) => setSelectedCreateMenuItemId(event.target.value)}
+                disabled={loadingMenu || menuItems.length === 0 || saving}
+              >
+                {menuItems.length === 0 ? (
+                  <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món"}</option>
+                ) : (
+                  menuItems.map((dish) => (
+                    <option key={dish.id} value={dish.id}>
+                      {dish.name} · {dish.price}
+                    </option>
+                  ))
+                )}
+              </select>
+              <button
+                className="admin-primary-button"
+                type="button"
+                onClick={addCreateDish}
+                disabled={!selectedCreateMenuItemId || saving || loadingMenu}
+              >
+                ＋ Thêm món
+              </button>
+            </div>
+
+            {createItems.length === 0 ? (
+              <div className="admin-order-empty-items">Chưa có món trong đơn. Chọn món phía trên để thêm.</div>
+            ) : (
+              <div className="admin-order-item-list">
+                {createItems.map((draft) => {
+                  const dish = menuItems.find((item) => item.id === draft.menuItemId)
+                  if (!dish) return null
+                  return (
+                    <article className="admin-order-item-row" key={draft.menuItemId}>
+                      <div className="admin-order-item-info">
+                        {dish.image ? <img src={dish.image} alt="" /> : <div className="admin-order-item-placeholder">MÓN</div>}
+                        <div>
+                          <strong>{dish.name}</strong>
+                          <small>{formatMoney(dish.priceValue)} / phần</small>
+                        </div>
+                      </div>
+                      <div className="admin-order-quantity" aria-label={`Số lượng ${dish.name}`}>
+                        <button type="button" onClick={() => changeCreateDishQuantity(dish.id, draft.quantity - 1)} disabled={saving} title="Giảm số lượng">−</button>
+                        <span>{draft.quantity}</span>
+                        <button type="button" onClick={() => changeCreateDishQuantity(dish.id, draft.quantity + 1)} disabled={saving} title="Tăng số lượng">＋</button>
+                      </div>
+                      <strong className="admin-order-item-subtotal">{formatMoney(dish.priceValue * draft.quantity)}</strong>
+                      <button
+                        className="admin-order-remove-item"
+                        type="button"
+                        onClick={() => changeCreateDishQuantity(dish.id, 0)}
+                        disabled={saving}
+                        title="Xóa món khỏi đơn"
+                      >×</button>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+
+          {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
+
+          <div className="admin-order-form-actions">
+            <button className="admin-secondary-button" type="button" onClick={() => setCreateOpen(false)} disabled={saving}>
               Hủy
             </button>
-            <button className="admin-primary-button" type="submit" disabled={saving}>
-              {saving ? "Đang tạo..." : "Tạo đơn"}
+            <button className="admin-primary-button" type="submit" disabled={saving || loadingMenu}>
+              {saving ? "Đang tạo đơn..." : "Tạo đơn hàng"}
             </button>
           </div>
         </form>
@@ -428,6 +591,7 @@ export default function AdminOrdersPage() {
       >
         {editingOrder && (
           <div className="admin-order-editor">
+            {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
             <form className="admin-order-form" onSubmit={saveOrderInfo}>
               <label className="admin-order-form-full">
                 <span>Ghi chú</span>
