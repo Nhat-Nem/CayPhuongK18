@@ -62,28 +62,28 @@ export default function AdminRoomLayout({
             <span>▣</span> Quản lý đơn hàng
           </a>
 
+          <p>TIẾP NHẬN</p>
+          <a
+            className={path === routes.adminRoomBookings ? "active" : ""}
+            href={routes.adminRoomBookings}
+          >
+            <span>▤</span> Tiếp nhận đặt phòng
+          </a>
+          <a
+            className={path === routes.adminWalkIns ? "active" : ""}
+            href={routes.adminWalkIns}
+          >
+            <span>♙</span> Tiếp nhận khách vãng lai
+          </a>
+          <a
+            className={path === routes.adminContact ? "active" : ""}
+            href={routes.adminContact}
+          >
+            <span>☎</span> Thông tin liên hệ
+          </a>
+
           {!isStaff && (
             <>
-              <p>TIẾP NHẬN</p>
-              <a
-                className={path === routes.adminRoomBookings ? "active" : ""}
-                href={routes.adminRoomBookings}
-              >
-                <span>▤</span> Tiếp nhận đặt phòng
-              </a>
-              <a
-                className={path === routes.adminWalkIns ? "active" : ""}
-                href={routes.adminWalkIns}
-              >
-                <span>♙</span> Khách vãng lai
-              </a>
-              <a
-                className={path === routes.adminContact ? "active" : ""}
-                href={routes.adminContact}
-              >
-                <span>☎</span> Thông tin liên hệ
-              </a>
-
               <p>TUYỂN DỤNG</p>
               <a
                 className={
@@ -105,25 +105,25 @@ export default function AdminRoomLayout({
               >
                 <span>%</span> Quản lý khuyến mãi
               </a>
-
-              <p>WEBSITE</p>
-              <a href={routes.rooms}>
-                <span>↗</span> Xem trang phòng
-              </a>
-              <a href={routes.menu}>
-                <span>↗</span> Xem trang thực đơn
-              </a>
-              <a href={routes.contact}>
-                <span>↗</span> Xem trang liên hệ
-              </a>
-              <a href={routes.careers}>
-                <span>↗</span> Xem trang tuyển dụng
-              </a>
-              <a href={routes.offers}>
-                <span>↗</span> Xem trang ưu đãi
-              </a>
             </>
           )}
+
+          <p>WEBSITE</p>
+          <a href={routes.rooms}>
+            <span>↗</span> Xem trang phòng
+          </a>
+          <a href={routes.menu}>
+            <span>↗</span> Xem trang thực đơn
+          </a>
+          <a href={routes.contact}>
+            <span>↗</span> Xem trang liên hệ
+          </a>
+          <a href={routes.careers}>
+            <span>↗</span> Xem trang tuyển dụng
+          </a>
+          <a href={routes.offers}>
+            <span>↗</span> Xem trang ưu đãi
+          </a>
         </nav>
 
         <button
