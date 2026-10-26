@@ -231,7 +231,7 @@
   height: 100%;
 }
 
-/* --- Footer: four clean, even columns like the supplied reference --- */
+/* --- Footer: brand stays horizontal and aligns with the three link columns --- */
 .footer {
   padding: 0 var(--page-gutter);
   background: #f3e9d2;
@@ -241,8 +241,10 @@
 
 .footer-main {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
+  /* Give the brand a little more room for logo + text on one row. */
+  grid-template-columns: minmax(360px, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2vw, 32px);
+  align-items: start;
   padding: 72px 0 58px;
 }
 
@@ -252,7 +254,8 @@
 }
 
 .footer-main > *:first-child {
-  padding-left: 0;
+  /* Keep the brand column inset by the same amount as the other footer columns. */
+  padding-left: clamp(22px, 3vw, 48px);
 }
 
 .footer-main > *:last-child {
@@ -260,10 +263,15 @@
 }
 
 .footer-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
   gap: 18px;
+  min-width: 0;
+}
+
+.footer-brand > div {
+  min-width: 0;
 }
 
 .footer-logo-wrap {
@@ -478,6 +486,8 @@
   }
 
   .footer-brand {
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: center;
     gap: 16px;
   }
 
@@ -505,30 +515,4 @@
     width: 100%;
     margin-bottom: 3px;
   }
-}
-
-
-.testimonials-empty-state {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  min-height: 180px;
-  align-content: center;
-  padding: 32px 24px;
-  border: 1px dashed #d8d0c2;
-  border-radius: 16px;
-  background: #fffefa;
-  color: #315440;
-  text-align: center;
-}
-
-.testimonials-empty-state strong {
-  font-family: "Montserrat:SemiBold", sans-serif;
-  font-size: 1rem;
-}
-
-.testimonials-empty-state p {
-  margin: 0;
-  color: #676d70;
-  font-size: .86rem;
 }

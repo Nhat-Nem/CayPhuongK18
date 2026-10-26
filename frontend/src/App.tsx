@@ -88,7 +88,7 @@ export default function App() {
 
   let page: ReactNode
 
-  // Trang đăng nhập được phép truy cập khi chưa đăng nhập.
+  // Trang đăng nhập Admin được phép truy cập khi chưa đăng nhập.
   if (path === routes.adminLogin) {
     page = <AdminLoginPage />
   }
@@ -96,17 +96,13 @@ export default function App() {
   else if (isAdminPage && !isAdminAuthenticated()) {
     page = <AdminLoginPage redirectTo={requestedAdminPath} />
   }
-  // Nhân viên được dùng các chức năng vận hành; các trang cấu hình hệ thống
-  // (phòng, thực đơn, tuyển dụng, khuyến mãi) vẫn dành cho Admin.
+  // Nhân viên được sử dụng Quản lý đơn hàng và Quản lý thực đơn.
+  // Các trang quản trị còn lại vẫn chuyển về khu vực đơn hàng.
   else if (
     isAdminPage &&
     authenticatedUser?.role === "STAFF" &&
-    ![
-      routes.adminOrders,
-      routes.adminRoomBookings,
-      routes.adminWalkIns,
-      routes.adminContact,
-    ].some((allowedPath) => allowedPath === path)
+    path !== routes.adminOrders &&
+    path !== routes.adminMenu
   ) {
     page = <AdminOrdersPage />
   }
