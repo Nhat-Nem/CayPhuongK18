@@ -73,12 +73,32 @@ export async function createOrder(payload: OrderPayload) {
   })
 }
 
+/** Cập nhật ghi chú qua endpoint riêng để STAFF không gọi nhầm PATCH /orders/:id (ADMIN-only). */
 export async function updateOrder(id: string, payload: OrderPayload) {
-  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}`, {
+  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/note`, {
     method: "PATCH",
     body: JSON.stringify({
       ...(payload.note !== undefined ? { note: payload.note } : {}),
     }),
+  })
+}
+
+/** PATCH /api/v1/orders/:id/status — API trạng thái đã có trong backend hiện tại. */
+export async function updateOrderStatus(id: string, status: OrderStatus) {
+  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  })
+}
+
+/** PATCH /api/v1/orders/:id/payment — API ghi nhận thanh toán đã có trong backend hiện tại. */
+export async function recordOrderPayment(
+  id: string,
+  paymentMethod: OrderPaymentMethod,
+) {
+  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/payment`, {
+    method: "PATCH",
+    body: JSON.stringify({ paymentMethod }),
   })
 }
 

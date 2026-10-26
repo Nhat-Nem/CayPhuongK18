@@ -1,9 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    {
-      "source": "/admin/:path*",
-      "destination": "/index.html"
-    }
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/phong/:path*", "destination": "/index.html" },
+    { "source": "/phong", "destination": "/index.html" },
+    { "source": "/menu/:path*", "destination": "/index.html" },
+    { "source": "/menu", "destination": "/index.html" },
+    { "source": "/uu-dai/:path*", "destination": "/index.html" },
+    { "source": "/uu-dai", "destination": "/index.html" },
+    { "source": "/ve-chung-toi", "destination": "/index.html" },
+    { "source": "/tuyen-dung/:path*", "destination": "/index.html" },
+    { "source": "/tuyen-dung", "destination": "/index.html" },
+    { "source": "/lien-he", "destination": "/index.html" },
+    { "source": "/dat-phong", "destination": "/index.html" }
   ]
 }
