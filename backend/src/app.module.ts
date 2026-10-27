@@ -20,6 +20,7 @@ import { OrdersModule } from './orders/orders.module';
 import { ReportsModule } from './reports/reports.module';
 import { RoomStaysModule } from './room-stays/room-stays.module';
 import { UserModule } from './user/user.module';
+import { GalleryModule } from './gallery/gallery.module';
 
 @Module({
   imports: [
@@ -110,6 +111,8 @@ import { UserModule } from './user/user.module';
     RoomStaysModule,
 
     UserModule,
+
+    GalleryModule,
   ],
   controllers: [AppController],
 
