@@ -11,8 +11,12 @@ import {
   removeOrderItem,
   updateOrder,
   updateOrderItemQuantity,
+  updateOrderStatus,
+  recordOrderPayment,
   type OrderItemRecord,
+  type OrderPaymentMethod,
   type OrderRecord,
+  type OrderStatus,
 } from "@/services/orderApi"
 
 const EMPTY_FORM = {
@@ -60,6 +64,25 @@ function paymentStatusLabel(status: OrderRecord["paymentStatus"]) {
   return status === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"
 }
 
+function nextOrderStatuses(order: OrderRecord): Array<{ value: OrderStatus; label: string }> {
+  if (order.status === "PENDING") {
+    return [
+      { value: "CONFIRMED", label: "Đã xác nhận" },
+      { value: "COMPLETED", label: "Hoàn thành" },
+      ...(order.paymentStatus === "PAID" ? [] : [{ value: "CANCELLED" as const, label: "Đã hủy" }]),
+    ]
+  }
+
+  if (order.status === "CONFIRMED") {
+    return [
+      { value: "COMPLETED", label: "Hoàn thành" },
+      ...(order.paymentStatus === "PAID" ? [] : [{ value: "CANCELLED" as const, label: "Đã hủy" }]),
+    ]
+  }
+
+  return []
+}
+
 function itemSummary(order: OrderRecord) {
   const items = order.items ?? []
   if (items.length === 0) return "Chưa có món"
@@ -93,6 +116,9 @@ export default function AdminOrdersPage() {
   const [editingOrder, setEditingOrder] = useState<OrderRecord | null>(null)
   const [editingForm, setEditingForm] = useState(EMPTY_FORM)
   const [selectedMenuItemId, setSelectedMenuItemId] = useState("")
+  const [paymentOrder, setPaymentOrder] = useState<OrderRecord | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>("CASH")
+  const [paymentError, setPaymentError] = useState("")
 
   const refreshOrders = async () => {
     setLoading(true)
@@ -337,11 +363,61 @@ export default function AdminOrdersPage() {
     }
   }
 
+  const changeOrderStatus = async (order: OrderRecord, status: OrderStatus) => {
+    if (!nextOrderStatuses(order).some((option) => option.value === status)) return
+
+    setSaving(true)
+    setError("")
+    try {
+      const updated = await updateOrderStatus(order.id, status)
+      setOrders((current) => current.map((item) =>
+        item.id === order.id ? { ...item, ...updated, items: updated.items ?? item.items } : item,
+      ))
+      setEditingOrder((current) => current?.id === order.id
+        ? { ...current, ...updated, items: updated.items ?? current.items }
+        : current,
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể cập nhật trạng thái đơn hàng.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const openPayment = (order: OrderRecord) => {
+    setPaymentOrder(order)
+    setPaymentMethod("CASH")
+    setPaymentError("")
+  }
+
+  const submitPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!paymentOrder) return
+
+    setSaving(true)
+    setPaymentError("")
+    try {
+      const updated = await recordOrderPayment(paymentOrder.id, paymentMethod)
+      setOrders((current) => current.map((item) =>
+        item.id === paymentOrder.id ? { ...item, ...updated, items: updated.items ?? item.items } : item,
+      ))
+      setEditingOrder((current) => current?.id === paymentOrder.id
+        ? { ...current, ...updated, items: updated.items ?? current.items }
+        : current,
+      )
+      setPaymentOrder(null)
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Không thể ghi nhận thanh toán.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <AdminRoomLayout
       eyebrow="ĐƠN HÀNG"
       title="Quản lý đơn hàng"
-      subtitle="Đơn hàng được đồng bộ trực tiếp với backend. Nhân viên và Admin có thể tạo, thêm món, chỉnh số lượng, xóa món và cập nhật ghi chú."
+      subtitle="Theo dõi đơn hàng, cập nhật trạng thái và ghi nhận thanh toán. Nhân viên có thể tạo đơn, thêm món, chỉnh số lượng và ghi chú."
       primaryAction={
         <button
           className="admin-primary-button"
@@ -430,6 +506,23 @@ export default function AdminOrdersPage() {
                       <small className="admin-order-cell-subtext">
                         {paymentStatusLabel(order.paymentStatus)}
                       </small>
+                      {nextOrderStatuses(order).length > 0 && (
+                        <select
+                          className="admin-order-status-select"
+                          aria-label={`Cập nhật trạng thái ${orderLabel(order)}`}
+                          value=""
+                          disabled={saving}
+                          onChange={(event) => {
+                            const nextStatus = event.target.value as OrderStatus
+                            if (nextStatus) void changeOrderStatus(order, nextStatus)
+                          }}
+                        >
+                          <option value="" disabled>Đổi trạng thái...</option>
+                          {nextOrderStatuses(order).map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                      )}
                     </td>
 
                     <td>{itemSummary(order)}</td>
@@ -447,7 +540,19 @@ export default function AdminOrdersPage() {
                     </td>
 
                     <td>
-                      <div className="admin-room-row-actions">
+                      <div className="admin-room-row-actions admin-order-row-actions">
+                        {order.paymentStatus !== "PAID" &&
+                          order.status !== "CANCELLED" &&
+                          Number(order.totalAmount || 0) > 0 && (
+                            <button
+                              className="admin-secondary-button admin-order-payment-button"
+                              type="button"
+                              disabled={saving}
+                              onClick={() => openPayment(order)}
+                            >
+                              Thanh toán
+                            </button>
+                          )}
                         <button
                           className="admin-icon-button"
                           type="button"
@@ -722,6 +827,42 @@ export default function AdminOrdersPage() {
               )}
             </section>
           </div>
+        )}
+      </AdminFormModal>
+
+      <AdminFormModal
+        open={Boolean(paymentOrder)}
+        eyebrow="THANH TOÁN"
+        title={paymentOrder ? `Ghi nhận thanh toán ${orderLabel(paymentOrder)}` : "Ghi nhận thanh toán"}
+        onClose={() => { if (!saving) setPaymentOrder(null) }}
+      >
+        {paymentOrder && (
+          <form className="admin-order-payment-form" onSubmit={submitPayment}>
+            <p className="admin-order-payment-total">
+              Tổng tiền cần thanh toán: <strong>{formatMoney(Number(paymentOrder.totalAmount || 0))}</strong>
+            </p>
+            <label>
+              <span>Phương thức thanh toán</span>
+              <select
+                value={paymentMethod}
+                onChange={(event) => setPaymentMethod(event.target.value as OrderPaymentMethod)}
+                disabled={saving}
+              >
+                <option value="CASH">Tiền mặt</option>
+                <option value="BANK_TRANSFER">Chuyển khoản</option>
+                <option value="CARD">Thẻ</option>
+              </select>
+            </label>
+            {paymentError && <div className="admin-room-form-notice error">⚠ {paymentError}</div>}
+            <div className="admin-order-form-actions">
+              <button className="admin-secondary-button" type="button" onClick={() => setPaymentOrder(null)} disabled={saving}>
+                Hủy
+              </button>
+              <button className="admin-primary-button" type="submit" disabled={saving || Number(paymentOrder.totalAmount || 0) <= 0}>
+                {saving ? "Đang lưu..." : "Xác nhận đã thanh toán"}
+              </button>
+            </div>
+          </form>
         )}
       </AdminFormModal>
     </AdminRoomLayout>

@@ -306,3 +306,73 @@
     text-align: left;
   }
 }
+
+
+/* Trạng thái và thanh toán đơn hàng (API hiện có). */
+.admin-order-status-select {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  min-height: 34px;
+  margin-top: 8px;
+  padding: 6px 9px;
+  border: 1px solid #d7d8d4;
+  border-radius: 8px;
+  background: #fff;
+  color: #29323d;
+  font: inherit;
+  font-size: .72rem;
+}
+
+.admin-order-row-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-order-payment-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.admin-order-payment-form {
+  display: grid;
+  gap: 18px;
+  padding: 4px 0 2px;
+}
+
+.admin-order-payment-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-order-payment-form label > span {
+  color: #5f666d;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .72rem;
+}
+
+.admin-order-payment-form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d7d8d4;
+  border-radius: 9px;
+  background: #fff;
+  color: #29323d;
+  font: inherit;
+}
+
+.admin-order-payment-total {
+  margin: 0;
+  color: #5f666d;
+}
+
+.admin-order-payment-total strong {
+  display: block;
+  margin-top: 5px;
+  color: #17345f;
+  font-size: 1.25rem;
+}
