@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
+import { getDatabaseImageFor, getDatabaseSiteImages, type DatabaseSiteImage } from "@/services/siteMediaApi"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import {
@@ -14,23 +15,22 @@ import {
 export default function OfferDetailPage() {
   const id = new URLSearchParams(window.location.search).get("id")
   const [item, setItem] = useState<PromotionRecord | null>(null)
+  const [databaseImages, setDatabaseImages] = useState<DatabaseSiteImage[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
-      try {
-        if (id) {
-          setItem(await getPromotionById(id))
-          return
-        }
-
-        const rows = await getCustomerPromotions()
-        setItem(rows[0] ?? null)
-      } catch {
-        setItem(null)
-      } finally {
-        setLoading(false)
-      }
+      const [promotionResult, imagesResult] = await Promise.allSettled([
+        (async () => {
+          if (id) return getPromotionById(id)
+          const rows = await getCustomerPromotions()
+          return rows[0] ?? null
+        })(),
+        getDatabaseSiteImages(),
+      ] as const)
+      setItem(promotionResult.status === "fulfilled" ? promotionResult.value : null)
+      setDatabaseImages(imagesResult.status === "fulfilled" ? imagesResult.value : [])
+      setLoading(false)
     }
 
     void load()
@@ -94,7 +94,10 @@ export default function OfferDetailPage() {
         </header>
 
         <div className="offer-detail-visual">
-          <img src={`${A}${promotionImage(item.applyType)}`} alt="" />
+          <img
+            src={getDatabaseImageFor(databaseImages, item.applyType === 1 ? "room" : "dish")?.src ?? `${A}${promotionImage(item.applyType)}`}
+            alt={item.name}
+          />
           <div className="offer-highlight">
             <span>Mức ưu đãi</span>
             <strong>Giảm {item.discountPercent}%</strong>

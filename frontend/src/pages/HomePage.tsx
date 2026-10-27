@@ -1,5 +1,5 @@
-import { useEffect } from "react"
-import { A } from "@/config/assets"
+import { useEffect, useState } from "react"
+import { A, resolveImageSource } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import ButtonLink from "@/components/common/ButtonLink"
@@ -8,9 +8,35 @@ import FoodAlbum from "@/components/home/FoodAlbum"
 import ActivityAlbumMarquee from "@/components/home/ActivityAlbumMarquee"
 import TestimonialsSection from "@/components/home/TestimonialsSection"
 import DishCard from "@/components/menu/DishCard"
-import { dishes } from "@/data/dishes"
+import { getMenuDishes, type MenuDish } from "@/services/menuStore"
+import { getPublicRooms } from "@/services/roomApi"
+import { isDatabaseImageSource } from "@/services/siteMediaApi"
+import { formatRoomPrice, type RoomPrototype } from "@/data/roomPrototype"
 
 export default function HomePage() {
+  const [homeDishes, setHomeDishes] = useState<MenuDish[]>([])
+  const [homeRooms, setHomeRooms] = useState<RoomPrototype[]>([])
+  const [homeDataLoading, setHomeDataLoading] = useState(true)
+  const dishesWithDatabaseImages = homeDishes.filter((dish) => isDatabaseImageSource(dish.image))
+  const featuredDish = dishesWithDatabaseImages[0]
+
+  useEffect(() => {
+    let active = true
+    Promise.allSettled([getMenuDishes(), getPublicRooms()] as const)
+      .then(([menuResult, roomResult]) => {
+        if (!active) return
+        setHomeDishes(menuResult.status === "fulfilled" ? menuResult.value : [])
+        setHomeRooms(roomResult.status === "fulfilled" ? roomResult.value : [])
+      })
+      .finally(() => {
+        if (active) setHomeDataLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   useEffect(() => {
     const titles = document.querySelectorAll<HTMLElement>(".home-title-reveal")
     const reduceMotion = window.matchMedia(
@@ -64,7 +90,7 @@ export default function HomePage() {
           </a>
         </div>
         <div className="vietnamese-about-image">
-          <img src={`${A}122ab.png`} alt="Mâm ẩm thực tại Cây Phượng K18" />
+          <img src={featuredDish?.image ? resolveImageSource(featuredDish.image) : `${A}122ab.png`} alt={featuredDish?.name || "Mâm ẩm thực tại Cây Phượng K18"} />
           <span>Hương vị Tây Ninh</span>
         </div>
       </section>
@@ -78,9 +104,13 @@ export default function HomePage() {
           </p>
         </div>
         <div className="bestseller-grid">
-          {dishes.slice(0, 6).map((dish) => (
-            <DishCard dish={dish} compact key={dish.name} />
-          ))}
+          {homeDataLoading ? (
+            <p className="career-data-notice">Đang tải món ăn từ cơ sở dữ liệu...</p>
+          ) : dishesWithDatabaseImages.length > 0 ? dishesWithDatabaseImages.slice(0, 6).map((dish) => (
+            <DishCard dish={dish} compact key={dish.id} />
+          )) : (
+            <p className="career-data-notice">Chưa có món ăn kèm ảnh trong cơ sở dữ liệu.</p>
+          )}
         </div>
         <div className="bestseller-action">
           <ButtonLink href="/menu">Xem toàn bộ thực đơn</ButtonLink>
@@ -110,21 +140,30 @@ export default function HomePage() {
             căn phòng gỗ ấm cúng và gần gũi thiên nhiên.
           </p>
         </div>
-        <div className="card-grid rooms-preview">
-          {[
-            ["fe9cf.png", "Phòng Deluxe Hướng Bể Bơi"],
-            ["38fc5.png", "Phòng Glamping Deluxe"],
-            ["7dcd9.png", "Phòng Deluxe Hướng Núi"],
-          ].map(([image, title], index) => (
-            <article className="card" key={title}>
-              <img src={`${A}${image}`} alt="" />
-              <div className="card-body">
-                <h3>{title}</h3>
-                <ButtonLink href="/phong/chi-tiet">Xem thêm</ButtonLink>
-              </div>
-            </article>
-          ))}
-        </div>
+        {homeDataLoading ? (
+          <p className="career-data-notice">Đang tải phòng từ cơ sở dữ liệu...</p>
+        ) : homeRooms.length > 0 ? (
+          <div className="card-grid rooms-preview">
+            {homeRooms.slice(0, 3).map((room) => (
+              <article className="card" key={room.id}>
+                {room.images.find((image) => isDatabaseImageSource(image)) && (
+                  <img
+                    src={resolveImageSource(room.images.find((image) => isDatabaseImageSource(image))!)}
+                    alt={room.name}
+                    loading="lazy"
+                  />
+                )}
+                <div className="card-body">
+                  <h3>{room.name}</h3>
+                  <p>{formatRoomPrice(room.price)} / đêm</p>
+                  <ButtonLink href={`/phong/chi-tiet?id=${encodeURIComponent(String(room.id))}`}>Xem thêm</ButtonLink>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="career-data-notice">Chưa có phòng đang hoạt động trong cơ sở dữ liệu.</p>
+        )}
       </section>
       <FoodAlbum />
       <ActivityAlbumMarquee />
