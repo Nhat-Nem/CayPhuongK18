@@ -1,6 +1,14 @@
 import type { RoomPrototype, RoomStatus } from "@/data/roomPrototype"
 import { apiRequest } from "./api"
 
+export const ROOM_UPDATED_EVENT = "cay-phuong-rooms-updated"
+
+function emitRoomUpdated() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(ROOM_UPDATED_EVENT))
+  }
+}
+
 type BackendRoom = {
   id: number | string
   code?: string | null
@@ -154,6 +162,7 @@ export async function createRoom(room: RoomPayload): Promise<RoomPrototype> {
     body: JSON.stringify(toBackendPayload(room)),
   })
 
+  emitRoomUpdated()
   return normalizeRoom(created)
 }
 
@@ -166,6 +175,7 @@ export async function updateRoom(
     body: JSON.stringify(toBackendPayload(room)),
   })
 
+  emitRoomUpdated()
   return normalizeRoom(updated)
 }
 
@@ -173,4 +183,5 @@ export async function deleteRoom(id: number | string): Promise<void> {
   await apiRequest<{ message: string }>(`/api/v1/rooms/${id}`, {
     method: "DELETE",
   })
+  emitRoomUpdated()
 }

@@ -1,9 +1,25 @@
+import { useEffect, useState } from "react"
 import { A } from "@/config/assets"
+import { getDatabaseImageFor, getDatabaseSiteImages, type DatabaseSiteImage } from "@/services/siteMediaApi"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import ButtonLink from "@/components/common/ButtonLink"
 
 export default function AboutPage() {
+  const [databaseImages, setDatabaseImages] = useState<DatabaseSiteImage[]>([])
+
+  useEffect(() => {
+    let active = true
+    getDatabaseSiteImages()
+      .then((images) => { if (active) setDatabaseImages(images) })
+      .catch(() => { if (active) setDatabaseImages([]) })
+    return () => { active = false }
+  }, [])
+
+  const openingImage = getDatabaseImageFor(databaseImages, "mixed")?.src ?? `${A}e9e73.png`
+  const roomImage = getDatabaseImageFor(databaseImages, "room")?.src ?? `${A}d8971.png`
+  const dishImage = getDatabaseImageFor(databaseImages, "dish")?.src ?? `${A}17a11.png`
+  const closingImage = getDatabaseImageFor(databaseImages, "mixed", 2)?.src ?? `${A}4451e.png`
   return (
     <Shell>
       <Hero
@@ -14,7 +30,7 @@ export default function AboutPage() {
 
       <section className="story-opening">
         <div className="story-opening-image">
-          <img src={`${A}e9e73.png`} alt="Cây Phượng K18 giữa thiên nhiên" />
+          <img src={openingImage} alt="Không gian Cây Phượng K18" />
           <span>
             <strong>K18</strong>
             Tây Ninh
@@ -74,7 +90,7 @@ export default function AboutPage() {
 
       <section className="story-experiences">
         <div className="story-experience-card">
-          <img src={`${A}d8971.png`} alt="Không gian lưu trú gần thiên nhiên" />
+          <img src={roomImage} alt="Không gian lưu trú tại Cây Phượng K18" />
           <div>
             <span>01 · PHÒNG</span>
             <h2>Một giấc ngủ giữa thiên nhiên</h2>
@@ -86,7 +102,7 @@ export default function AboutPage() {
           </div>
         </div>
         <div className="story-experience-card reverse">
-          <img src={`${A}17a11.png`} alt="Ẩm thực địa phương Tây Ninh" />
+          <img src={dishImage} alt="Ẩm thực tại Cây Phượng K18" />
           <div>
             <span>02 · ẨM THỰC</span>
             <h2>Một bữa ăn kể chuyện vùng đất</h2>
@@ -100,7 +116,7 @@ export default function AboutPage() {
       </section>
 
       <section className="story-closing">
-        <img src={`${A}4451e.png`} alt="Phong cảnh bình yên tại Tây Ninh" />
+        <img src={closingImage} alt="Không gian Cây Phượng K18" />
         <div>
           <p className="eyebrow">LỜI HẸN TỪ CÂY PHƯỢNG</p>
           <h2>Chúng tôi luôn dành sẵn cho bạn một chỗ ngồi</h2>

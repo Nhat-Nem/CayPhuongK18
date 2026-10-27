@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { A } from "@/config/assets"
+import { getDatabaseImageFor, getDatabaseSiteImages, type DatabaseSiteImage } from "@/services/siteMediaApi"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import {
@@ -13,12 +14,15 @@ import {
 export default function OffersPage() {
   const [category, setCategory] = useState("Tất cả")
   const [promotions, setPromotions] = useState<PromotionRecord[]>([])
+  const [databaseImages, setDatabaseImages] = useState<DatabaseSiteImage[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getCustomerPromotions()
-      .then(setPromotions)
-      .catch(() => setPromotions([]))
+    Promise.allSettled([getCustomerPromotions(), getDatabaseSiteImages()] as const)
+      .then(([promotionsResult, imagesResult]) => {
+        setPromotions(promotionsResult.status === "fulfilled" ? promotionsResult.value : [])
+        setDatabaseImages(imagesResult.status === "fulfilled" ? imagesResult.value : [])
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -80,7 +84,10 @@ export default function OffersPage() {
                 key={offer.id}
               >
                 <div className="offer-card-image">
-                  <img src={`${A}${promotionImage(offer.applyType)}`} alt="" />
+                  <img
+                    src={getDatabaseImageFor(databaseImages, offer.applyType === 1 ? "room" : "dish", index)?.src ?? `${A}${promotionImage(offer.applyType)}`}
+                    alt={offer.name}
+                  />
                   <span>{promotionApplyTypeLabel(offer.applyType)}</span>
                   <strong className="offer-discount-badge">-{offer.discountPercent}%</strong>
                 </div>

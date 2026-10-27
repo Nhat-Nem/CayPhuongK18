@@ -51,8 +51,8 @@ export default function SocialRail() {
     {
       label: "Điện thoại",
       href: getPhoneHref(contact.hotline),
-      icon: "f991a.svg",
-      className: "facebook",
+      icon: "f995f.png",
+      className: "phone",
     },
     {
       label: "Email",
