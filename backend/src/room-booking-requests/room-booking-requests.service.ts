@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomBookingRequest } from './entities/room-booking-request.entity';
 import { Repository } from 'typeorm';
@@ -49,6 +49,13 @@ export class RoomBookingRequestsService {
         
         if (!request) {
             throw new NotFoundException("This Booking Request Not Found")
+        }
+
+        if (
+            request.status === RoomBookingRequestStatus.COMPLETED || 
+            request.status === RoomBookingRequestStatus.CANCELLED
+        ) {
+            throw new BadRequestException(`Cannot update booking request because its status is ${request.status} (LOCKED)`)
         }
 
         request.status = status
