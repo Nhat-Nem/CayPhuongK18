@@ -1,22 +1,9 @@
-import { useEffect, useState } from "react"
-import { A, resolveImageSource } from "@/config/assets"
-import { getMenuDishes, type MenuDish } from "@/services/menuStore"
-import { isDatabaseImageSource } from "@/services/siteMediaApi"
+import { A } from "@/config/assets"
 import Shell from "@/components/layout/Shell"
 import Hero from "@/components/common/Hero"
 import MenuTabs from "@/components/menu/MenuTabs"
 
 export default function MenuPage() {
-  const [featuredDish, setFeaturedDish] = useState<MenuDish | null>(null)
-
-  useEffect(() => {
-    let active = true
-    getMenuDishes()
-      .then((rows) => { if (active) setFeaturedDish(rows.find((row) => isDatabaseImageSource(row.image)) ?? rows[0] ?? null) })
-      .catch(() => { if (active) setFeaturedDish(null) })
-    return () => { active = false }
-  }, [])
-
   return (
     <Shell>
       <Hero
@@ -26,7 +13,7 @@ export default function MenuPage() {
       />
       <section className="menu-identity">
         <div className="menu-identity-image">
-          <img src={featuredDish?.image ? resolveImageSource(featuredDish.image) : `${A}122ab.png`} alt={featuredDish?.name || "Mâm cơm tại Cây Phượng K18"} />
+          <img src={`${A}122ab.png`} alt="Mâm cơm tại Cây Phượng K18" />
           <span>Hương vị Tây Ninh · Phục vụ mỗi ngày</span>
         </div>
         <div className="menu-identity-copy">
