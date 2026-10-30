@@ -1,25 +1,19 @@
 import { useEffect, useState } from "react"
-import { A } from "@/config/assets"
-import { getDatabaseImageFor, getDatabaseSiteImages, type DatabaseSiteImage } from "@/services/siteMediaApi"
 import {
   getCustomerPromotions,
   promotionApplyTypeLabel,
-  promotionImage,
   type PromotionRecord,
 } from "@/services/promotionStore"
 
 export default function OfferCards() {
   const [offers, setOffers] = useState<PromotionRecord[]>([])
   const [position, setPosition] = useState(0)
-  const [databaseImages, setDatabaseImages] = useState<DatabaseSiteImage[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.allSettled([getCustomerPromotions(), getDatabaseSiteImages()] as const)
-      .then(([offersResult, imagesResult]) => {
-        setOffers(offersResult.status === "fulfilled" ? offersResult.value.slice(0, 3) : [])
-        setDatabaseImages(imagesResult.status === "fulfilled" ? imagesResult.value : [])
-      })
+    getCustomerPromotions()
+      .then((rows) => setOffers(rows.slice(0, 3)))
+      .catch(() => setOffers([]))
       .finally(() => setLoading(false))
   }, [])
 
@@ -50,12 +44,9 @@ export default function OfferCards() {
         ←
       </button>
       <div className="card-grid offer-grid">
-        {shown.map((offer, offerIndex) => (
+        {shown.map((offer) => (
           <article className="card" key={offer.id}>
-            <img
-              src={getDatabaseImageFor(databaseImages, offer.applyType === 1 ? "room" : "dish", offerIndex)?.src ?? `${A}${promotionImage(offer.applyType)}`}
-              alt={offer.name}
-            />
+            <div className="offer-image-placeholder offer-home-image-placeholder" aria-hidden="true" />
             <div className="card-body">
               <small>{promotionApplyTypeLabel(offer.applyType)} · Giảm {offer.discountPercent}%</small>
               <h3>{offer.name}</h3>

@@ -103,9 +103,6 @@ export function promotionApplyTypeLabel(type: PromotionApplyType) {
   return type === 1 ? "Khách sạn" : "Nhà hàng"
 }
 
-export function promotionImage(type: PromotionApplyType) {
-  return type === 1 ? "dd726.png" : "38458.png"
-}
 
 export function formatPromotionDate(value: string) {
   const normalized = dateOnly(value)
