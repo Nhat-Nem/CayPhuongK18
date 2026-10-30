@@ -84,6 +84,14 @@ export default function AdminRoomLayout({
                 <span>☎</span> Thông tin liên hệ
               </a>
 
+              <p>ĐÁNH GIÁ</p>
+              <a
+                className={path === routes.adminReviews ? "active" : ""}
+                href={routes.adminReviews}
+              >
+                <span>★</span> Quản lý đánh giá
+              </a>
+
               <p>TUYỂN DỤNG</p>
               <a
                 className={

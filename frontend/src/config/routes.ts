@@ -8,6 +8,7 @@ export const routes = {
   careers: "/tuyen-dung",
   careerDetail: "/tuyen-dung/chi-tiet",
   contact: "/lien-he",
+  review: "/danh-gia",
 
   // Admin
   admin: "/admin",
@@ -23,6 +24,7 @@ export const routes = {
 
   // Đơn hàng
   adminOrders: "/admin/don-hang",
+  adminReviews: "/admin/danh-gia",
 
   // Tiếp nhận
   adminRoomBookings: "/admin/dat-phong",

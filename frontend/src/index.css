@@ -33,3 +33,7 @@
 
 /* Order management frontend prototype */
 @import "./styles/pages/admin-orders.css";
+
+/* Sprint 6 · Customer and admin review UI */
+@import "./styles/pages/reviews.css";
+@import "./styles/pages/admin-reviews.css";

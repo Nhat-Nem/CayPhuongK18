@@ -10,6 +10,7 @@ import AboutPage from "@/pages/AboutPage"
 import CareersPage from "@/pages/CareersPage"
 import CareerDetailPage from "@/pages/CareerDetailPage"
 import ContactPage from "@/pages/ContactPage"
+import ReviewPage from "@/pages/ReviewPage"
 import OffersPage from "@/pages/OffersPage"
 import OfferDetailPage from "@/pages/OfferDetailPage"
 import RoomDetailPage from "@/pages/RoomDetailPage"
@@ -19,6 +20,7 @@ import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
 import AdminMenuPage from "@/pages/admin/AdminMenuPage"
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
+import AdminReviewsPage from "@/pages/admin/AdminReviewsPage"
 import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
@@ -59,6 +61,7 @@ export default function App() {
       [routes.careers]: "Tuyển dụng",
       [routes.careerDetail]: "Chi tiết tuyển dụng",
       [routes.contact]: "Liên hệ",
+      [routes.review]: "Đánh giá dịch vụ",
       [routes.admin]: "Quản trị",
       [routes.adminLogin]: "Đăng nhập quản trị",
       [routes.adminRooms]: "Quản lý phòng",
@@ -66,6 +69,7 @@ export default function App() {
       [routes.adminRoomEdit]: "Sửa phòng",
       [routes.adminMenu]: "Quản lý thực đơn",
       [routes.adminOrders]: "Quản lý đơn hàng",
+      [routes.adminReviews]: "Quản lý đánh giá",
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
@@ -127,6 +131,10 @@ export default function App() {
   else if (path === routes.adminOrders) {
     page = <AdminOrdersPage />
   }
+  // Đánh giá khách hàng
+  else if (path === routes.adminReviews) {
+    page = <AdminReviewsPage />
+  }
   // Sprint 2
   else if (path === routes.adminRoomBookings) {
     page = <AdminRoomBookingRequestsPage />
@@ -181,6 +189,9 @@ export default function App() {
   }
   else if (path === routes.contact) {
     page = <ContactPage />
+  }
+  else if (path === routes.review) {
+    page = <ReviewPage />
   }
   else if (path === routes.offers) {
     page = <OffersPage />

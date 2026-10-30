@@ -64,20 +64,34 @@ function paymentStatusLabel(status: OrderRecord["paymentStatus"]) {
   return status === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"
 }
 
+function paymentMethodLabel(method: OrderPaymentMethod | null) {
+  if (method === "CASH") return "Tiền mặt"
+  if (method === "BANK_TRANSFER") return "Chuyển khoản"
+  if (method === "CARD") return "Thẻ"
+  return ""
+}
+
 function nextOrderStatuses(order: OrderRecord): Array<{ value: OrderStatus; label: string }> {
+  // Đơn chỉ được chuyển sang Hoàn thành sau khi backend đã ghi nhận thanh toán.
+  const canComplete = order.paymentStatus === "PAID"
+  const canCancel = order.paymentStatus !== "PAID"
+  const completionOption = canComplete
+    ? [{ value: "COMPLETED" as const, label: "Hoàn thành" }]
+    : []
+  const cancellationOption = canCancel
+    ? [{ value: "CANCELLED" as const, label: "Đã hủy" }]
+    : []
+
   if (order.status === "PENDING") {
     return [
       { value: "CONFIRMED", label: "Đã xác nhận" },
-      { value: "COMPLETED", label: "Hoàn thành" },
-      ...(order.paymentStatus === "PAID" ? [] : [{ value: "CANCELLED" as const, label: "Đã hủy" }]),
+      ...completionOption,
+      ...cancellationOption,
     ]
   }
 
   if (order.status === "CONFIRMED") {
-    return [
-      { value: "COMPLETED", label: "Hoàn thành" },
-      ...(order.paymentStatus === "PAID" ? [] : [{ value: "CANCELLED" as const, label: "Đã hủy" }]),
-    ]
+    return [...completionOption, ...cancellationOption]
   }
 
   return []
@@ -221,6 +235,11 @@ export default function AdminOrdersPage() {
 
   const openEditor = async (order: OrderRecord) => {
     setError("")
+    if (order.status === "COMPLETED") {
+      setError("Đơn hàng đã hoàn thành nên không thể chỉnh sửa.")
+      return
+    }
+
     try {
       const fresh = await getOrderById(order.id)
       setEditingOrder(fresh)
@@ -364,6 +383,11 @@ export default function AdminOrdersPage() {
   }
 
   const changeOrderStatus = async (order: OrderRecord, status: OrderStatus) => {
+    if (status === "COMPLETED" && order.paymentStatus !== "PAID") {
+      setError("Không thể hoàn thành đơn hàng khi chưa ghi nhận thanh toán.")
+      return
+    }
+
     if (!nextOrderStatuses(order).some((option) => option.value === status)) return
 
     setSaving(true)
@@ -374,7 +398,7 @@ export default function AdminOrdersPage() {
         item.id === order.id ? { ...item, ...updated, items: updated.items ?? item.items } : item,
       ))
       setEditingOrder((current) => current?.id === order.id
-        ? { ...current, ...updated, items: updated.items ?? current.items }
+        ? (status === "COMPLETED" ? null : { ...current, ...updated, items: updated.items ?? current.items })
         : current,
       )
     } catch (err) {
@@ -505,7 +529,13 @@ export default function AdminOrdersPage() {
                       <strong>{orderStatusLabel(order.status)}</strong>
                       <small className="admin-order-cell-subtext">
                         {paymentStatusLabel(order.paymentStatus)}
+                        {order.paymentMethod ? ` · ${paymentMethodLabel(order.paymentMethod)}` : ""}
                       </small>
+                      {order.paidAt && (
+                        <small className="admin-order-cell-subtext">
+                          Thanh toán lúc {formatDateTime(order.paidAt)}
+                        </small>
+                      )}
                       {nextOrderStatuses(order).length > 0 && (
                         <select
                           className="admin-order-status-select"
@@ -542,7 +572,7 @@ export default function AdminOrdersPage() {
                     <td>
                       <div className="admin-room-row-actions admin-order-row-actions">
                         {order.paymentStatus !== "PAID" &&
-                          order.status !== "CANCELLED" &&
+                          order.status === "CONFIRMED" &&
                           Number(order.totalAmount || 0) > 0 && (
                             <button
                               className="admin-secondary-button admin-order-payment-button"
@@ -553,14 +583,16 @@ export default function AdminOrdersPage() {
                               Thanh toán
                             </button>
                           )}
-                        <button
-                          className="admin-icon-button"
-                          type="button"
-                          onClick={() => void openEditor(order)}
-                          title="Mở và chỉnh sửa đơn hàng"
-                        >
-                          ✎
-                        </button>
+                        {order.status !== "COMPLETED" && (
+                          <button
+                            className="admin-icon-button"
+                            type="button"
+                            onClick={() => void openEditor(order)}
+                            title="Mở và chỉnh sửa đơn hàng"
+                          >
+                            ✎
+                          </button>
+                        )}
                         <button
                           className="admin-icon-button danger"
                           type="button"
