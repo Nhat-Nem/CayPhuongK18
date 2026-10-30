@@ -11,6 +11,7 @@ import { UpdateOrderNoteDto } from './dto/update-order-note.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class OrdersService {
@@ -22,7 +23,9 @@ export class OrdersService {
         private readonly orderItemRepository: Repository<OrderItem>,
 
         @InjectRepository(MenuItem)
-        private readonly menuItemRepository: Repository<MenuItem>
+        private readonly menuItemRepository: Repository<MenuItem>,
+
+        private readonly dataSource: DataSource
     ) {}
 
     // Tìm đơn hàng
@@ -60,6 +63,11 @@ export class OrdersService {
 
         if (order.status !== OrderStatus.PENDING) {
             throw new BadRequestException("Only orders pending processing can be edited")
+        }
+
+        // k cho edit don da thanh toan
+        if (order.paymentStatus === PaymentStatus.PAID) {
+            throw new BadRequestException("Cannot edit a paid order")
         }
 
         return order
@@ -188,6 +196,7 @@ export class OrdersService {
     async updateStatus(id: string, dto: UpdateOrderStatusDto) {
         const order = await this.findOne(id)
 
+        // Neu da hoan thanh hay bi huy k the doi trang thai
         if (
             order.status === OrderStatus.COMPLETED || 
             order.status === OrderStatus.CANCELLED
@@ -195,15 +204,33 @@ export class OrdersService {
             throw new BadRequestException("Completed or Cancelled orders cannot change status")
         }
 
+        // neu da xac nhan k the quay ve PENDING
         if (dto.status === OrderStatus.PENDING) {
             throw new BadRequestException("Cannot change an order back to PENDING")
         }
 
+        // k cho huy don da thanh toan
         if (
             dto.status === OrderStatus.CANCELLED && 
             order.paymentStatus === PaymentStatus.PAID
         ) {
             throw new BadRequestException("Cannot cancel a paid order")
+        }
+
+        // k cho hoan thanh neu chua thanh toan
+        if (
+            dto.status === OrderStatus.COMPLETED &&
+            order.paymentStatus !== PaymentStatus.PAID
+        ) {
+            throw new BadRequestException("Cannot complete an unpaid order")
+        }
+
+        // K cho hoan thanh don rỗng
+        if (
+            dto.status === OrderStatus.COMPLETED &&
+            order.items.length === 0
+        ) {
+            throw new BadRequestException("Cannot complete an empty order")
         }
 
         order.status = dto.status
@@ -213,24 +240,40 @@ export class OrdersService {
 
     // Ghi nhan thanh toan
     async recordPayment(id: string, dto: RecordOrderPaymentDto) {
-        const order = await this.findOne(id)
+        return this.dataSource.transaction(async (manager) => {
+            const orderRepo = manager.getRepository(Order)
 
-        if (order.status === OrderStatus.CANCELLED) {
-            throw new BadRequestException("Cannot pay for a cancelled order")
-        }
+            // Khoa ban ghi order trog xu li
+            const order = await orderRepo.findOne({
+                where: { id },
+                lock: { mode: 'pessimistic_write' }
+            })
 
-        if (order.paymentStatus === PaymentStatus.PAID) {
-            throw new BadRequestException("This order has already been paid")
-        }
+            if (!order) {
+                throw new NotFoundException("Cannot find order")
+            }
 
-        if (Number(order.totalAmount) <= 0) {
-            throw new BadRequestException("Cannot record payment for an empty order")
-        }
+            if (order.status === OrderStatus.CANCELLED) {
+                throw new BadRequestException("Cannot pay for a cancelled order")
+            }
 
-        order.paymentStatus = PaymentStatus.PAID
-        order.paymentMethod = dto.paymentMethod
-        order.paidAt = new Date()
+            if (order.status !== OrderStatus.CONFIRMED) {
+                throw new BadRequestException("Only confirmed orders can be paid")
+            }
 
-        return this.orderRepository.save(order)
+            if (order.paymentStatus === PaymentStatus.PAID) {
+                throw new BadRequestException("This order has already been paid")
+            }
+
+            if (Number(order.totalAmount) <= 0) {
+                throw new BadRequestException("Cannot record payment for an empty order")
+            }
+
+            order.paymentStatus = PaymentStatus.PAID
+            order.paymentMethod = dto.paymentMethod
+            order.paidAt = new Date()
+
+            return orderRepo.save(order)
+        })
     }
 }
