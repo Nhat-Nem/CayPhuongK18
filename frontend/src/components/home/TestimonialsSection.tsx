@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { getReviews, type ReviewRecord } from "@/services/reviewApi"
 import {
-  FEATURED_REVIEWS_UPDATED_EVENT,
-  getFeaturedReviewIds,
-} from "@/services/featuredReviewsStore"
+  getFeaturedReviews,
+  REVIEW_FEATURED_UPDATED_EVENT,
+  type ReviewRecord,
+} from "@/services/reviewApi"
 
 type Testimonial = {
   id: string
@@ -57,6 +57,7 @@ function normalizeReview(review: ReviewRecord): Testimonial {
     .map((part) => part[0] ?? "")
     .join("")
     .toLocaleUpperCase("vi")
+
   return {
     id: String(review.id),
     name,
@@ -73,50 +74,45 @@ export default function TestimonialsSection() {
   const [reviews, setReviews] = useState<ReviewRecord[]>([])
   const [reviewsLoaded, setReviewsLoaded] = useState(false)
   const [reviewsApiFailed, setReviewsApiFailed] = useState(false)
-  const [featuredIds, setFeaturedIds] = useState<string[]>([])
 
   useEffect(() => {
     let mounted = true
-    getReviews()
-      .then((rows) => {
-        if (mounted) {
-          setReviews(rows)
-          setReviewsLoaded(true)
-        }
-      })
-      .catch(() => {
-        // Chỉ dùng nội dung mẫu khi API không truy cập được.
-        if (mounted) setReviewsApiFailed(true)
-      })
 
-    const syncFeatured = () => {
-      setFeaturedIds(getFeaturedReviewIds())
-      setActive(0)
+    const loadFeaturedReviews = async () => {
+      try {
+        const rows = await getFeaturedReviews()
+        if (!mounted) return
+        setReviews(rows)
+        setReviewsLoaded(true)
+        setReviewsApiFailed(false)
+        setActive(0)
+      } catch {
+        if (!mounted) return
+        setReviewsApiFailed(true)
+      }
     }
-    syncFeatured()
-    window.addEventListener(FEATURED_REVIEWS_UPDATED_EVENT, syncFeatured)
-    window.addEventListener("storage", syncFeatured)
+
+    void loadFeaturedReviews()
+    window.addEventListener(REVIEW_FEATURED_UPDATED_EVENT, loadFeaturedReviews)
+
     return () => {
       mounted = false
-      window.removeEventListener(FEATURED_REVIEWS_UPDATED_EVENT, syncFeatured)
-      window.removeEventListener("storage", syncFeatured)
+      window.removeEventListener(REVIEW_FEATURED_UPDATED_EVENT, loadFeaturedReviews)
     }
   }, [])
 
   const featuredTestimonials = useMemo(
-    () => reviews
-      .filter((review) => featuredIds.includes(String(review.id)))
-      .map(normalizeReview),
-    [reviews, featuredIds],
+    () => reviews.map(normalizeReview),
+    [reviews],
   )
-  const useFallbackTestimonials = !reviewsLoaded
-  const testimonials = reviewsLoaded && !reviewsApiFailed
+  const testimonials = reviewsLoaded
     ? featuredTestimonials
-    : fallbackTestimonials
+    : reviewsApiFailed
+      ? fallbackTestimonials
+      : []
   const averageRating = featuredTestimonials.length
     ? featuredTestimonials.reduce((sum, item) => sum + item.stars, 0) / featuredTestimonials.length
-    : (useFallbackTestimonials || reviewsApiFailed ? 4.9 : 0)
-  const reviewCount = featuredTestimonials.length || (useFallbackTestimonials || reviewsApiFailed ? 128 : 0)
+    : 4.9
   const activeIndex = testimonials.length ? active % testimonials.length : 0
 
   useEffect(() => {
@@ -150,7 +146,12 @@ export default function TestimonialsSection() {
         className="reviews-overall"
         aria-label={featuredTestimonials.length ? `Điểm đánh giá ${averageRating.toFixed(1)} trên 5` : "Chưa có đánh giá nổi bật"}
       >
-        <strong>{featuredTestimonials.length || reviewsApiFailed ? averageRating.toFixed(1) : "—"}<small>/5</small></strong>
+        <strong>
+          {featuredTestimonials.length
+            ? averageRating.toFixed(1)
+            : reviewsApiFailed ? "4.9" : "—"}
+          <small>/5</small>
+        </strong>
         <div>
           {testimonials.length > 0 && (
             <span className="reviews-overall-stars" aria-hidden="true">★★★★★</span>
@@ -158,8 +159,8 @@ export default function TestimonialsSection() {
           <p>
             {featuredTestimonials.length
               ? `Dựa trên ${featuredTestimonials.length} đánh giá được chọn`
-              : useFallbackTestimonials || reviewsApiFailed
-                ? "Dựa trên 128 đánh giá mẫu"
+              : reviewsApiFailed
+                ? "Nội dung giới thiệu mẫu"
                 : "Chưa có đánh giá được chọn hiển thị"}
           </p>
         </div>
@@ -195,8 +196,12 @@ export default function TestimonialsSection() {
           </div>
         ) : (
           <div className="testimonials-empty-state">
-            <strong>Chưa có đánh giá nổi bật</strong>
-            <p>Những đánh giá do Admin chọn sẽ được hiển thị tại đây.</p>
+            <strong>{reviewsLoaded ? "Chưa có đánh giá nổi bật" : "Đang tải đánh giá..."}</strong>
+            <p>
+              {reviewsLoaded
+                ? "Những đánh giá do Admin chọn sẽ được hiển thị tại đây."
+                : "Đang kết nối với dữ liệu đánh giá của Cây Phượng K18."}
+            </p>
           </div>
         )}
       </div>
