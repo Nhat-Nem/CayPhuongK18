@@ -22,6 +22,7 @@ import AdminMenuPage from "@/pages/admin/AdminMenuPage"
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
 import AdminReviewsPage from "@/pages/admin/AdminReviewsPage"
 import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
+import AdminTableBookingRequestsPage from "@/pages/admin/AdminTableBookingRequestsPage"
 import AdminWalkInPage from "@/pages/admin/AdminWalkInPage"
 import AdminContactPage from "@/pages/admin/AdminContactPage"
 import AdminLoginPage from "@/pages/admin/AdminLoginPage"
@@ -70,6 +71,7 @@ export default function App() {
       [routes.adminMenu]: "Quản lý thực đơn",
       [routes.adminOrders]: "Quản lý đơn hàng",
       [routes.adminReviews]: "Quản lý đánh giá",
+      [routes.adminTableBookings]: "Tiếp nhận đặt bàn",
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
       [routes.adminWalkIns]: "Tiếp nhận khách vãng lai",
       [routes.adminContact]: "Quản lý liên hệ",
@@ -134,6 +136,10 @@ export default function App() {
   // Đánh giá khách hàng
   else if (path === routes.adminReviews) {
     page = <AdminReviewsPage />
+  }
+  // Tiếp nhận yêu cầu đặt bàn từ form Liên hệ
+  else if (path === routes.adminTableBookings) {
+    page = <AdminTableBookingRequestsPage />
   }
   // Sprint 2
   else if (path === routes.adminRoomBookings) {

@@ -376,3 +376,93 @@
   color: #17345f;
   font-size: 1.25rem;
 }
+
+/* Bộ lọc ngày/tháng/năm và nhân viên trong trang quản lý đơn hàng. */
+.admin-order-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(125px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  margin: 18px 0 8px;
+  padding: 16px;
+  border: 1px solid #e5e2dc;
+  border-radius: 10px;
+  background: #fbfaf7;
+}
+
+.admin-order-filters label {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.admin-order-filters label > span {
+  color: #6b625b;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .63rem;
+  letter-spacing: .045em;
+}
+
+.admin-order-filters input,
+.admin-order-filters select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid #d7d8d4;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #29323d;
+  font: inherit;
+  font-size: .76rem;
+}
+
+.admin-order-filters input:focus,
+.admin-order-filters select:focus {
+  border-color: #597aa1;
+  box-shadow: 0 0 0 3px #23487a10;
+}
+
+.admin-order-clear-filters {
+  min-height: 40px;
+  padding: 0 13px;
+  white-space: nowrap;
+}
+
+.admin-order-filter-error,
+.admin-order-filter-hint {
+  margin: 8px 0;
+  color: #a34c42;
+  font-size: .76rem;
+}
+
+.admin-order-filter-hint {
+  color: #7c7165;
+}
+
+.admin-order-table td:nth-child(3) {
+  min-width: 155px;
+}
+
+@media (max-width: 1100px) {
+  .admin-order-filters {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-order-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 12px;
+  }
+
+  .admin-order-filters label:last-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .admin-order-clear-filters {
+    width: 100%;
+  }
+}

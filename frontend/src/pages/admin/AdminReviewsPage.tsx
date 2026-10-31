@@ -147,9 +147,9 @@ export default function AdminReviewsPage() {
 
   return (
     <AdminRoomLayout
-      eyebrow="ĐÁNH GIÁ KHÁCH HÀNG"
-      title="Quản lý đánh giá"
-      subtitle="Xem phản hồi khách hàng, lựa chọn đánh giá nổi bật trên trang chủ hoặc xóa đánh giá không phù hợp."
+      eyebrow="FEEDBACK KHÁCH HÀNG"
+      title="Quản lý feedback & đánh giá"
+      subtitle="Feedback được gửi từ mục Feedback trên trang Liên hệ sẽ hiển thị tại đây. Admin có thể chọn đánh giá để đưa lên trang chủ hoặc gỡ xuống khi cần."
     >
       <section className="admin-room-stats admin-review-stats">
         <article>

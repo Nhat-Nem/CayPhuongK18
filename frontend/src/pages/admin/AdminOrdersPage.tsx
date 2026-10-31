@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import { getMenuDishes, type MenuDish } from "@/services/menuStore"
+import { getStaffDirectory, type StaffDirectoryUser } from "@/services/userApi"
 import {
   addOrderItem,
   createOrder,
@@ -113,10 +114,37 @@ function itemName(item: OrderItemRecord) {
   return item.menuItem?.name || `Món #${item.menuItemId}`
 }
 
+function localDateKey(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ""
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function orderEmployeeLabel(
+  order: OrderRecord,
+  employeesById: Map<string, StaffDirectoryUser>,
+) {
+  if (!order.createdBy) return "Chưa ghi nhận"
+
+  const employee = employeesById.get(String(order.createdBy))
+  return employee?.full_name?.trim() || employee?.username || `Nhân viên #${order.createdBy}`
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([])
   const [menuItems, setMenuItems] = useState<MenuDish[]>([])
   const [query, setQuery] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [selectedMonth, setSelectedMonth] = useState("")
+  const [selectedYear, setSelectedYear] = useState("")
+  const [selectedEmployee, setSelectedEmployee] = useState("")
+  const [staffUsers, setStaffUsers] = useState<StaffDirectoryUser[]>([])
+  const [staffDirectoryError, setStaffDirectoryError] = useState("")
   const [loading, setLoading] = useState(true)
   const [loadingMenu, setLoadingMenu] = useState(true)
   const [error, setError] = useState("")
@@ -148,6 +176,13 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     void refreshOrders()
 
+    getStaffDirectory()
+      .then(setStaffUsers)
+      .catch((err: Error) => {
+        // Danh sách đơn vẫn dùng được nếu endpoint người dùng tạm thời không khả dụng.
+        setStaffDirectoryError(err.message || "Không thể tải danh sách nhân viên.")
+      })
+
     getMenuDishes()
       .then((rows) => {
         setMenuItems(rows)
@@ -159,24 +194,97 @@ export default function AdminOrdersPage() {
       .finally(() => setLoadingMenu(false))
   }, [])
 
-  const filteredOrders = useMemo(() => {
-    const keyword = query.trim().toLocaleLowerCase("vi")
-    if (!keyword) return orders
+  const employeesById = useMemo(
+    () => new Map(staffUsers.map((user) => [String(user.id), user] as const)),
+    [staffUsers],
+  )
 
-    return orders.filter((order) =>
-      [
+  const employeeOptions = useMemo(() => {
+    const options = new Map<string, string>()
+
+    for (const user of staffUsers) {
+      if (String(user.role ?? "").toUpperCase() !== "STAFF") continue
+      const id = String(user.id)
+      const name = user.full_name?.trim() || user.username?.trim() || `Nhân viên #${id}`
+      options.set(id, name)
+    }
+
+    // Vẫn cho phép lọc các đơn cũ có createdBy nhưng nhân viên đã bị xóa/ẩn.
+    for (const order of orders) {
+      if (order.createdBy && !options.has(String(order.createdBy))) {
+        options.set(String(order.createdBy), `Nhân viên #${order.createdBy}`)
+      }
+    }
+
+    return [...options.entries()].sort((a, b) => a[1].localeCompare(b[1], "vi"))
+  }, [orders, staffUsers])
+
+  const invalidDateRange = Boolean(startDate && endDate && startDate > endDate)
+
+  const filteredOrders = useMemo(() => {
+    if (invalidDateRange) return []
+
+    const keyword = query.trim().toLocaleLowerCase("vi")
+
+    return orders.filter((order) => {
+      const date = new Date(order.createdAt)
+      if (Number.isNaN(date.getTime())) return false
+
+      const dateKey = localDateKey(order.createdAt)
+      if (startDate && dateKey < startDate) return false
+      if (endDate && dateKey > endDate) return false
+      if (selectedMonth && String(date.getMonth() + 1) !== selectedMonth) return false
+      if (selectedYear && String(date.getFullYear()) !== selectedYear) return false
+
+      if (selectedEmployee === "UNASSIGNED" && order.createdBy) return false
+      if (selectedEmployee && selectedEmployee !== "UNASSIGNED" && String(order.createdBy ?? "") !== selectedEmployee) {
+        return false
+      }
+
+      if (!keyword) return true
+
+      return [
         order.id,
         order.code,
         order.status,
         order.note,
+        orderEmployeeLabel(order, employeesById),
         ...((order.items ?? []).map(itemName)),
       ]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase("vi")
-        .includes(keyword),
-    )
-  }, [orders, query])
+        .includes(keyword)
+    })
+  }, [
+    orders,
+    query,
+    startDate,
+    endDate,
+    selectedMonth,
+    selectedYear,
+    selectedEmployee,
+    employeesById,
+    invalidDateRange,
+  ])
+
+  const availableYears = useMemo(() => {
+    const years = new Set(orders.map((order) => {
+      const date = new Date(order.createdAt)
+      return Number.isNaN(date.getTime()) ? "" : String(date.getFullYear())
+    }).filter(Boolean))
+    years.add(String(new Date().getFullYear()))
+    return [...years].sort((a, b) => Number(b) - Number(a))
+  }, [orders])
+
+  const clearOrderFilters = () => {
+    setQuery("")
+    setStartDate("")
+    setEndDate("")
+    setSelectedMonth("")
+    setSelectedYear("")
+    setSelectedEmployee("")
+  }
 
   const todayCount = useMemo(() => {
     const today = new Date()
@@ -485,21 +593,92 @@ export default function AdminOrdersPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm mã đơn, trạng thái, ghi chú, món..."
+              placeholder="Tìm mã đơn, trạng thái, ghi chú, món, nhân viên..."
             />
           </label>
 
           <span className="admin-room-result-count">
-            {filteredOrders.length} đơn
+            {filteredOrders.length}/{orders.length} đơn
           </span>
         </div>
+
+        <div className="admin-order-filters" aria-label="Bộ lọc đơn hàng">
+          <label>
+            <span>TỪ NGÀY</span>
+            <input
+              type="date"
+              value={startDate}
+              max={endDate || undefined}
+              onChange={(event) => setStartDate(event.target.value)}
+              aria-label="Lọc đơn từ ngày"
+            />
+          </label>
+
+          <label>
+            <span>ĐẾN NGÀY</span>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate || undefined}
+              onChange={(event) => setEndDate(event.target.value)}
+              aria-label="Lọc đơn đến ngày"
+            />
+          </label>
+
+          <label>
+            <span>THÁNG</span>
+            <select value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value)}>
+              <option value="">Tất cả tháng</option>
+              {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
+                <option key={month} value={String(month)}>
+                  Tháng {String(month).padStart(2, "0")}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span>NĂM</span>
+            <select value={selectedYear} onChange={(event) => setSelectedYear(event.target.value)}>
+              <option value="">Tất cả năm</option>
+              {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
+            </select>
+          </label>
+
+          <label>
+            <span>NHÂN VIÊN PHỤ TRÁCH</span>
+            <select value={selectedEmployee} onChange={(event) => setSelectedEmployee(event.target.value)}>
+              <option value="">Tất cả nhân viên</option>
+              {employeeOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              {orders.some((order) => !order.createdBy) && (
+                <option value="UNASSIGNED">Chưa ghi nhận nhân viên</option>
+              )}
+            </select>
+          </label>
+
+          <button className="admin-secondary-button admin-order-clear-filters" type="button" onClick={clearOrderFilters}>
+            Xóa bộ lọc
+          </button>
+        </div>
+
+        {invalidDateRange && (
+          <p className="admin-order-filter-error">Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.</p>
+        )}
+        {staffDirectoryError && (
+          <p className="admin-order-filter-hint">Không tải được danh sách nhân viên: {staffDirectoryError}</p>
+        )}
+        {!loading && orders.length > 0 && orders.every((order) => !order.createdBy) && (
+          <p className="admin-order-filter-hint">
+            Backend hiện chưa ghi nhận nhân viên tạo đơn (createdBy đang trống). Các đơn này được hiển thị là “Chưa ghi nhận”; lọc theo tên nhân viên chỉ hoạt động với đơn có createdBy.
+          </p>
+        )}
 
         {loading ? (
           <div className="admin-room-empty"><strong>Đang tải đơn hàng...</strong></div>
         ) : filteredOrders.length === 0 ? (
           <div className="admin-room-empty">
-            <strong>Chưa có đơn hàng</strong>
-            <span>Nhấn “Tạo đơn hàng” để bắt đầu.</span>
+            <strong>{orders.length > 0 ? "Không tìm thấy đơn hàng phù hợp" : "Chưa có đơn hàng"}</strong>
+            <span>{orders.length > 0 ? "Hãy thử thay đổi ngày, tháng, năm, nhân viên hoặc từ khóa tìm kiếm." : "Nhấn “Tạo đơn hàng” để bắt đầu."}</span>
           </div>
         ) : (
           <div className="admin-room-table-wrap">
@@ -508,6 +687,7 @@ export default function AdminOrdersPage() {
                 <tr>
                   <th>Đơn hàng</th>
                   <th>Trạng thái</th>
+                  <th>Nhân viên phụ trách</th>
                   <th>Món</th>
                   <th>Ghi chú</th>
                   <th>Tổng tiền</th>
@@ -552,6 +732,13 @@ export default function AdminOrdersPage() {
                             <option key={option.value} value={option.value}>{option.label}</option>
                           ))}
                         </select>
+                      )}
+                    </td>
+
+                    <td>
+                      <strong>{orderEmployeeLabel(order, employeesById)}</strong>
+                      {!order.createdBy && (
+                        <small className="admin-order-cell-subtext">Backend chưa ghi nhận người tạo đơn</small>
                       )}
                     </td>
 

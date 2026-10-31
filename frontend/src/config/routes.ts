@@ -27,6 +27,7 @@ export const routes = {
   adminReviews: "/admin/danh-gia",
 
   // Tiếp nhận
+  adminTableBookings: "/admin/dat-ban",
   adminRoomBookings: "/admin/dat-phong",
   adminWalkIns: "/admin/khach-vang-lai",
   adminContact: "/admin/lien-he",

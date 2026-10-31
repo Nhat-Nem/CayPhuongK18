@@ -1,0 +1,211 @@
+/* Admin — tiếp nhận yêu cầu đặt bàn */
+.admin-table-booking-heading {
+  align-items: end;
+}
+
+.admin-table-booking-heading > div {
+  min-width: 240px;
+}
+
+.admin-table-booking-heading p {
+  max-width: 600px;
+  margin: 8px 0 0;
+  color: #858b90;
+  font-size: .76rem;
+  line-height: 1.6;
+}
+
+.admin-table-booking-search {
+  display: grid;
+  gap: 6px;
+  min-width: min(340px, 100%);
+}
+
+.admin-table-booking-search > span {
+  color: #777d83;
+  font-size: .7rem;
+  letter-spacing: normal;
+}
+
+.admin-table-booking-search input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d8d9d5;
+  border-radius: 9px;
+  outline: 0;
+  background: #fcfcfa;
+  color: #323a43;
+}
+
+.admin-table-booking-search input:focus {
+  border-color: #597aa1;
+  box-shadow: 0 0 0 3px #23487a12;
+}
+
+.admin-table-booking-message {
+  display: grid;
+  gap: 7px;
+  padding: 25px;
+  border: 1px dashed #d8d9d5;
+  border-radius: 10px;
+  background: #fafaf8;
+  color: #626a72;
+  font-size: .82rem;
+}
+
+.admin-table-booking-message strong {
+  color: #263746;
+}
+
+.admin-table-booking-message small {
+  color: #8d9296;
+}
+
+.admin-table-booking-message.is-error {
+  border-color: #e8c6c2;
+  background: #fff8f7;
+  color: #9c3f36;
+}
+
+.admin-table-booking-message.is-error strong {
+  color: #9c3f36;
+}
+
+.admin-table-booking-table {
+  min-width: 1020px;
+}
+
+.admin-table-booking-table td {
+  max-width: 280px;
+}
+
+.admin-table-booking-table td small {
+  display: block;
+  margin-top: 5px;
+  color: #8e9498;
+  font-size: .7rem;
+}
+
+.admin-table-booking-note {
+  max-width: 320px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+
+.admin-table-booking-call,
+.admin-table-booking-detail {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #23487a;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.admin-table-booking-call:hover,
+.admin-table-booking-detail:hover {
+  text-decoration: underline;
+}
+
+.admin-table-booking-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 20px;
+  background: #fff5e7;
+  color: #99611e;
+  font-size: .68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-table-booking-status.status-confirmed,
+.admin-table-booking-status.status-completed {
+  background: #edf7ef;
+  color: #3d7547;
+}
+
+.admin-table-booking-status.status-cancelled,
+.admin-table-booking-status.status-canceled {
+  background: #fbeeed;
+  color: #a24940;
+}
+
+.admin-table-booking-footnote {
+  margin: 0 0 24px;
+  color: #858b90;
+  font-size: .72rem;
+  line-height: 1.65;
+}
+
+.admin-table-booking-detail-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.admin-table-booking-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-table-booking-detail-grid > div,
+.admin-table-booking-detail-note {
+  display: grid;
+  gap: 6px;
+  padding: 13px 15px;
+  border: 1px solid #e8e7e2;
+  border-radius: 10px;
+  background: #fcfcfa;
+}
+
+.admin-table-booking-detail-grid span,
+.admin-table-booking-detail-note > span {
+  color: #858b90;
+  font-size: .7rem;
+}
+
+.admin-table-booking-detail-grid strong {
+  color: #263746;
+  font-size: .84rem;
+  overflow-wrap: anywhere;
+}
+
+.admin-table-booking-detail-note p {
+  margin: 0;
+  color: #505860;
+  font-size: .84rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-table-booking-call-button {
+  justify-self: start;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .admin-table-booking-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table-booking-heading {
+    align-items: stretch;
+  }
+
+  .admin-table-booking-search {
+    min-width: 0;
+  }
+
+  .admin-table-booking-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

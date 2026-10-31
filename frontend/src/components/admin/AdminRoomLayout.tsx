@@ -66,6 +66,12 @@ export default function AdminRoomLayout({
             <>
               <p>TIẾP NHẬN</p>
               <a
+                className={path === routes.adminTableBookings ? "active" : ""}
+                href={routes.adminTableBookings}
+              >
+                <span>◷</span> Tiếp nhận đặt bàn
+              </a>
+              <a
                 className={path === routes.adminRoomBookings ? "active" : ""}
                 href={routes.adminRoomBookings}
               >
@@ -84,12 +90,12 @@ export default function AdminRoomLayout({
                 <span>☎</span> Thông tin liên hệ
               </a>
 
-              <p>ĐÁNH GIÁ</p>
+              <p>FEEDBACK</p>
               <a
                 className={path === routes.adminReviews ? "active" : ""}
                 href={routes.adminReviews}
               >
-                <span>★</span> Quản lý đánh giá
+                <span>★</span> Quản lý feedback
               </a>
 
               <p>TUYỂN DỤNG</p>
