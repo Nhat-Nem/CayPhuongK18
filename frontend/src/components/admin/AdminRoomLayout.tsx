@@ -62,6 +62,14 @@ export default function AdminRoomLayout({
             <span>▣</span> Quản lý đơn hàng
           </a>
 
+          <p>BÁO CÁO</p>
+          <a
+            className={path === routes.adminRevenueReports ? "active" : ""}
+            href={routes.adminRevenueReports}
+          >
+            <span>▥</span> Báo cáo doanh thu
+          </a>
+
           {!isStaff && (
             <>
               <p>TIẾP NHẬN</p>

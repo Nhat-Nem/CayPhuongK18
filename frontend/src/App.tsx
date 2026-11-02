@@ -20,6 +20,7 @@ import AdminRoomCreatePage from "@/pages/admin/AdminRoomCreatePage"
 import AdminRoomEditPage from "@/pages/admin/AdminRoomEditPage"
 import AdminMenuPage from "@/pages/admin/AdminMenuPage"
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
+import AdminRevenueReportPage from "@/pages/admin/AdminRevenueReportPage"
 import AdminReviewsPage from "@/pages/admin/AdminReviewsPage"
 import AdminRoomBookingRequestsPage from "@/pages/admin/AdminRoomBookingRequestsPage"
 import AdminTableBookingRequestsPage from "@/pages/admin/AdminTableBookingRequestsPage"
@@ -70,6 +71,7 @@ export default function App() {
       [routes.adminRoomEdit]: "Sửa phòng",
       [routes.adminMenu]: "Quản lý thực đơn",
       [routes.adminOrders]: "Quản lý đơn hàng",
+      [routes.adminRevenueReports]: "Báo cáo doanh thu",
       [routes.adminReviews]: "Quản lý đánh giá",
       [routes.adminTableBookings]: "Tiếp nhận đặt bàn",
       [routes.adminRoomBookings]: "Tiếp nhận đặt phòng",
@@ -107,7 +109,7 @@ export default function App() {
   else if (
     isAdminPage &&
     authenticatedUser?.role === "STAFF" &&
-    ![routes.adminMenu, routes.adminOrders].some((allowedPath) => allowedPath === path)
+    ![routes.adminMenu, routes.adminOrders, routes.adminRevenueReports].some((allowedPath) => allowedPath === path)
   ) {
     page = <AdminOrdersPage />
   }
@@ -132,6 +134,10 @@ export default function App() {
   // Đơn hàng
   else if (path === routes.adminOrders) {
     page = <AdminOrdersPage />
+  }
+  // Báo cáo doanh thu (ADMIN và STAFF)
+  else if (path === routes.adminRevenueReports) {
+    page = <AdminRevenueReportPage />
   }
   // Đánh giá khách hàng
   else if (path === routes.adminReviews) {
