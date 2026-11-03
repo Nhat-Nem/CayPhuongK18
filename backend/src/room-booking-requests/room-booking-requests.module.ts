@@ -4,10 +4,12 @@ import { RoomBookingRequestsService } from './room-booking-requests.service';
 import { RoomBookingLogger } from './room-booking-requests.logger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomBookingRequest } from './entities/room-booking-request.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RoomBookingRequest])
+    TypeOrmModule.forFeature([RoomBookingRequest]),
+    AuthModule
   ],
 
   controllers: [RoomBookingRequestsController],
