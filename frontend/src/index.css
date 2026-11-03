@@ -38,3 +38,6 @@
 /* Sprint 6 · Customer and admin review UI */
 @import "./styles/pages/reviews.css";
 @import "./styles/pages/admin-reviews.css";
+
+/* Sprint 7 · Revenue reporting UI (ADMIN and STAFF) */
+@import "./styles/pages/admin-revenue-reports.css";
