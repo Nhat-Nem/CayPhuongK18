@@ -6,6 +6,7 @@ import { RoomStay } from "./entities/room-stay.entity"
 import { Room } from '../rooms/entities/room.entity';
 import { RoomBookingRequest } from '../room-booking-requests/entities/room-booking-request.entity';
 import { WalkInVisit } from '../walk-in-visits/entities/walk-in-visit.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -13,8 +14,9 @@ import { WalkInVisit } from '../walk-in-visits/entities/walk-in-visit.entity';
       RoomStay,
       Room,
       RoomBookingRequest,
-      WalkInVisit 
-    ])
+      WalkInVisit,
+    ]),
+    AuthModule
   ],
 
   providers: [RoomStaysService],

@@ -5,10 +5,12 @@ import { MenuItemsLogger } from './menu-items.logger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MenuItem } from './entities/menu-item.entity';
 import { Category } from '../category/entities/category.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MenuItem, Category])
+    TypeOrmModule.forFeature([MenuItem, Category]),
+    AuthModule
   ],
 
   controllers: [MenuItemsController],
