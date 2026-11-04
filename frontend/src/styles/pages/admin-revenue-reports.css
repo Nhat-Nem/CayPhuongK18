@@ -136,6 +136,10 @@
   margin-bottom: 18px;
 }
 
+.admin-revenue-trend-panel.is-empty .admin-room-empty {
+  padding: 16px 20px;
+}
+
 .admin-revenue-section-heading {
   display: flex;
   align-items: flex-end;

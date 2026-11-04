@@ -1,11 +1,21 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
+import AdminFormModal from "@/components/admin/AdminFormModal"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
+import type { RoomPrototype } from "@/data/roomPrototype"
+import { getRooms } from "@/services/roomApi"
 import {
   getRoomBookingRequests,
   updateRoomBookingRequestStatus,
   type RoomBookingRequestRecord,
   type RoomBookingStatus,
 } from "@/services/roomBookingRequestApi"
+import {
+  checkInRoomStay,
+  checkOutRoomStay,
+  getRoomStays,
+  type RoomStayPaymentMethod,
+  type RoomStayRecord,
+} from "@/services/roomStayApi"
 
 function formatDate(value: string) {
   if (!value) return "—"
@@ -24,36 +34,96 @@ function formatCreatedAt(value: string) {
   }).format(date)
 }
 
-const BOOKING_STATUS_OPTIONS: Array<{
-  value: RoomBookingStatus
-  label: string
-}> = [
-  { value: "PENDING", label: "Chờ tiếp nhận" },
-  { value: "CONFIRMED", label: "Đã xác nhận" },
-  { value: "COMPLETED", label: "Hoàn tất" },
-  { value: "CANCELLED", label: "Đã hủy" },
-]
+function statusLabel(status: RoomBookingStatus) {
+  if (status === "PENDING") return "Chờ tiếp nhận"
+  if (status === "CONFIRMED") return "Đã xác nhận"
+  if (status === "SERVING") return "Đang lưu trú"
+  if (status === "COMPLETED") return "Hoàn tất"
+  return "Đã hủy"
+}
+
+function formatMoney(value: number) {
+  return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(value)} VNĐ`
+}
+
+function roomChoicesForRequest(
+  record: RoomBookingRequestRecord,
+  rooms: RoomPrototype[],
+  roomStays: RoomStayRecord[],
+) {
+  const occupiedRoomIds = new Set(
+    roomStays
+      .filter((stay) => stay.status === "CHECKED_IN")
+      .map((stay) => String(stay.roomId)),
+  )
+  const available = rooms.filter((room) =>
+    room.status === "AVAILABLE" && !occupiedRoomIds.has(String(room.id)),
+  )
+  const requested = record.roomType.trim().toLocaleLowerCase("vi")
+  const matching = available.filter((room) =>
+    [room.name, room.type, room.code].some((value) =>
+      value.trim().toLocaleLowerCase("vi") === requested,
+    ),
+  )
+
+  return matching.length ? matching : available
+}
+
+type RoomBookingAction =
+  | { kind: "check-in"; record: RoomBookingRequestRecord }
+  | { kind: "check-out"; record: RoomBookingRequestRecord; stay: RoomStayRecord }
 
 export default function AdminRoomBookingRequestsPage() {
   const [records, setRecords] = useState<RoomBookingRequestRecord[]>([])
+  const [rooms, setRooms] = useState<RoomPrototype[]>([])
+  const [roomStays, setRoomStays] = useState<RoomStayRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [roomDataError, setRoomDataError] = useState("")
   const [keyword, setKeyword] = useState("")
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [activeAction, setActiveAction] = useState<RoomBookingAction | null>(null)
+  const [selectedRoomId, setSelectedRoomId] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState<RoomStayPaymentMethod>("CASH")
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState("")
 
   const loadData = async () => {
     setLoading(true)
     setError("")
 
-    try {
-      setRecords(await getRoomBookingRequests())
-    } catch (err) {
+    const [requestsResult, roomsResult, staysResult] = await Promise.allSettled([
+      getRoomBookingRequests(),
+      getRooms(),
+      getRoomStays(),
+    ])
+
+    if (requestsResult.status === "fulfilled") {
+      setRecords(requestsResult.value)
+    } else {
       setError(
-        err instanceof Error ? err.message : "Không thể tải đơn đặt phòng",
+        requestsResult.reason instanceof Error
+          ? requestsResult.reason.message
+          : "Không thể tải đơn đặt phòng",
       )
-    } finally {
-      setLoading(false)
     }
+
+    if (roomsResult.status === "fulfilled" && staysResult.status === "fulfilled") {
+      setRooms(roomsResult.value)
+      setRoomStays(staysResult.value)
+      setRoomDataError("")
+    } else {
+      setRooms(roomsResult.status === "fulfilled" ? roomsResult.value : [])
+      setRoomStays(staysResult.status === "fulfilled" ? staysResult.value : [])
+      const issue = roomsResult.status === "rejected" ? roomsResult.reason :
+        staysResult.status === "rejected" ? staysResult.reason : null
+      setRoomDataError(issue instanceof Error
+        ? issue.message
+        : "Không thể tải dữ liệu phòng và lưu trú.",
+      )
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -100,6 +170,62 @@ export default function AdminRoomBookingRequestsPage() {
     }
   }
 
+  const openCheckIn = (record: RoomBookingRequestRecord) => {
+    const choices = roomChoicesForRequest(record, rooms, roomStays)
+    setSelectedRoomId(String(choices[0]?.id ?? ""))
+    setActionError("")
+    setActiveAction({ kind: "check-in", record })
+  }
+
+  const openCheckOut = (record: RoomBookingRequestRecord) => {
+    const stay = roomStays.find((item) =>
+      String(item.bookingRequestId) === record.id && item.status === "CHECKED_IN",
+    )
+
+    if (!stay) {
+      setRoomDataError("Không tìm thấy lượt lưu trú đang mở. Hãy làm mới danh sách rồi thử lại.")
+      return
+    }
+
+    setPaymentMethod("CASH")
+    setActionError("")
+    setActiveAction({ kind: "check-out", record, stay })
+  }
+
+  const submitRoomAction = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!activeAction) return
+
+    setActionLoading(true)
+    setActionError("")
+
+    try {
+      if (activeAction.kind === "check-in") {
+        if (!selectedRoomId) {
+          setActionError("Chọn phòng còn trống để nhận khách.")
+          return
+        }
+        await checkInRoomStay({
+          roomId: selectedRoomId,
+          bookingRequestId: activeAction.record.id,
+        })
+      } else {
+        await checkOutRoomStay(activeAction.stay.id, paymentMethod)
+      }
+
+      setActiveAction(null)
+      await loadData()
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Không thể cập nhật lượt lưu trú.",
+      )
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const filteredRecords = useMemo(() => {
     const q = keyword.trim().toLowerCase()
     if (!q) return records
@@ -124,16 +250,13 @@ export default function AdminRoomBookingRequestsPage() {
     (record) => record.status === "PENDING",
   ).length
 
-  const today = new Date().toISOString().slice(0, 10)
-  const checkInTodayCount = records.filter(
-    (record) => record.checkIn === today,
-  ).length
+  const servingCount = records.filter((record) => record.status === "SERVING").length
 
   return (
     <AdminRoomLayout
       eyebrow="TIẾP NHẬN"
       title="Tiếp nhận form Đặt phòng"
-      subtitle="Các yêu cầu khách gửi từ mục Đặt phòng tại trang Liên hệ. Admin có thể cập nhật trạng thái trực tiếp tại danh sách."
+      subtitle="Xác nhận yêu cầu, chọn phòng khi khách đến và ghi nhận thanh toán khi trả phòng. Doanh thu lấy từ giá phòng và chỉ tăng sau khi thanh toán."
       primaryAction={
         <button
           className="admin-primary-button"
@@ -157,11 +280,18 @@ export default function AdminRoomBookingRequestsPage() {
           <small>Cần Admin xử lý</small>
         </article>
         <article>
-          <span>Nhận phòng hôm nay</span>
-          <strong>{checkInTodayCount}</strong>
-          <small>Theo ngày khách đã chọn</small>
+          <span>Đang lưu trú</span>
+          <strong>{servingCount}</strong>
+          <small>Đã nhận phòng, chưa trả phòng</small>
         </article>
       </section>
+
+      {roomDataError && (
+        <div className="admin-room-booking-message error" role="alert">
+          <strong>Chưa tải được dữ liệu phòng hoặc lưu trú</strong>
+          <p>{roomDataError}</p>
+        </div>
+      )}
 
       <section className="admin-s2-table-card admin-room-booking-card">
         <div className="admin-s2-section-heading admin-room-booking-heading">
@@ -251,35 +381,54 @@ export default function AdminRoomBookingRequestsPage() {
                       {record.note || "—"}
                     </td>
                     <td>
-                      <select
-                        className="admin-s2-status"
-                        value={record.status}
-                        disabled={updatingId === record.id}
-                        onChange={(event) =>
-                          void handleStatusChange(
-                            record,
-                            event.target.value as RoomBookingStatus,
-                          )
-                        }
-                        aria-label={`Trạng thái đơn DP-${record.id.padStart(
-                          6,
-                          "0",
-                        )}`}
-                      >
-                        {BOOKING_STATUS_OPTIONS.map((option) => (
-                          <option
-                            key={option.value}
-                            value={option.value}
+                      <div className="admin-room-booking-row-actions">
+                        {(record.status === "PENDING" || record.status === "CONFIRMED") && (
+                          <select
+                            className="admin-s2-status"
+                            value={record.status}
+                            disabled={updatingId === record.id}
+                            onChange={(event) => void handleStatusChange(
+                              record,
+                              event.target.value as RoomBookingStatus,
+                            )}
+                            aria-label={`Trạng thái đơn DP-${record.id.padStart(6, "0")}`}
                           >
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      {updatingId === record.id && (
-                        <small className="admin-booking-status-saving">
-                          Đang lưu...
-                        </small>
-                      )}
+                            <option value={record.status}>{statusLabel(record.status)}</option>
+                            {record.status === "PENDING" && (
+                              <option value="CONFIRMED">Đã xác nhận</option>
+                            )}
+                            <option value="CANCELLED">Đã hủy</option>
+                          </select>
+                        )}
+                        {(record.status === "SERVING" || record.status === "COMPLETED" || record.status === "CANCELLED") && (
+                          <span className={`admin-room-booking-status status-${record.status.toLowerCase()}`}>
+                            {statusLabel(record.status)}
+                          </span>
+                        )}
+                        {record.status === "CONFIRMED" && (
+                          <button
+                            className="admin-primary-button admin-room-booking-action-button"
+                            type="button"
+                            disabled={roomChoicesForRequest(record, rooms, roomStays).length === 0 || Boolean(roomDataError)}
+                            onClick={() => openCheckIn(record)}
+                          >
+                            Nhận phòng
+                          </button>
+                        )}
+                        {record.status === "SERVING" && (
+                          <button
+                            className="admin-primary-button admin-room-booking-action-button"
+                            type="button"
+                            disabled={Boolean(roomDataError)}
+                            onClick={() => openCheckOut(record)}
+                          >
+                            Trả phòng & thanh toán
+                          </button>
+                        )}
+                        {updatingId === record.id && (
+                          <small className="admin-booking-status-saving">Đang lưu...</small>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -288,6 +437,60 @@ export default function AdminRoomBookingRequestsPage() {
           </div>
         )}
       </section>
+      <AdminFormModal
+        open={Boolean(activeAction)}
+        eyebrow="QUẢN LÝ LƯU TRÚ"
+        title={activeAction?.kind === "check-out" ? "Trả phòng và thanh toán" : "Nhận phòng"}
+        onClose={() => !actionLoading && setActiveAction(null)}
+      >
+        {activeAction?.kind === "check-in" ? (
+          <form className="admin-s2-form admin-s2-form--modal admin-room-booking-action-form" onSubmit={submitRoomAction}>
+            <p className="admin-room-booking-modal-note admin-s2-full">
+              Khách yêu cầu hạng <strong>{activeAction.record.roomType || "chưa chọn hạng phòng"}</strong>. Chọn phòng thực tế; giá mỗi đêm sẽ lấy từ thông tin phòng.
+            </p>
+            <label className="admin-s2-full">
+              <span>Phòng còn trống</span>
+              <select value={selectedRoomId} onChange={(event) => setSelectedRoomId(event.target.value)} required>
+                {roomChoicesForRequest(activeAction.record, rooms, roomStays).length === 0 ? (
+                  <option value="">Không có phòng còn trống</option>
+                ) : roomChoicesForRequest(activeAction.record, rooms, roomStays).map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.name} · {room.code} · {formatMoney(room.price)}/đêm
+                  </option>
+                ))}
+              </select>
+            </label>
+            {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
+            <div className="admin-s2-form-actions admin-s2-full">
+              <button className="admin-secondary-button" type="button" onClick={() => setActiveAction(null)} disabled={actionLoading}>Hủy</button>
+              <button className="admin-primary-button" type="submit" disabled={actionLoading || roomChoicesForRequest(activeAction.record, rooms, roomStays).length === 0}>
+                {actionLoading ? "Đang nhận phòng..." : "Xác nhận nhận phòng"}
+              </button>
+            </div>
+          </form>
+        ) : activeAction?.kind === "check-out" ? (
+          <form className="admin-s2-form admin-s2-form--modal admin-room-booking-action-form" onSubmit={submitRoomAction}>
+            <p className="admin-room-booking-modal-note admin-s2-full">
+              {activeAction.stay.room?.name || `Phòng #${activeAction.stay.roomId}`} · {formatMoney(Number(activeAction.stay.roomPrice))}/đêm. Hệ thống tính tiền theo số đêm lưu trú và chỉ cộng doanh thu sau khi xác nhận thanh toán.
+            </p>
+            <label className="admin-s2-full">
+              <span>Phương thức thanh toán</span>
+              <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as RoomStayPaymentMethod)}>
+                <option value="CASH">Tiền mặt</option>
+                <option value="BANK_TRANSFER">Chuyển khoản</option>
+                <option value="CARD">Thẻ</option>
+              </select>
+            </label>
+            {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
+            <div className="admin-s2-form-actions admin-s2-full">
+              <button className="admin-secondary-button" type="button" onClick={() => setActiveAction(null)} disabled={actionLoading}>Hủy</button>
+              <button className="admin-primary-button" type="submit" disabled={actionLoading}>
+                {actionLoading ? "Đang lưu thanh toán..." : "Xác nhận trả phòng"}
+              </button>
+            </div>
+          </form>
+        ) : null}
+      </AdminFormModal>
     </AdminRoomLayout>
   )
 }

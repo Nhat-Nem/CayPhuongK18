@@ -3,6 +3,7 @@ import { apiRequest } from "./api"
 export type RoomBookingStatus =
   | "PENDING"
   | "CONFIRMED"
+  | "SERVING"
   | "COMPLETED"
   | "CANCELLED"
 
@@ -57,6 +58,7 @@ function normalizeStatus(value?: string): RoomBookingStatus {
   const normalized = String(value ?? "PENDING").trim().toUpperCase()
 
   if (normalized === "CONFIRMED") return "CONFIRMED"
+  if (normalized === "SERVING") return "SERVING"
   if (normalized === "COMPLETED") return "COMPLETED"
   if (normalized === "CANCELED" || normalized === "CANCELLED") {
     return "CANCELLED"

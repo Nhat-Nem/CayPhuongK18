@@ -1,4 +1,5 @@
 import { apiRequest } from "./api"
+import { getRoomStays, type RoomStayRecord } from "./roomStayApi"
 
 export type FoodRevenueItem = {
   menuItemId: string | number
@@ -14,24 +15,7 @@ export type FoodRevenueResponse = {
   items: FoodRevenueItem[]
 }
 
-export type RoomStayRevenueRecord = {
-  id: string | number
-  roomId: string | number
-  room?: {
-    id?: string | number
-    code?: string | null
-    name?: string | null
-  } | null
-  checkInAt: string
-  checkOutAt: string | null
-  roomPrice: string | number
-  totalAmount: string | number
-  paymentStatus: "PAID" | "UNPAID" | string
-  paymentMethod: "CASH" | "CARD" | "BANK_TRANSFER" | null
-  status: "CHECKED_IN" | "CHECKED_OUT" | string
-  paidAt: string | null
-  createdAt: string
-}
+export type RoomStayRevenueRecord = RoomStayRecord
 
 /** GET /api/v1/reports/food-revenue — endpoint hiện tại chỉ dành cho ADMIN. */
 export async function getFoodRevenueReport(from?: string, to?: string) {
@@ -47,5 +31,5 @@ export async function getFoodRevenueReport(from?: string, to?: string) {
 
 /** GET /api/v1/room-stays — dùng các lượt lưu trú đã thanh toán để tổng hợp doanh thu phòng. */
 export async function getRoomStayRevenueRecords() {
-  return apiRequest<RoomStayRevenueRecord[]>("/api/v1/room-stays")
+  return getRoomStays()
 }

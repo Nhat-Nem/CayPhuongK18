@@ -127,9 +127,33 @@
 }
 
 .admin-table-booking-status.status-confirmed,
+.admin-table-booking-status.status-serving,
 .admin-table-booking-status.status-completed {
   background: #edf7ef;
   color: #3d7547;
+}
+
+.admin-table-booking-status-control {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+}
+
+.admin-table-booking-status-control select {
+  max-width: 150px;
+  min-height: 32px;
+  padding: 5px 8px;
+  border: 1px solid #dedbd4;
+  border-radius: 8px;
+  background: #fff;
+  color: #4d555d;
+  font: inherit;
+  font-size: .68rem;
+}
+
+.admin-table-booking-status-control small {
+  color: #858b90;
+  font-size: .66rem;
 }
 
 .admin-table-booking-status.status-cancelled,

@@ -1,5 +1,12 @@
 import { apiRequest } from "@/services/api"
 
+export type TableBookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "SERVING"
+  | "COMPLETED"
+  | "CANCELLED"
+
 /** Dữ liệu backend đang lưu cho yêu cầu đặt bàn. */
 export interface TableBookingRequestRecord {
   id: string
@@ -7,7 +14,7 @@ export interface TableBookingRequestRecord {
   customerPhone: string
   customerEmail: string | null
   note: string | null
-  status: string
+  status: TableBookingStatus
   createdAt: string
   updatedAt?: string
 }
@@ -36,10 +43,19 @@ function normalizeRecord(row: BackendTableBookingRequest): TableBookingRequestRe
     customerPhone: String(row.customerPhone ?? row.customer_phone ?? ""),
     customerEmail: row.customerEmail ?? row.customer_email ?? null,
     note: row.note ?? null,
-    status: String(row.status ?? "PENDING").toUpperCase(),
+    status: normalizeStatus(row.status),
     createdAt: String(row.createdAt ?? row.created_at ?? ""),
     updatedAt: row.updatedAt ?? row.updated_at,
   }
+}
+
+function normalizeStatus(value?: string): TableBookingStatus {
+  const normalized = String(value ?? "PENDING").trim().toUpperCase()
+  if (normalized === "CONFIRMED") return "CONFIRMED"
+  if (normalized === "SERVING") return "SERVING"
+  if (normalized === "COMPLETED") return "COMPLETED"
+  if (normalized === "CANCELLED" || normalized === "CANCELED") return "CANCELLED"
+  return "PENDING"
 }
 
 /** GET /api/v1/table-booking-requests — backend trả danh sách mới nhất trước. */
@@ -50,4 +66,19 @@ export async function getTableBookingRequests(): Promise<TableBookingRequestReco
 
   const rows = Array.isArray(response) ? response : response.data ?? []
   return rows.map(normalizeRecord)
+}
+
+export async function updateTableBookingRequestStatus(
+  id: string,
+  status: TableBookingStatus,
+): Promise<TableBookingRequestRecord> {
+  const response = await apiRequest<BackendTableBookingRequest>(
+    `/api/v1/table-booking-requests/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    },
+  )
+
+  return normalizeRecord(response)
 }

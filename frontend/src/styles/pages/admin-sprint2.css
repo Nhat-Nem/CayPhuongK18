@@ -361,6 +361,7 @@
 }
 
 .admin-room-booking-status.status-confirmed,
+.admin-room-booking-status.status-serving,
 .admin-room-booking-status.status-completed {
   background: #edf7f0;
   color: #39734a;
@@ -370,6 +371,36 @@
 .admin-room-booking-status.status-canceled {
   background: #fff0ef;
   color: #a84f45;
+}
+
+.admin-room-booking-row-actions {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+}
+
+.admin-room-booking-action-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: .68rem;
+  white-space: nowrap;
+}
+
+.admin-room-booking-action-form {
+  grid-template-columns: 1fr;
+  padding: 4px 22px 22px;
+}
+
+.admin-room-booking-modal-note {
+  margin: 0;
+  color: #68717a;
+  font-size: .8rem;
+  line-height: 1.6;
+}
+
+.admin-room-booking-modal-error {
+  color: #a24940;
+  font-size: .78rem;
 }
 
 @media (max-width: 760px) {
