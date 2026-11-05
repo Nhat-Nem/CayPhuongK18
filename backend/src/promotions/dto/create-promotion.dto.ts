@@ -23,6 +23,10 @@ export class CreatePromotionDto {
 
     @IsOptional()
     @IsString()
+    image?: string;
+
+    @IsOptional()
+    @IsString()
     description?: string;
 
     @IsNotEmpty()

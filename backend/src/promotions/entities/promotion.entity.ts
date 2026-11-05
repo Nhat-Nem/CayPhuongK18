@@ -27,6 +27,9 @@ export class Promotion {
     @Column({ type: 'text', nullable: true })
     description: string;
 
+    @Column({ type: 'longtext', nullable: true })
+    image: string | null
+
     @Column({ name: 'discount_type', type: 'enum', enum: PromotionType })
     discountType: PromotionType;
 
