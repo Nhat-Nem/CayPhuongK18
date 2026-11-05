@@ -78,7 +78,11 @@ export default function OffersPage() {
                 key={offer.id}
               >
                 <div className="offer-card-image">
-                  <div className="offer-image-placeholder" aria-hidden="true" />
+                  {offer.image ? (
+                    <img src={offer.image} alt={offer.name} />
+                  ) : (
+                    <div className="offer-image-placeholder" aria-hidden="true" />
+                  )}
                   <span>{promotionApplyTypeLabel(offer.applyType)}</span>
                   <strong className="offer-discount-badge">-{offer.discountPercent}%</strong>
                 </div>

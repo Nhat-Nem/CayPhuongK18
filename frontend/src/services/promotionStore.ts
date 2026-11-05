@@ -9,6 +9,7 @@ export interface PromotionRecord {
   startDate: string
   endDate: string
   applyType: PromotionApplyType
+  image: string | null
   backendStatus: "ACTIVE" | "INACTIVE"
 }
 
@@ -16,6 +17,7 @@ type BackendPromotion = {
   id: string | number
   name: string
   description?: string | null
+  image?: string | null
   discountType: "PERCENTAGE" | "FIXED_AMOUNT"
   discountValue: string | number
   appliesTo: "HOTEL" | "RESTAURANT"
@@ -40,6 +42,7 @@ function normalizePromotion(row: BackendPromotion): PromotionRecord {
     startDate: dateOnly(row.startDate),
     endDate: dateOnly(row.endDate),
     applyType: row.appliesTo === "HOTEL" ? 1 : 2,
+    image: row.image ?? null,
     backendStatus: row.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
   }
 }
@@ -52,6 +55,7 @@ function toBackendPayload(payload: Omit<PromotionRecord, "id" | "backendStatus">
     appliesTo: payload.applyType === 1 ? ("HOTEL" as const) : ("RESTAURANT" as const),
     startDate: payload.startDate,
     endDate: payload.endDate,
+    image: payload.image?.trim() ?? "",
     status: "ACTIVE" as const,
   }
 }

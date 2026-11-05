@@ -91,8 +91,12 @@ export default function OfferDetailPage() {
           </a>
         </header>
 
-        <div className="offer-detail-visual offer-detail-visual-empty">
-          <div className="offer-image-placeholder offer-detail-image-placeholder" aria-hidden="true" />
+        <div className={`offer-detail-visual${item.image ? "" : " offer-detail-visual-empty"}`}>
+          {item.image ? (
+            <img src={item.image} alt={item.name} />
+          ) : (
+            <div className="offer-image-placeholder offer-detail-image-placeholder" aria-hidden="true" />
+          )}
           <div className="offer-highlight">
             <span>Mức ưu đãi</span>
             <strong>Giảm {item.discountPercent}%</strong>
