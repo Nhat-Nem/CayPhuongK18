@@ -1,8 +1,13 @@
+import { routes } from "@/config/routes"
+
 const RAW_API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "")
   .trim()
   .replace(/\/+$/, "")
 
 const ADMIN_TOKEN_KEY = "cay-phuong-admin-token"
+const ADMIN_USER_KEY = "cay-phuong-admin-user"
+
+let redirectingToLogin = false
 
 function buildApiUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`
@@ -32,12 +37,14 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const token = window.localStorage.getItem(ADMIN_TOKEN_KEY)
   const url = buildApiUrl(path)
+  const method = (options?.method ?? "GET").toUpperCase()
+  const isLoginRequest = method === "POST" && /\/auth\/?$/i.test(path)
 
   const response = await fetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token && !isLoginRequest ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers ?? {}),
     },
   })
@@ -60,6 +67,21 @@ export async function apiRequest<T>(
       }
     } catch {
       // Giữ thông báo mặc định nếu response không phải JSON.
+    }
+
+    if (response.status === 401 && !isLoginRequest) {
+      window.localStorage.removeItem(ADMIN_TOKEN_KEY)
+      window.localStorage.removeItem(ADMIN_USER_KEY)
+
+      const currentPath = window.location.pathname.replace(/\/+$/, "") || "/"
+      const isAdminPage = currentPath === routes.admin || currentPath.startsWith(`${routes.admin}/`)
+
+      if (isAdminPage && currentPath !== routes.adminLogin && !redirectingToLogin) {
+        redirectingToLogin = true
+        const redirectTo = `${window.location.pathname}${window.location.search}`
+        const loginUrl = `${routes.adminLogin}?session=expired&redirect=${encodeURIComponent(redirectTo)}`
+        window.location.replace(loginUrl)
+      }
     }
 
     throw new Error(message)

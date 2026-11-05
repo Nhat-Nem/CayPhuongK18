@@ -13,6 +13,7 @@
     { "source": "/tuyen-dung/:path*", "destination": "/index.html" },
     { "source": "/tuyen-dung", "destination": "/index.html" },
     { "source": "/lien-he", "destination": "/index.html" },
+    { "source": "/danh-gia", "destination": "/index.html" },
     { "source": "/dat-phong", "destination": "/index.html" }
   ]
 }

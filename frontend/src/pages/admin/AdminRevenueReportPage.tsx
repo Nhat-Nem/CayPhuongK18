@@ -469,7 +469,7 @@ export default function AdminRevenueReportPage() {
         )}
       </section>
 
-      <section className="admin-room-panel admin-revenue-trend-panel">
+      <section className={`admin-room-panel admin-revenue-trend-panel${activeTrend.length === 0 ? " is-empty" : ""}`}>
         <div className="admin-revenue-section-heading">
           <div>
             <p>THỐNG KÊ THEO NGÀY</p>

@@ -3,6 +3,8 @@ import AdminFormModal from "@/components/admin/AdminFormModal"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   getTableBookingRequests,
+  updateTableBookingRequestStatus,
+  type TableBookingStatus,
   type TableBookingRequestRecord,
 } from "@/services/tableBookingRequestApi"
 
@@ -16,13 +18,24 @@ function formatDateTime(value: string) {
   }).format(date)
 }
 
-function statusLabel(value: string) {
+function statusLabel(value: TableBookingStatus) {
   const status = value.trim().toUpperCase()
   if (status === "PENDING") return "Chờ tiếp nhận"
   if (status === "CONFIRMED") return "Đã xác nhận"
+  if (status === "SERVING") return "Đang phục vụ"
   if (status === "COMPLETED") return "Hoàn tất"
-  if (status === "CANCELLED" || status === "CANCELED") return "Đã hủy"
-  return value || "—"
+  if (status === "CANCELLED") return "Đã hủy"
+  return "—"
+}
+
+function availableStatusOptions(status: TableBookingStatus): TableBookingStatus[] {
+  const next: Partial<Record<TableBookingStatus, TableBookingStatus[]>> = {
+    PENDING: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["SERVING", "CANCELLED"],
+    SERVING: ["COMPLETED", "CANCELLED"],
+  }
+
+  return [status, ...(next[status] ?? [])]
 }
 
 function formatRequestCode(id: string) {
@@ -34,6 +47,8 @@ export default function AdminTableBookingRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [keyword, setKeyword] = useState("")
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState("")
   const [selectedRequest, setSelectedRequest] =
     useState<TableBookingRequestRecord | null>(null)
 
@@ -77,6 +92,46 @@ export default function AdminTableBookingRequestsPage() {
   const pendingCount = requests.filter(
     (request) => request.status === "PENDING",
   ).length
+
+  const handleStatusChange = async (
+    request: TableBookingRequestRecord,
+    status: TableBookingStatus,
+  ) => {
+    if (status === request.status) return
+
+    const previousStatus = request.status
+    setUpdatingId(request.id)
+    setStatusError("")
+    setRequests((current) => current.map((item) =>
+      item.id === request.id ? { ...item, status } : item,
+    ))
+    setSelectedRequest((current) => current?.id === request.id
+      ? { ...current, status }
+      : current,
+    )
+
+    try {
+      const updated = await updateTableBookingRequestStatus(request.id, status)
+      setRequests((current) => current.map((item) =>
+        item.id === updated.id ? updated : item,
+      ))
+      setSelectedRequest((current) => current?.id === updated.id ? updated : current)
+    } catch (updateError) {
+      setRequests((current) => current.map((item) =>
+        item.id === request.id ? { ...item, status: previousStatus } : item,
+      ))
+      setSelectedRequest((current) => current?.id === request.id
+        ? { ...current, status: previousStatus }
+        : current,
+      )
+      setStatusError(updateError instanceof Error
+        ? updateError.message
+        : "Không thể cập nhật trạng thái yêu cầu đặt bàn.",
+      )
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   return (
     <AdminRoomLayout
@@ -136,6 +191,12 @@ export default function AdminTableBookingRequestsPage() {
             <small>Endpoint đang sử dụng: GET /api/v1/table-booking-requests</small>
           </div>
         )}
+        {statusError && (
+          <div className="admin-table-booking-message is-error" role="alert">
+            <strong>Không thể cập nhật trạng thái.</strong>
+            <span>{statusError}</span>
+          </div>
+        )}
 
         {loading ? (
           <div className="admin-table-booking-message">
@@ -186,9 +247,28 @@ export default function AdminTableBookingRequestsPage() {
                     </td>
                     <td>{formatDateTime(request.createdAt)}</td>
                     <td>
-                      <span className={`admin-table-booking-status status-${request.status.toLowerCase()}`}>
-                        {statusLabel(request.status)}
-                      </span>
+                      <div className="admin-table-booking-status-control">
+                        {request.status === "COMPLETED" || request.status === "CANCELLED" ? (
+                          <span className={`admin-table-booking-status status-${request.status.toLowerCase()}`}>
+                            {statusLabel(request.status)}
+                          </span>
+                        ) : (
+                          <select
+                            value={request.status}
+                            disabled={updatingId === request.id}
+                            aria-label={`Trạng thái yêu cầu ${formatRequestCode(request.id)}`}
+                            onChange={(event) => void handleStatusChange(
+                              request,
+                              event.target.value as TableBookingStatus,
+                            )}
+                          >
+                            {availableStatusOptions(request.status).map((status) => (
+                              <option key={status} value={status}>{statusLabel(status)}</option>
+                            ))}
+                          </select>
+                        )}
+                        {updatingId === request.id && <small>Đang lưu...</small>}
+                      </div>
                     </td>
                     <td>
                       <button
@@ -208,7 +288,7 @@ export default function AdminTableBookingRequestsPage() {
       </section>
 
       <p className="admin-table-booking-footnote">
-        Lưu ý: Backend hiện hỗ trợ tạo và xem yêu cầu đặt bàn (POST/GET), chưa có API cập nhật trạng thái. Vì vậy màn hình này chỉ hiển thị yêu cầu và hỗ trợ liên hệ khách, không tự giả lập thao tác xác nhận.
+        Cập nhật theo quy trình: chờ tiếp nhận → đã xác nhận → đang phục vụ → hoàn tất. Có thể hủy yêu cầu trước khi hoàn tất.
       </p>
 
       <AdminFormModal
