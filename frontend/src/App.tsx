@@ -51,6 +51,12 @@ export default function App() {
 
   const path = window.location.pathname.replace(/\/+$/, "") || "/"
   const requestedAdminPath = `${path}${window.location.search}`
+  const loginQuery = new URLSearchParams(window.location.search)
+  const loginRedirect = loginQuery.get("redirect")
+  const safeLoginRedirect =
+    loginRedirect?.startsWith("/") && !loginRedirect.startsWith("//")
+      ? loginRedirect
+      : undefined
 
   useEffect(() => {
     const titles: Record<string, string> = {
@@ -98,7 +104,12 @@ export default function App() {
 
   // Trang đăng nhập được phép truy cập khi chưa đăng nhập.
   if (path === routes.adminLogin) {
-    page = <AdminLoginPage />
+    page = (
+      <AdminLoginPage
+        redirectTo={safeLoginRedirect}
+        sessionExpired={loginQuery.get("session") === "expired"}
+      />
+    )
   }
   // Chặn toàn bộ khu vực /admin nếu chưa đăng nhập.
   else if (isAdminPage && !isAdminAuthenticated()) {

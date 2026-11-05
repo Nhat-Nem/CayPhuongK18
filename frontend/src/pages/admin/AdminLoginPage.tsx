@@ -2,8 +2,6 @@ import { useState, type FormEvent } from "react"
 import logoImg from "@/imports/logo.png"
 import { routes } from "@/config/routes"
 import {
-  demoAdminAccount,
-  demoStaffAccount,
   getAuthenticatedUser,
   isAdminAuthenticated,
   loginAdmin,
@@ -11,10 +9,12 @@ import {
 
 interface AdminLoginPageProps {
   redirectTo?: string
+  sessionExpired?: boolean
 }
 
 export default function AdminLoginPage({
   redirectTo,
+  sessionExpired = false,
 }: AdminLoginPageProps) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -94,6 +94,12 @@ export default function AdminLoginPage({
             được phân quyền.
           </p>
 
+          {sessionExpired && (
+            <p className="admin-login-session-expired" role="status">
+              Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
+            </p>
+          )}
+
           {alreadyLoggedIn && (
             <div className="admin-login-success">
               Bạn đang đăng nhập với quyền {currentUser?.role || "quản lý"}.{" "}
@@ -140,30 +146,6 @@ export default function AdminLoginPage({
               <span>→</span>
             </button>
           </form>
-
-          <div className="admin-login-demo-grid">
-            <div className="admin-login-demo">
-              <strong>Tài khoản Admin</strong>
-              <span>
-                Tên đăng nhập: <code>{demoAdminAccount.username}</code>
-              </span>
-              <span>
-                Mật khẩu: <code>{demoAdminAccount.password}</code>
-              </span>
-              <small>Quản trị toàn bộ khu vực quản lý.</small>
-            </div>
-
-            <div className="admin-login-demo admin-login-demo--staff">
-              <strong>Tài khoản Nhân viên</strong>
-              <span>
-                Tên đăng nhập: <code>{demoStaffAccount.username}</code>
-              </span>
-              <span>
-                Mật khẩu: <code>{demoStaffAccount.password}</code>
-              </span>
-              <small>Truy cập chức năng Quản lý Order của Sprint 5.</small>
-            </div>
-          </div>
         </div>
       </section>
     </main>

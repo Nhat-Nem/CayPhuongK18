@@ -3,22 +3,6 @@ import { apiRequest } from "@/services/api"
 const ADMIN_TOKEN_KEY = "cay-phuong-admin-token"
 const ADMIN_USER_KEY = "cay-phuong-admin-user"
 
-const DEMO_ADMIN = {
-  username: "admin",
-  email:
-    (import.meta.env.VITE_ADMIN_EMAIL as string | undefined)?.trim() ||
-    "admin@cayphuong.local",
-  password: "Admin@123",
-}
-
-const DEMO_STAFF = {
-  username: "staff",
-  email:
-    (import.meta.env.VITE_STAFF_EMAIL as string | undefined)?.trim() ||
-    "staff@cayphuong.local",
-  password: "Staff@123",
-}
-
 export type PortalRole = "ADMIN" | "STAFF"
 
 export interface AdminUser {
@@ -35,7 +19,26 @@ interface LoginResponse {
 }
 
 export function isAdminAuthenticated() {
-  return Boolean(window.localStorage.getItem(ADMIN_TOKEN_KEY))
+  const token = window.localStorage.getItem(ADMIN_TOKEN_KEY)
+  if (!token) return false
+
+  try {
+    const payloadPart = token.split(".")[1]
+    if (!payloadPart) return true
+
+    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/")
+    const paddedPayload = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")
+    const payload = JSON.parse(atob(paddedPayload)) as { exp?: unknown }
+
+    if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
+      logoutAdmin()
+      return false
+    }
+  } catch {
+    // Let the API reject malformed or unverifiable tokens.
+  }
+
+  return true
 }
 
 function normalizePortalRole(value: unknown): PortalRole | null {
@@ -103,16 +106,4 @@ export async function loginAdmin(
 export function logoutAdmin() {
   window.localStorage.removeItem(ADMIN_TOKEN_KEY)
   window.localStorage.removeItem(ADMIN_USER_KEY)
-}
-
-export const demoAdminAccount = {
-  username: DEMO_ADMIN.username,
-  email: DEMO_ADMIN.email,
-  password: DEMO_ADMIN.password,
-}
-
-export const demoStaffAccount = {
-  username: DEMO_STAFF.username,
-  email: DEMO_STAFF.email,
-  password: DEMO_STAFF.password,
 }

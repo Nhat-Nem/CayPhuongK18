@@ -227,6 +227,16 @@
   font-family: "Montserrat:SemiBold", sans-serif;
 }
 
+.admin-login-session-expired {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  border: 1px solid #d6e0ec;
+  border-radius: 9px;
+  background: #f3f7fb;
+  color: #52657d;
+  font-size: .82rem;
+}
+
 .admin-login-submit {
   display: flex;
   align-items: center;
@@ -253,36 +263,6 @@
 
 .admin-login-submit span {
   font-size: 1.2rem;
-}
-
-.admin-login-demo {
-  display: grid;
-  gap: 6px;
-  margin-top: 28px;
-  padding: 16px 18px;
-  border: 1px dashed #c8c9c5;
-  border-radius: 10px;
-  background: #ffffff8c;
-  color: #686f76;
-  font-size: .78rem;
-}
-
-.admin-login-demo strong {
-  margin-bottom: 3px;
-  color: #17345f;
-  font-family: "Montserrat:SemiBold", sans-serif;
-}
-
-.admin-login-demo code {
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: #e9ecef;
-  color: #29323d;
-}
-
-.admin-login-demo small {
-  margin-top: 5px;
-  color: #92979c;
 }
 
 @media (max-width: 900px) {
@@ -325,29 +305,5 @@
 
   .admin-login-panel {
     padding: 38px 20px 60px;
-  }
-}
-
-
-/* Admin + Staff demo accounts */
-.admin-login-demo-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.admin-login-demo-grid .admin-login-demo {
-  margin-top: 0;
-}
-
-.admin-login-demo--staff {
-  border-color: #bfd2e7 !important;
-  background: #f4f8fc !important;
-}
-
-@media (max-width: 1180px) {
-  .admin-login-demo-grid {
-    grid-template-columns: 1fr;
   }
 }
