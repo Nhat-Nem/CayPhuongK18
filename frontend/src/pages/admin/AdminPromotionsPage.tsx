@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import AdminFormModal from "@/components/admin/AdminFormModal"
 import {
@@ -13,6 +13,7 @@ import {
   type PromotionApplyType,
   type PromotionRecord,
 } from "@/services/promotionStore"
+import { fileToMenuImage } from "@/utils/menuImage"
 
 type FormState = {
   name: string
@@ -20,6 +21,7 @@ type FormState = {
   startDate: string
   endDate: string
   applyType: "1" | "2"
+  image: string
 }
 
 const emptyForm: FormState = {
@@ -28,6 +30,7 @@ const emptyForm: FormState = {
   startDate: "",
   endDate: "",
   applyType: "1",
+  image: "",
 }
 
 export default function AdminPromotionsPage() {
@@ -40,6 +43,8 @@ export default function AdminPromotionsPage() {
   const [notice, setNotice] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [processingImage, setProcessingImage] = useState(false)
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   const reload = async () => {
     setLoading(true)
@@ -92,9 +97,28 @@ export default function AdminPromotionsPage() {
       startDate: item.startDate,
       endDate: item.endDate,
       applyType: String(item.applyType) as "1" | "2",
+      image: item.image ?? "",
     })
     setError("")
     setShowForm(true)
+  }
+
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setProcessingImage(true)
+    setError("")
+
+    try {
+      const image = await fileToMenuImage(file)
+      setForm((current) => ({ ...current, image }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không thể xử lý ảnh ưu đãi.")
+    } finally {
+      setProcessingImage(false)
+      event.target.value = ""
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -125,6 +149,7 @@ export default function AdminPromotionsPage() {
       startDate: form.startDate,
       endDate: form.endDate,
       applyType: Number(form.applyType) as PromotionApplyType,
+      image: form.image.trim() || null,
     }
 
     setSaving(true)
@@ -372,6 +397,48 @@ export default function AdminPromotionsPage() {
             />
           </label>
 
+          <div className="admin-promotion-image-field admin-promotion-full">
+            <span>Ảnh ưu đãi</span>
+            <input
+              ref={imageInputRef}
+              className="admin-promotion-file-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={processingImage || saving}
+              onChange={(event) => void handleImageChange(event)}
+              aria-label="Chọn ảnh ưu đãi từ máy tính"
+            />
+            <button
+              className="admin-primary-button admin-promotion-upload-button"
+              type="button"
+              disabled={processingImage || saving}
+              onClick={() => imageInputRef.current?.click()}
+            >
+              {processingImage ? "Đang xử lý ảnh..." : "＋ Thêm ảnh"}
+            </button>
+            <small>
+              Chọn ảnh JPG, PNG hoặc WEBP, tối đa 8 MB.
+              {form.image ? " Ảnh đã sẵn sàng để lưu." : " Chưa chọn ảnh."}
+            </small>
+          </div>
+
+          {form.image && (
+            <div className="admin-promotion-image-preview-wrap admin-promotion-full">
+              <img
+                className="admin-promotion-image-preview"
+                src={form.image}
+                alt="Xem trước ảnh ưu đãi"
+              />
+              <button
+                className="admin-secondary-button"
+                type="button"
+                onClick={() => setForm((current) => ({ ...current, image: "" }))}
+              >
+                Xóa ảnh
+              </button>
+            </div>
+          )}
+
           {error && (
             <div className="admin-room-form-notice error admin-promotion-full">⚠ {error}</div>
           )}
@@ -380,8 +447,8 @@ export default function AdminPromotionsPage() {
             <button className="admin-secondary-button" type="button" onClick={() => setShowForm(false)}>
               Hủy
             </button>
-            <button className="admin-primary-button" type="submit" disabled={saving}>
-              {saving ? "Đang lưu..." : editingId ? "Lưu thay đổi" : "+ Thêm khuyến mãi"}
+            <button className="admin-primary-button" type="submit" disabled={saving || processingImage}>
+              {processingImage ? "Đang xử lý ảnh..." : saving ? "Đang lưu..." : editingId ? "Lưu thay đổi" : "+ Thêm khuyến mãi"}
             </button>
           </div>
         </form>

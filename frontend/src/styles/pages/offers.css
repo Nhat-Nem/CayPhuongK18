@@ -52,8 +52,7 @@
 .offer-terms li { margin-bottom: 11px; }
 
 
-/* Promotion records do not have an image field in the current backend API.
-   Use a neutral decorative placeholder instead of borrowing unrelated menu images. */
+/* Use a neutral fallback when a promotion has no uploaded image. */
 .offer-image-placeholder {
   display: grid;
   place-items: center;
