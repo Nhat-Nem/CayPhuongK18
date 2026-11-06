@@ -27,10 +27,11 @@ export function getRoomStays() {
   return apiRequest<RoomStayRecord[]>("/api/v1/room-stays")
 }
 
-export function checkInRoomStay(payload: {
-  roomId: string
-  bookingRequestId: string
-}) {
+export type CheckInRoomStayPayload =
+  | { roomId: string; bookingRequestId: string }
+  | { roomId: string; walkInVisitId: string }
+
+export function checkInRoomStay(payload: CheckInRoomStayPayload) {
   return apiRequest<RoomStayRecord>("/api/v1/room-stays", {
     method: "POST",
     body: JSON.stringify(payload),
