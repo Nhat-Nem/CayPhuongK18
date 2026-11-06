@@ -1,5 +1,13 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
+export enum TableBookingStatus {
+    PENDING = "PENDING",
+    CONFIRMED = "CONFIRMED",
+    SERVING = "SERVING",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED"
+}
+
 @Entity('table-booking-requests')
 export class TableBookingRequest {
     @PrimaryGeneratedColumn({ type: "bigint" })
@@ -17,8 +25,8 @@ export class TableBookingRequest {
     @Column({ type: 'text', nullable: true })
     note: string | null
 
-    @Column({ type: "varchar", length: 50, default: "PENDING" })
-    status: string
+    @Column({ type: "enum", enum: TableBookingStatus, default: TableBookingStatus.PENDING })
+    status: TableBookingStatus
 
     @CreateDateColumn({ name: "created_at", type: "datetime" })
     createdAt: Date
