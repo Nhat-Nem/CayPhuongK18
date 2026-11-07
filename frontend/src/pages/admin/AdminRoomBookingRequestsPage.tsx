@@ -99,7 +99,18 @@ export default function AdminRoomBookingRequestsPage() {
     ])
 
     if (requestsResult.status === "fulfilled") {
-      setRecords(requestsResult.value)
+      const requestRecords = requestsResult.value
+      const activeStays = staysResult.status === "fulfilled"
+        ? staysResult.value.filter((stay) => stay.status === "CHECKED_IN")
+        : []
+
+      // Backend completes the booking request at check-in. The active room stay
+      // is the source of truth for showing the in-progress stay in this screen.
+      setRecords(requestRecords.map((record) =>
+        activeStays.some((stay) => String(stay.bookingRequestId) === record.id)
+          ? { ...record, status: "SERVING" as const }
+          : record,
+      ))
     } else {
       setError(
         requestsResult.reason instanceof Error

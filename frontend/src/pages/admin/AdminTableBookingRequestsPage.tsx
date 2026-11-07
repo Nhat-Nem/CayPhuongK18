@@ -42,6 +42,18 @@ function formatRequestCode(id: string) {
   return `DB-${id.padStart(6, "0")}`
 }
 
+function describeStatusUpdateError(error: unknown) {
+  const message = error instanceof Error
+    ? error.message
+    : "Không thể cập nhật trạng thái yêu cầu đặt bàn."
+
+  if (/Cannot PATCH .*\/api\/v1\/table-booking-requests\//i.test(message)) {
+    return `${message}. Frontend đã gọi đúng route PATCH /api/v1/table-booking-requests/:id theo backend mới, nhưng API đang chạy chưa có route này. Cần triển khai lại backend chứa chức năng cập nhật trạng thái.`
+  }
+
+  return message
+}
+
 export default function AdminTableBookingRequestsPage() {
   const [requests, setRequests] = useState<TableBookingRequestRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -124,10 +136,7 @@ export default function AdminTableBookingRequestsPage() {
         ? { ...current, status: previousStatus }
         : current,
       )
-      setStatusError(updateError instanceof Error
-        ? updateError.message
-        : "Không thể cập nhật trạng thái yêu cầu đặt bàn.",
-      )
+      setStatusError(describeStatusUpdateError(updateError))
     } finally {
       setUpdatingId(null)
     }

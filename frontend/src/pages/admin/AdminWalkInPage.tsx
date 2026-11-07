@@ -4,6 +4,13 @@ import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import type { RoomPrototype } from "@/data/roomPrototype"
 import { getRooms } from "@/services/roomApi"
 import {
+  checkInRoomStay,
+  checkOutRoomStay,
+  getRoomStays,
+  type RoomStayPaymentMethod,
+  type RoomStayRecord,
+} from "@/services/roomStayApi"
+import {
   createWalkIn,
   deleteWalkIn,
   getWalkIns,
@@ -25,24 +32,58 @@ function compareWalkInsNewestFirst(a: WalkInRecord, b: WalkInRecord) {
   return b.id - a.id
 }
 
+function formatMoney(value: number) {
+  return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(value)} VNĐ`
+}
+
+type WalkInRoomAction =
+  | { kind: "check-in"; record: WalkInRecord }
+  | { kind: "check-out"; record: WalkInRecord; stay: RoomStayRecord }
+
 export default function AdminWalkInPage() {
   const [rooms, setRooms] = useState<RoomPrototype[]>([])
+  const [roomStays, setRoomStays] = useState<RoomStayRecord[]>([])
   const [rows, setRows] = useState<WalkInRecord[]>([])
   const [showForm, setShowForm] = useState(false)
   const [service, setService] = useState<ServiceType>("Phòng nghỉ")
   const [query, setQuery] = useState("")
   const [error, setError] = useState("")
+  const [roomDataError, setRoomDataError] = useState("")
   const [saving, setSaving] = useState(false)
+  const [activeRoomAction, setActiveRoomAction] = useState<WalkInRoomAction | null>(null)
+  const [selectedRoomId, setSelectedRoomId] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState<RoomStayPaymentMethod>("CASH")
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState("")
 
   const loadData = async () => {
-    try {
-      const [roomData, walkIns] = await Promise.all([getRooms(), getWalkIns()])
-      setRooms(roomData)
-      setRows([...walkIns].sort(compareWalkInsNewestFirst))
-      setError("")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể tải dữ liệu")
+    setError("")
+    const [roomResult, walkInResult, stayResult] = await Promise.allSettled([
+      getRooms(),
+      getWalkIns(),
+      getRoomStays(),
+    ])
+
+    if (walkInResult.status === "fulfilled") {
+      setRows([...walkInResult.value].sort(compareWalkInsNewestFirst))
+    } else {
+      setError(walkInResult.reason instanceof Error
+        ? walkInResult.reason.message
+        : "Không thể tải danh sách khách vãng lai.",
+      )
     }
+
+    setRooms(roomResult.status === "fulfilled" ? roomResult.value : [])
+    setRoomStays(stayResult.status === "fulfilled" ? stayResult.value : [])
+    const roomIssue = roomResult.status === "rejected" ? roomResult.reason
+      : stayResult.status === "rejected" ? stayResult.reason
+        : null
+    setRoomDataError(roomIssue instanceof Error
+      ? roomIssue.message
+      : roomIssue
+        ? "Không thể tải dữ liệu phòng và lưu trú."
+        : "",
+    )
   }
 
   useEffect(() => {
@@ -71,10 +112,23 @@ export default function AdminWalkInPage() {
     [rows],
   )
 
+  const occupiedRoomIds = useMemo(() => new Set(
+    roomStays
+      .filter((stay) => stay.status === "CHECKED_IN")
+      .map((stay) => String(stay.roomId)),
+  ), [roomStays])
+
   const availableRooms = useMemo(
-    () => rooms.filter((room) => room.status === "AVAILABLE"),
-    [rooms],
+    () => roomDataError
+      ? []
+      : rooms.filter((room) => room.status === "AVAILABLE" && !occupiedRoomIds.has(String(room.id))),
+    [occupiedRoomIds, roomDataError, rooms],
   )
+
+  const getActiveStay = (record: WalkInRecord) =>
+    roomStays.find((stay) =>
+      String(stay.walkInVisitId) === String(record.id) && stay.status === "CHECKED_IN",
+    )
 
   const closeForm = () => {
     setShowForm(false)
@@ -130,6 +184,55 @@ export default function AdminWalkInPage() {
     }
   }
 
+  const openRoomCheckIn = (record: WalkInRecord) => {
+    const assignedRoom = availableRooms.find((room) => room.id === record.roomId)
+    setSelectedRoomId(String(assignedRoom?.id ?? availableRooms[0]?.id ?? ""))
+    setActionError("")
+    setActiveRoomAction({ kind: "check-in", record })
+  }
+
+  const openRoomCheckOut = (record: WalkInRecord) => {
+    const stay = getActiveStay(record)
+    if (!stay) {
+      setRoomDataError("Không tìm thấy lượt lưu trú đang mở cho khách này. Hãy làm mới dữ liệu hoặc kiểm tra lượt nhận phòng.")
+      return
+    }
+
+    setPaymentMethod("CASH")
+    setActionError("")
+    setActiveRoomAction({ kind: "check-out", record, stay })
+  }
+
+  const submitRoomAction = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!activeRoomAction) return
+
+    setActionLoading(true)
+    setActionError("")
+
+    try {
+      if (activeRoomAction.kind === "check-in") {
+        if (!selectedRoomId) {
+          setActionError("Chọn phòng còn trống để nhận khách.")
+          return
+        }
+        await checkInRoomStay({
+          roomId: selectedRoomId,
+          walkInVisitId: String(activeRoomAction.record.id),
+        })
+      } else {
+        await checkOutRoomStay(activeRoomAction.stay.id, paymentMethod)
+      }
+
+      setActiveRoomAction(null)
+      await loadData()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Không thể cập nhật lượt lưu trú.")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const removeRow = async (id: number) => {
     if (!window.confirm("Xóa lượt khách vãng lai này?")) return
 
@@ -179,6 +282,13 @@ export default function AdminWalkInPage() {
 
       {!showForm && error && <p className="booking-form-error">{error}</p>}
 
+      {roomDataError && (
+        <div className="admin-room-booking-message error" role="alert">
+          <strong>Chưa tải được dữ liệu phòng hoặc lưu trú</strong>
+          <p>{roomDataError}</p>
+        </div>
+      )}
+
       <section className="admin-s2-table-card">
         <div className="admin-s2-section-heading">
           <div>
@@ -222,30 +332,55 @@ export default function AdminWalkInPage() {
                   <td>{item.guests}</td>
                   <td>{item.note || "—"}</td>
                   <td>
-                    <select
-                      className="admin-s2-status"
-                      value={item.status}
-                      onChange={(event) =>
-                        void setStatus(
-                          item.id,
-                          event.target.value as GuestStatus,
-                        )
-                      }
-                    >
-                      <option value="Chờ tiếp nhận">Chờ tiếp nhận</option>
-                      <option value="Đang phục vụ">Đang phục vụ</option>
-                      <option value="Hoàn tất">Hoàn tất</option>
-                    </select>
+                    {item.service === "Phòng nghỉ" ? (
+                      <span className={`admin-room-booking-status status-${item.status === "Đang phục vụ" ? "serving" : item.status === "Hoàn tất" ? "completed" : "pending"}`}>
+                        {item.status}
+                      </span>
+                    ) : (
+                      <select
+                        className="admin-s2-status"
+                        value={item.status}
+                        onChange={(event) =>
+                          void setStatus(item.id, event.target.value as GuestStatus)
+                        }
+                      >
+                        <option value="Chờ tiếp nhận">Chờ tiếp nhận</option>
+                        <option value="Đang phục vụ">Đang phục vụ</option>
+                        <option value="Hoàn tất">Hoàn tất</option>
+                      </select>
+                    )}
                   </td>
                   <td>
-                    <button
-                      className="admin-icon-button danger"
-                      type="button"
-                      onClick={() => void removeRow(item.id)}
-                      title="Xóa"
-                    >
-                      ⌫
-                    </button>
+                    <div className="admin-room-booking-row-actions">
+                      {item.service === "Phòng nghỉ" && item.status === "Chờ tiếp nhận" && (
+                        <button
+                          className="admin-primary-button admin-room-booking-action-button"
+                          type="button"
+                          disabled={availableRooms.length === 0 || Boolean(roomDataError)}
+                          onClick={() => openRoomCheckIn(item)}
+                        >
+                          Nhận phòng
+                        </button>
+                      )}
+                      {item.service === "Phòng nghỉ" && item.status === "Đang phục vụ" && (
+                        <button
+                          className="admin-primary-button admin-room-booking-action-button"
+                          type="button"
+                          disabled={!getActiveStay(item) || Boolean(roomDataError)}
+                          onClick={() => openRoomCheckOut(item)}
+                        >
+                          {getActiveStay(item) ? "Trả phòng & thanh toán" : "Thiếu lượt lưu trú"}
+                        </button>
+                      )}
+                      <button
+                        className="admin-icon-button danger"
+                        type="button"
+                        onClick={() => void removeRow(item.id)}
+                        title="Xóa"
+                      >
+                        ⌫
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -355,6 +490,58 @@ export default function AdminWalkInPage() {
             </button>
           </div>
         </form>
+      </AdminFormModal>
+      <AdminFormModal
+        open={Boolean(activeRoomAction)}
+        eyebrow="QUẢN LÝ LƯU TRÚ"
+        title={activeRoomAction?.kind === "check-out" ? "Trả phòng và thanh toán" : "Nhận phòng khách vãng lai"}
+        onClose={() => !actionLoading && setActiveRoomAction(null)}
+      >
+        {activeRoomAction?.kind === "check-in" ? (
+          <form className="admin-s2-form admin-s2-form--modal admin-room-booking-action-form" onSubmit={submitRoomAction}>
+            <p className="admin-room-booking-modal-note admin-s2-full">
+              Chọn phòng còn trống cho <strong>{activeRoomAction.record.fullName}</strong>. Giá theo đêm sẽ lấy từ thông tin phòng.
+            </p>
+            <label className="admin-s2-full">
+              <span>Phòng còn trống</span>
+              <select value={selectedRoomId} onChange={(event) => setSelectedRoomId(event.target.value)} required>
+                {availableRooms.length === 0 ? (
+                  <option value="">Không có phòng còn trống</option>
+                ) : availableRooms.map((room) => (
+                  <option key={room.id} value={room.id}>{room.name} · {room.code} · {formatMoney(room.price)}/đêm</option>
+                ))}
+              </select>
+            </label>
+            {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
+            <div className="admin-s2-form-actions admin-s2-full">
+              <button className="admin-secondary-button" type="button" onClick={() => setActiveRoomAction(null)} disabled={actionLoading}>Hủy</button>
+              <button className="admin-primary-button" type="submit" disabled={actionLoading || availableRooms.length === 0}>
+                {actionLoading ? "Đang nhận phòng..." : "Xác nhận nhận phòng"}
+              </button>
+            </div>
+          </form>
+        ) : activeRoomAction?.kind === "check-out" ? (
+          <form className="admin-s2-form admin-s2-form--modal admin-room-booking-action-form" onSubmit={submitRoomAction}>
+            <p className="admin-room-booking-modal-note admin-s2-full">
+              {activeRoomAction.stay.room?.name || `Phòng #${activeRoomAction.stay.roomId}`} · {formatMoney(Number(activeRoomAction.stay.roomPrice))}/đêm. Hệ thống tính tiền theo số đêm lưu trú và ghi doanh thu sau khi xác nhận thanh toán.
+            </p>
+            <label className="admin-s2-full">
+              <span>Phương thức thanh toán</span>
+              <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as RoomStayPaymentMethod)}>
+                <option value="CASH">Tiền mặt</option>
+                <option value="BANK_TRANSFER">Chuyển khoản</option>
+                <option value="CARD">Thẻ</option>
+              </select>
+            </label>
+            {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
+            <div className="admin-s2-form-actions admin-s2-full">
+              <button className="admin-secondary-button" type="button" onClick={() => setActiveRoomAction(null)} disabled={actionLoading}>Hủy</button>
+              <button className="admin-primary-button" type="submit" disabled={actionLoading}>
+                {actionLoading ? "Đang lưu thanh toán..." : "Xác nhận trả phòng"}
+              </button>
+            </div>
+          </form>
+        ) : null}
       </AdminFormModal>
     </AdminRoomLayout>
   )
