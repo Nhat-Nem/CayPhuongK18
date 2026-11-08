@@ -233,7 +233,7 @@
 
 /* --- Footer: brand stays horizontal and aligns with the three link columns --- */
 .footer {
-  padding: 0 var(--page-gutter);
+  padding: 0 clamp(24px, 3.75vw, 72px);
   background: #f3e9d2;
   color: #23487a;
   font-size: .88rem;
@@ -241,32 +241,21 @@
 
 .footer-main {
   display: grid;
-  /* Give the brand a little more room for logo + text on one row. */
-  grid-template-columns: minmax(360px, 1.4fr) repeat(3, minmax(0, 1fr));
-  gap: clamp(18px, 2vw, 32px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 2vw, 36px);
   align-items: start;
-  padding: 72px 0 58px;
+  padding: 64px 0 48px;
 }
 
 .footer-main > * {
   min-width: 0;
-  padding: 0 clamp(22px, 3vw, 48px);
-}
-
-.footer-main > *:first-child {
-  /* Keep the brand column inset by the same amount as the other footer columns. */
-  padding-left: clamp(22px, 3vw, 48px);
-}
-
-.footer-main > *:last-child {
-  padding-right: 0;
 }
 
 .footer-brand {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   min-width: 0;
 }
 
@@ -277,8 +266,8 @@
 .footer-logo-wrap {
   display: grid;
   place-items: center;
-  width: 96px;
-  height: 96px;
+  width: 88px;
+  height: 88px;
   border: 1px solid #70463a30;
   border-radius: 50%;
   background: #fff9;
@@ -292,8 +281,8 @@
 }
 
 .footer-logo {
-  width: 80px;
-  height: 80px;
+  width: 74px;
+  height: 74px;
   object-fit: contain;
 }
 
@@ -356,12 +345,14 @@
 }
 
 .footer-bottom {
-  min-height: 76px;
+  min-height: 88px;
   border-top: 1px solid #70463a26;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
+  /* Reserve the lower corners for the fixed hotline and contact buttons. */
+  padding: 0 clamp(140px, 10vw, 170px) 0 clamp(140px, 10vw, 170px);
 }
 
 .footer-bottom > p {
@@ -424,20 +415,22 @@
   }
 
   .footer-main {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 50px 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px 24px;
+    padding: 48px 0 38px;
   }
 
-  .footer-main > * {
-    padding: 30px;
+  .footer-main > .footer-brand {
+    grid-column: 1 / -1;
+    max-width: 620px;
   }
 
-  .footer-main > *:first-child {
-    padding-left: 30px;
-  }
-
-  .footer-main > *:last-child {
-    padding-right: 30px;
+  .footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px 0 84px;
   }
 }
 
@@ -469,40 +462,39 @@
   }
 
   .footer-main {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 20px;
     padding: 38px 0 30px;
   }
 
-  .footer-main > * {
-    padding: 28px 0;
+  .footer-main > .footer-brand {
+    grid-column: 1 / -1;
+    max-width: none;
   }
 
-  .footer-main > *:first-child {
-    padding: 0 0 28px;
-  }
-
-  .footer-main > *:last-child {
-    padding: 28px 0 0;
+  .footer-main > .footer-contact {
+    grid-column: 1 / -1;
   }
 
   .footer-brand {
-    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr);
     align-items: center;
-    gap: 16px;
+    gap: 14px;
   }
 
   .footer-logo-wrap {
-    width: 88px;
-    height: 88px;
+    width: 76px;
+    height: 76px;
   }
 
   .footer-logo {
-    width: 74px;
-    height: 74px;
+    width: 64px;
+    height: 64px;
   }
 
   .footer-bottom {
-    padding: 22px 0 28px;
+    min-height: 0;
+    padding: 20px 0 84px;
     flex-direction: column-reverse;
     align-items: flex-start;
   }
@@ -514,5 +506,16 @@
   .footer-social > span {
     width: 100%;
     margin-bottom: 3px;
+  }
+}
+
+@media (max-width: 420px) {
+  .footer-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .footer-main > .footer-brand,
+  .footer-main > .footer-contact {
+    grid-column: auto;
   }
 }
