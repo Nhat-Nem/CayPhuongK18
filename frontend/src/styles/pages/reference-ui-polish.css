@@ -279,7 +279,7 @@ p {
 
 /* --- Footer: brand stays horizontal and aligns with the three link columns --- */
 .footer {
-  padding: 0 var(--page-gutter);
+  padding: 0;
   background: #f3e9d2;
   color: #23487a;
   font-size: .88rem;
@@ -287,10 +287,10 @@ p {
 
 .footer-main {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
   gap: clamp(24px, 2vw, 36px);
   align-items: start;
-  padding: 64px 0 48px;
+  padding: 64px 20px 48px;
 }
 
 .footer-main > * {
@@ -397,8 +397,7 @@ p {
   align-items: center;
   justify-content: space-between;
   gap: 30px;
-  /* Reserve the lower corners for the fixed hotline and contact buttons. */
-  padding: 0 clamp(140px, 10vw, 170px) 0 clamp(140px, 10vw, 170px);
+  padding: 0 20px;
 }
 
 .footer-bottom > p {
@@ -463,8 +462,7 @@ p {
   .footer-main {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 28px 24px;
-    padding: 48px 0 38px;
-    padding-inline: 20px;
+    padding: 48px 20px 38px;
   }
 
   .footer-main > .footer-brand {
@@ -481,7 +479,7 @@ p {
     flex-direction: column;
     justify-content: center;
     gap: 14px;
-    padding: 20px 0 84px;
+    padding: 20px 20px 84px;
   }
 }
 
@@ -523,8 +521,7 @@ p {
   .footer-main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 26px 20px;
-    padding: 38px 0 30px;
-    padding-inline: 20px;
+    padding: 38px 20px 30px;
   }
 
   .footer-main > .footer-brand {
@@ -554,7 +551,7 @@ p {
 
   .footer-bottom {
     min-height: 0;
-    padding: 20px 0 84px;
+    padding: 20px 20px 84px;
     flex-direction: column-reverse;
     align-items: flex-start;
   }
