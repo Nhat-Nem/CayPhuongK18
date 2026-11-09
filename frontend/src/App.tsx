@@ -199,6 +199,10 @@ export default function App() {
   else if (path === routes.adminPromotions) {
     page = <AdminPromotionsPage />
   }
+  // Trang chủ
+  else if (path === routes.home) {
+    page = <HomePage />
+  }
   // Khách hàng
   else if (path === "/phong/chi-tiet") {
     page = <RoomDetailPage />
