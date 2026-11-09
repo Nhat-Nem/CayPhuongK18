@@ -88,7 +88,7 @@ export default function AdminRoomsPage() {
   return (
     <AdminRoomLayout
       title="Danh sách phòng"
-      subtitle="US.02 · Dữ liệu phòng lấy từ GET /api/v1/rooms. Trạng thái backend dùng AVAILABLE / UNAVAILABLE."
+      subtitle="Xem danh sách phòng và cập nhật tình trạng hoạt động của từng phòng."
       primaryAction={
         <button
           className="admin-primary-button"

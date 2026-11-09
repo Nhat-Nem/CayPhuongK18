@@ -24,7 +24,7 @@ export default function DeleteRecruitmentDialog({
         aria-labelledby="delete-recruitment-title"
       >
         <span className="admin-recruitment-dialog-icon">!</span>
-        <p className="admin-room-eyebrow">US.18 · XÓA TUYỂN DỤNG</p>
+        <p className="admin-room-eyebrow">XÓA TUYỂN DỤNG</p>
         <h2 id="delete-recruitment-title">Xóa thông tin tuyển dụng?</h2>
         <p>
           Vị trí <strong>{recruitment.title}</strong> sẽ không còn xuất hiện trong

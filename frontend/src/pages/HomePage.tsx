@@ -171,7 +171,7 @@ export default function HomePage() {
       <section id="dia-diem-du-lich" className="section pearl centered">
         <div className="home-section-heading home-title-reveal">
           <div>
-            <p className="eyebrow">US.23 · KHÁM PHÁ ĐỊA PHƯƠNG</p>
+            <p className="eyebrow">KHÁM PHÁ ĐỊA PHƯƠNG</p>
             <h2>ĐỊA ĐIỂM DU LỊCH TÂY NINH</h2>
           </div>
           <p>

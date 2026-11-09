@@ -246,9 +246,9 @@ export default function AdminWalkInPage() {
 
   return (
     <AdminRoomLayout
-      eyebrow="SPRINT 2 · US.08"
+      eyebrow="TIẾP NHẬN TRỰC TIẾP"
       title="Tiếp nhận khách vãng lai"
-      subtitle="Đúng Product Backlog US.08: Admin ghi nhận khách đến trực tiếp không có lịch."
+      subtitle="Ghi nhận khách đến trực tiếp, không có lịch đặt trước."
       primaryAction={
         <button
           className="admin-primary-button"
