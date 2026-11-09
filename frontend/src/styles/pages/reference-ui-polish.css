@@ -1,21 +1,67 @@
 /* Visual polish copied from the provided frontend reference.
    This file intentionally changes layout/styling only. */
 
+:root {
+  --page-content: 1320px;
+  --page-gutter: clamp(22px, 4vw, 72px);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Keep the brand and booking action on the same content grid as the pages. */
+.nav-shell {
+  max-width: var(--page-content);
+  grid-template-columns: 150px minmax(0, 1fr) 150px;
+  padding-inline: 20px;
+}
+
+/* Use one shared width for the header, page sections, and footer content. */
+.footer {
+  padding-inline: 0;
+}
+
+.footer-main,
+.footer-bottom {
+  width: min(100%, var(--page-content));
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+.home-section-heading {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(28px, 4vw, 64px);
+}
+
+.home-section-heading h2 {
+  max-width: 760px;
+  font-size: clamp(2rem, 3.1vw, 3.15rem);
+  text-wrap: balance;
+}
+
 /* --- Reviews / testimonials --- */
 .testimonials-section {
   background: #fbf8f1;
 }
 
 .testimonials-heading {
-  max-width: 760px;
+  max-width: 960px;
   margin: 0 auto 34px;
   text-align: center;
 }
 
 .testimonials-heading h2 {
+  max-width: none;
   margin: 0 0 16px;
   color: #244535;
-  font-size: clamp(2rem, 3.5vw, 3.6rem);
+  font-size: clamp(2rem, 3.15vw, 3.2rem);
 }
 
 .testimonials-heading > p {
@@ -233,7 +279,7 @@
 
 /* --- Footer: brand stays horizontal and aligns with the three link columns --- */
 .footer {
-  padding: 0 clamp(24px, 3.75vw, 72px);
+  padding: 0;
   background: #f3e9d2;
   color: #23487a;
   font-size: .88rem;
@@ -241,10 +287,10 @@
 
 .footer-main {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
   gap: clamp(24px, 2vw, 36px);
   align-items: start;
-  padding: 64px 0 48px;
+  padding: 64px 20px 48px;
 }
 
 .footer-main > * {
@@ -351,8 +397,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 30px;
-  /* Reserve the lower corners for the fixed hotline and contact buttons. */
-  padding: 0 clamp(140px, 10vw, 170px) 0 clamp(140px, 10vw, 170px);
+  padding: 0 20px;
 }
 
 .footer-bottom > p {
@@ -417,7 +462,7 @@
   .footer-main {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 28px 24px;
-    padding: 48px 0 38px;
+    padding: 48px 20px 38px;
   }
 
   .footer-main > .footer-brand {
@@ -425,12 +470,16 @@
     max-width: 620px;
   }
 
+  .nav-shell {
+    grid-template-columns: 1fr auto;
+  }
+
   .footer-bottom {
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
     gap: 14px;
-    padding: 20px 0 84px;
+    padding: 20px 20px 84px;
   }
 }
 
@@ -458,13 +507,21 @@
   }
 
   .footer {
-    padding: 0 22px;
+    padding: 0;
+  }
+
+  .nav-shell {
+    padding-inline: 20px;
+  }
+
+  .home-section-heading {
+    grid-template-columns: 1fr;
   }
 
   .footer-main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 26px 20px;
-    padding: 38px 0 30px;
+    padding: 38px 20px 30px;
   }
 
   .footer-main > .footer-brand {
@@ -494,7 +551,7 @@
 
   .footer-bottom {
     min-height: 0;
-    padding: 20px 0 84px;
+    padding: 20px 20px 84px;
     flex-direction: column-reverse;
     align-items: flex-start;
   }

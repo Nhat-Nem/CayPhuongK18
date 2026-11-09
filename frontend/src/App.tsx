@@ -31,6 +31,7 @@ import AdminRecruitmentsPage from "@/pages/admin/AdminRecruitmentsPage"
 import AdminRecruitmentCreatePage from "@/pages/admin/AdminRecruitmentCreatePage"
 import AdminRecruitmentEditPage from "@/pages/admin/AdminRecruitmentEditPage"
 import AdminPromotionsPage from "@/pages/admin/AdminPromotionsPage"
+import NotFoundPage from "@/pages/NotFoundPage"
 import { getAuthenticatedUser, isAdminAuthenticated } from "@/utils/adminAuth"
 
 export default function App() {
@@ -94,10 +95,22 @@ export default function App() {
     if (path === "/phong/chi-tiet") title = "Chi tiết phòng"
     if (path === "/menu/chi-tiet") title = "Chi tiết món ăn"
     if (path === "/uu-dai/chi-tiet") title = "Chi tiết ưu đãi"
+    const knownRoutes = new Set([
+      ...Object.values(routes),
+      "/phong/chi-tiet",
+      "/menu/chi-tiet",
+      "/uu-dai/chi-tiet",
+    ])
+    if (!knownRoutes.has(path)) title = "Không tìm thấy trang"
 
     document.title = `${title ?? "Cây Phượng K18"} | Cây Phượng K18`
   }, [path])
   const isAdminPage = path === routes.admin || path.startsWith("/admin/")
+  const knownAdminPaths = new Set(
+    Object.entries(routes)
+      .filter(([key]) => key.startsWith("admin"))
+      .map(([, route]) => route),
+  )
   const authenticatedUser = getAuthenticatedUser()
 
   let page: ReactNode
@@ -114,6 +127,10 @@ export default function App() {
   // Chặn toàn bộ khu vực /admin nếu chưa đăng nhập.
   else if (isAdminPage && !isAdminAuthenticated()) {
     page = <AdminLoginPage redirectTo={requestedAdminPath} />
+  }
+  // Đường dẫn quản trị không tồn tại cũng dùng trang 404.
+  else if (isAdminPage && !knownAdminPaths.has(path)) {
+    page = <NotFoundPage />
   }
   // Theo phân quyền hiện tại, STAFF dùng quản lý thực đơn và đơn hàng.
   // Các chức năng thuộc Product Backlog của ADMIN vẫn được giới hạn cho ADMIN.
@@ -168,7 +185,7 @@ export default function App() {
   else if (path === routes.adminContact) {
     page = <AdminContactPage />
   }
-  // Tuyển dụng · US.18–US.21
+  // Tuyển dụng
   else if (path === routes.adminRecruitmentCreate) {
     page = <AdminRecruitmentCreatePage />
   }
@@ -220,7 +237,7 @@ export default function App() {
     page = <OffersPage />
   }
   else {
-    page = <HomePage />
+    page = <NotFoundPage />
   }
 
   return (

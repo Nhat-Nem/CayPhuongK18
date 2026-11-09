@@ -1,4 +1,4 @@
-/* US.36–US.38 · Admin review management */
+/* Admin review management */
 .admin-review-stats {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

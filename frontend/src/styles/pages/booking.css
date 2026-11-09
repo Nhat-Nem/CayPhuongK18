@@ -1,4 +1,4 @@
-/* Sprint 2 · T.01 · US.06 — prototype booking form */
+/* Prototype booking form */
 .booking-prototype-section {
   padding: clamp(70px, 8vw, 120px) max(5vw, calc((100vw - 1440px) / 2));
   background: #f7f3e9;

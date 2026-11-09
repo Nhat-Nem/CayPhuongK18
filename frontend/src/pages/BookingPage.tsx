@@ -1,7 +1,6 @@
 import { useEffect } from "react"
 
 /**
- * US.06 dùng lại đúng giao diện Yêu cầu trực tuyến của trang Liên hệ.
  * Route /dat-phong vẫn được giữ để các nút cũ không bị hỏng.
  */
 export default function BookingPage() {

@@ -42,7 +42,7 @@
   border: 0;
 }
 
-/* Contact request form additions for US.06.
+/* Contact request form additions.
    Keeps the original Contact prototype layout while supporting room booking fields. */
 .form-field select {
   width: 100%;

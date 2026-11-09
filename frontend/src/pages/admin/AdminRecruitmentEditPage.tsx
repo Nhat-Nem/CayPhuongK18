@@ -61,7 +61,7 @@ export default function AdminRecruitmentEditPage() {
   if (loading) {
     return (
       <AdminRoomLayout
-        eyebrow="US.19 · TUYỂN DỤNG"
+        eyebrow="TUYỂN DỤNG"
         title="Đang tải thông tin tuyển dụng"
         subtitle="Đang chuẩn bị dữ liệu cho giao diện chỉnh sửa."
         primaryAction={
@@ -80,7 +80,7 @@ export default function AdminRecruitmentEditPage() {
   if (!item) {
     return (
       <AdminRoomLayout
-        eyebrow="US.19 · TUYỂN DỤNG"
+        eyebrow="TUYỂN DỤNG"
         title="Không tìm thấy tuyển dụng"
         subtitle={error || "Thông tin cần sửa không tồn tại."}
         primaryAction={
@@ -98,7 +98,7 @@ export default function AdminRecruitmentEditPage() {
 
   return (
     <AdminRoomLayout
-      eyebrow="US.19 · TUYỂN DỤNG"
+      eyebrow="TUYỂN DỤNG"
       title="Sửa thông tin tuyển dụng"
       subtitle="Chỉnh sửa nội dung vị trí tuyển dụng và lưu thay đổi."
       primaryAction={

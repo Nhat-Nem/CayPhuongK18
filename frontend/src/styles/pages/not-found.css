@@ -1,0 +1,147 @@
+.not-found-page {
+  display: grid;
+  min-height: clamp(560px, 72vh, 760px);
+  place-items: center;
+  padding: clamp(64px, 8vw, 108px) var(--page-gutter);
+  background:
+    radial-gradient(ellipse at 50% 0%, #ffffffbd 0, #ffffff00 58%),
+    #f3eee3;
+}
+
+.not-found-content {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.not-found-eyebrow {
+  margin: 0 0 22px;
+  color: #915c37;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .75rem;
+  letter-spacing: .16em;
+}
+
+.not-found-code {
+  margin: 0;
+  color: #23487a;
+  font-family: "Montserrat:Bold", sans-serif;
+  font-size: clamp(7rem, 17vw, 13rem);
+  font-weight: 700;
+  letter-spacing: -.09em;
+  line-height: .78;
+}
+
+.not-found-content h1 {
+  margin: 30px 0 0;
+  color: #70463a;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.08;
+}
+
+.not-found-intro {
+  max-width: 680px;
+  margin: 18px auto 0;
+  color: #676d70;
+  font-size: clamp(1rem, 1.25vw, 1.15rem);
+  line-height: 1.65;
+}
+
+.not-found-causes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 38px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.not-found-causes li {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid #70463a24;
+  border-radius: 14px;
+  background: #fffdf8c9;
+}
+
+.not-found-causes strong {
+  color: #23487a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .9rem;
+}
+
+.not-found-causes span {
+  color: #676d70;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 20px;
+  margin-top: 30px;
+}
+
+.not-found-actions .button-link {
+  margin: 0;
+  padding: 13px 26px;
+  border-radius: 24px;
+  font-size: .76rem;
+}
+
+.not-found-secondary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: 1px solid #23487a3d;
+  border-radius: 24px;
+  color: #23487a;
+  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .76rem;
+  transition: background .2s, color .2s;
+}
+
+.not-found-secondary:hover {
+  background: #23487a;
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .not-found-page {
+    min-height: 0;
+    padding-block: 72px;
+  }
+
+  .not-found-eyebrow {
+    font-size: .68rem;
+  }
+
+  .not-found-content h1 {
+    margin-top: 25px;
+  }
+
+  .not-found-causes {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .not-found-causes li {
+    padding: 16px 18px;
+  }
+
+  .not-found-actions {
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: 24px;
+  }
+}
