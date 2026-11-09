@@ -297,6 +297,29 @@ p {
   min-width: 0;
 }
 
+/* Nudge only the two middle link columns slightly right.
+   The contact column keeps its original position and right-edge alignment. */
+@media (min-width: 701px) {
+  .footer-main > .footer-column {
+    position: relative;
+    left: 18px;
+  }
+}
+
+/* Keep the contact column's right edge aligned with the header booking button.
+   The content inside the column remains left-aligned. */
+.footer-main > .footer-contact {
+  justify-self: end;
+  width: fit-content;
+  max-width: 100%;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.footer-contact > * {
+  text-align: left;
+}
+
 .footer-brand {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);
