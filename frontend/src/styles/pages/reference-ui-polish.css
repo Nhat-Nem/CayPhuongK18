@@ -2,8 +2,8 @@
    This file intentionally changes layout/styling only. */
 
 :root {
-  --page-content: 1320px;
-  --page-gutter: clamp(22px, 4vw, 72px);
+  --page-content: 1440px;
+  --page-gutter: max(22px, calc((100vw - var(--page-content)) / 2));
 }
 
 h1,
@@ -597,5 +597,176 @@ p {
   .footer-main > .footer-brand,
   .footer-main > .footer-contact {
     grid-column: auto;
+  }
+}
+
+/* ==========================================================================
+   Shared alignment system for all public-facing pages
+   The header, main content, sliders and footer use the same 1440px frame.
+   Full-bleed hero/image sections remain full width by design.
+   ========================================================================== */
+
+@media (min-width: 701px) {
+  /* Header logo and booking action define the left/right content edges. */
+  .nav-shell {
+    width: min(
+      calc(100% - var(--page-gutter) - var(--page-gutter)),
+      var(--page-content)
+    );
+    max-width: var(--page-content);
+    padding-inline: 0;
+  }
+
+  /* All standard content sections share the same horizontal gutters. */
+  .section {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  /* Full-width colored/split sections whose content uses its own padding. */
+  .vietnamese-about-copy {
+    padding-left: var(--page-gutter);
+  }
+
+  .room-row {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  .story-opening-copy {
+    padding-right: var(--page-gutter);
+  }
+
+  .story-journey,
+  .careers-intro,
+  .careers-openings,
+  .careers-cta,
+  .career-detail-hero,
+  .career-detail-content,
+  .contact-overview,
+  .about-stats,
+  .booking-prototype-section {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  /* The right side of the split food identity section meets the shared edge. */
+  .menu-identity-copy {
+    padding-right: var(--page-gutter);
+  }
+}
+
+/* Main content frames that previously used inconsistent 1200/1250/1320/1450px widths. */
+.bestseller-grid,
+.rooms-preview,
+.carousel,
+.blog-heading,
+.blog-grid,
+.food-album,
+.experience-slider-heading,
+.experience-slider,
+.map-wide,
+.testimonials-slider,
+.menu-heading,
+.menu-tabs,
+.tabs,
+.dish-grid,
+.menu-catalog,
+.about-section-heading,
+.feature-grid,
+.offers-heading,
+.offer-filters,
+.offers-showcase,
+.offer-detail-header,
+.offer-detail-visual,
+.offer-benefits,
+.offer-terms,
+.contact-form-layout,
+.booking-prototype-heading,
+.booking-prototype-layout,
+.dish-breadcrumb,
+.dish-detail-hero,
+.dish-ingredients,
+.related-dishes,
+.room-detail-header,
+.detail-columns,
+.detail-gallery-section {
+  width: 100%;
+  max-width: var(--page-content);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Keep the customer review form and career detail blocks on that same frame. */
+.review-submit-section {
+  width: min(
+    calc(100% - var(--page-gutter) - var(--page-gutter)),
+    var(--page-content)
+  );
+  max-width: var(--page-content);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Slider arrows and their track now sit inside the header's left/right guides. */
+.carousel {
+  grid-template-columns: 45px minmax(0, 1fr) 45px;
+}
+
+.testimonials-slider {
+  display: block;
+}
+
+/* Footer content edges match the header logo and booking button exactly. */
+.footer-main,
+.footer-bottom {
+  width: min(
+    calc(100% - var(--page-gutter) - var(--page-gutter)),
+    var(--page-content)
+  );
+  max-width: var(--page-content);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 1050px) {
+  :root {
+    --page-gutter: 24px;
+  }
+
+  .footer-main,
+  .footer-bottom {
+    width: calc(100% - var(--page-gutter) - var(--page-gutter));
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --page-gutter: 22px;
+  }
+
+  .nav-shell {
+    width: 100%;
+    max-width: none;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .section {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  .review-submit-section {
+    width: calc(100% - var(--page-gutter) - var(--page-gutter));
+  }
+
+  .footer-main,
+  .footer-bottom {
+    width: calc(100% - var(--page-gutter) - var(--page-gutter));
+    padding-left: 0;
+    padding-right: 0;
   }
 }
