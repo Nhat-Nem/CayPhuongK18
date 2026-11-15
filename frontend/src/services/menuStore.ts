@@ -87,7 +87,7 @@ function normalizeMenuItem(row: BackendMenuItem): MenuDish {
     priceValue: Number.isFinite(amount) ? amount : 0,
     group: resolveGroup(categoryName),
     category: categoryName,
-    categoryId: String(row.category?.id ?? row.categoryId ?? ""),
+    categoryId: String(row.categoryId ?? row.category?.id ?? ""),
     description: String(row.description ?? "").trim(),
     ingredient: String(row.ingredient ?? "").trim(),
     custom: true,
@@ -119,6 +119,31 @@ export async function createMenuCategory(payload: {
 
   emitMenuUpdated()
   return normalizeCategory(row)
+}
+
+export async function updateMenuCategory(
+  id: string,
+  payload: { name: string; description?: string },
+): Promise<MenuCategory> {
+  const row = await apiRequest<BackendCategory | undefined>(
+    `${CATEGORY_API_PATH}/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: payload.name.trim(),
+        description: payload.description?.trim() || "",
+      }),
+    },
+  )
+
+  emitMenuUpdated()
+  return normalizeCategory(
+    row ?? {
+      id,
+      name: payload.name,
+      description: payload.description ?? "",
+    },
+  )
 }
 
 export async function deleteMenuCategory(id: string): Promise<void> {

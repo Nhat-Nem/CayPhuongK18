@@ -14,6 +14,7 @@ export default function MenuTabs() {
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [showAllMobileCategories, setShowAllMobileCategories] = useState(false)
 
   const refresh = async () => {
     setLoading(true)
@@ -24,7 +25,23 @@ export default function MenuTabs() {
         getMenuDishes(),
         getMenuCategories(),
       ])
-      setAllDishes(dishes)
+      const categoriesById = new Map(
+        categoryRows.map((category) => [category.id, category] as const),
+      )
+      setAllDishes(
+        dishes.map((dish) => {
+          const category = categoriesById.get(dish.categoryId)
+          if (!category) return dish
+
+          return {
+            ...dish,
+            category: category.name,
+            group: category.name.toLocaleLowerCase("vi").includes("tráng miệng")
+              ? ("Tráng miệng" as const)
+              : ("Món ăn" as const),
+          }
+        }),
+      )
       setCategories(categoryRows)
 
       if (tab !== "all" && !categoryRows.some((category) => category.id === tab)) {
@@ -63,7 +80,10 @@ export default function MenuTabs() {
         <p className="eyebrow">DANH MỤC THỰC ĐƠN</p>
         <h3>Hôm nay bạn muốn thưởng thức gì?</h3>
 
-        <div className="tabs menu-tabs" aria-label="Danh mục món ăn">
+        <div
+          className={`tabs menu-tabs${showAllMobileCategories ? " is-expanded" : ""}`}
+          aria-label="Danh mục món ăn"
+        >
           {tabs.map((category, index) => {
             const count =
               category.id === "all"
@@ -72,7 +92,7 @@ export default function MenuTabs() {
 
             return (
               <button
-                className={tab === category.id ? "active" : ""}
+                className={`${tab === category.id ? "active" : ""}${index >= 3 && tab !== category.id ? " menu-tab-extra" : ""}`}
                 onClick={() => setTab(category.id)}
                 aria-pressed={tab === category.id}
                 key={category.id}
@@ -83,6 +103,18 @@ export default function MenuTabs() {
               </button>
             )
           })}
+          {tabs.length > 3 && (
+            <button
+              className="menu-tabs-more"
+              type="button"
+              aria-expanded={showAllMobileCategories}
+              onClick={() => setShowAllMobileCategories((current) => !current)}
+            >
+              {showAllMobileCategories
+                ? "Thu gọn danh mục"
+                : `Xem thêm ${tabs.length - 3} danh mục`}
+            </button>
+          )}
         </div>
 
         <div className="menu-reservation-note">
