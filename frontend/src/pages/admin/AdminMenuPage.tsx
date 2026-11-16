@@ -7,6 +7,7 @@ import {
   deleteMenuDish,
   getMenuCategories,
   getMenuDishes,
+  updateMenuCategory,
   updateMenuDish,
   type MenuCategory,
   type MenuDish,
@@ -46,6 +47,11 @@ export default function AdminMenuPage() {
   const [categoryName, setCategoryName] = useState("")
   const [categoryDescription, setCategoryDescription] = useState("")
   const [categorySaving, setCategorySaving] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null)
+  const [categoryEditName, setCategoryEditName] = useState("")
+  const [categoryEditDescription, setCategoryEditDescription] = useState("")
+  const [categoryEditError, setCategoryEditError] = useState("")
+  const [categoryEditSaving, setCategoryEditSaving] = useState(false)
   const [processingImage, setProcessingImage] = useState(false)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -71,18 +77,25 @@ export default function AdminMenuPage() {
     void refresh()
   }, [])
 
+  const categoryNameById = useMemo(
+    () => new Map(categories.map((category) => [category.id, category.name] as const)),
+    [categories],
+  )
+
   const filtered = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase("vi")
 
-    return items.filter(
-      (item) =>
+    return items.filter((item) => {
+      const categoryName = categoryNameById.get(item.categoryId) ?? item.category
+      return (
         !keyword ||
-        [item.name, item.category, item.description]
+        [item.name, categoryName, item.description]
           .join(" ")
           .toLocaleLowerCase("vi")
-          .includes(keyword),
-    )
-  }, [items, query])
+          .includes(keyword)
+      )
+    })
+  }, [items, query, categoryNameById])
 
   const closeModal = () => {
     setOpen(false)
@@ -103,7 +116,10 @@ export default function AdminMenuPage() {
     setForm({
       name: item.name,
       price: String(item.priceValue),
-      categoryId: item.categoryId,
+      categoryId:
+        item.categoryId ||
+        categories.find((category) => category.name === item.category)?.id ||
+        "",
       description: item.description,
       ingredient: item.ingredient,
       image: item.image === "/assets/122ab.png" ? "" : item.image,
@@ -209,6 +225,58 @@ export default function AdminMenuPage() {
     }
   }
 
+  const openEditCategory = (category: MenuCategory) => {
+    setEditingCategory(category)
+    setCategoryEditName(category.name)
+    setCategoryEditDescription(category.description)
+    setCategoryEditError("")
+  }
+
+  const closeEditCategory = () => {
+    if (categoryEditSaving) return
+    setEditingCategory(null)
+    setCategoryEditName("")
+    setCategoryEditDescription("")
+    setCategoryEditError("")
+  }
+
+  const saveCategoryEdit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!editingCategory) return
+
+    const nextName = categoryEditName.trim()
+    if (!nextName) {
+      setCategoryEditError("Vui lòng nhập tên danh mục.")
+      return
+    }
+
+    setCategoryEditSaving(true)
+    setCategoryEditError("")
+
+    try {
+      await updateMenuCategory(editingCategory.id, {
+        name: nextName,
+        description: categoryEditDescription,
+      })
+      setEditingCategory(null)
+      setCategoryEditName("")
+      setCategoryEditDescription("")
+      await refresh()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Không thể cập nhật danh mục."
+      const routeNotAvailable =
+        /\b404\b|\b405\b|cannot\s+(?:patch|put)|not found/i.test(message)
+
+      setCategoryEditError(
+        routeNotAvailable
+          ? "Backend hiện chưa có API PATCH /api/v1/category/:id. Giao diện đã sẵn sàng; cần backend bổ sung API này để lưu thay đổi."
+          : message,
+      )
+    } finally {
+      setCategoryEditSaving(false)
+    }
+  }
+
   const removeCategory = async (category: MenuCategory) => {
     if (items.some((item) => item.categoryId === category.id)) {
       setError(`Danh mục “${category.name}” đang được món ăn sử dụng nên không thể xóa.`)
@@ -276,18 +344,31 @@ export default function AdminMenuPage() {
 
         <div className="admin-menu-category-list">
           {categories.map((category) => (
-            <div key={category.id}>
-              <div>
+            <div className="admin-menu-category-card" key={category.id}>
+              <div className="admin-menu-category-content">
                 <strong>{category.name}</strong>
                 <small>{category.description || "Không có mô tả"}</small>
               </div>
-              <button
-                type="button"
-                onClick={() => void removeCategory(category)}
-                title="Xóa danh mục"
-              >
-                ×
-              </button>
+              <div className="admin-menu-category-actions">
+                <button
+                  className="admin-menu-category-edit"
+                  type="button"
+                  onClick={() => openEditCategory(category)}
+                  title={`Sửa danh mục ${category.name}`}
+                  aria-label={`Sửa danh mục ${category.name}`}
+                >
+                  ✎
+                </button>
+                <button
+                  className="admin-menu-category-delete"
+                  type="button"
+                  onClick={() => void removeCategory(category)}
+                  title={`Xóa danh mục ${category.name}`}
+                  aria-label={`Xóa danh mục ${category.name}`}
+                >
+                  ×
+                </button>
+              </div>
             </div>
           ))}
 
@@ -338,7 +419,7 @@ export default function AdminMenuPage() {
                         </div>
                       </div>
                     </td>
-                    <td>{item.category}</td>
+                    <td>{categoryNameById.get(item.categoryId) ?? item.category}</td>
                     <td>{item.price}</td>
                     <td>{item.ingredient || "—"}</td>
                     <td>
@@ -500,6 +581,74 @@ export default function AdminMenuPage() {
                 </button>
                 <button className="admin-primary-button" type="submit" disabled={saving || processingImage}>
                   {saving ? "Đang lưu..." : processingImage ? "Đang xử lý ảnh..." : "Lưu món"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {editingCategory && (
+        <div
+          className="admin-room-modal-backdrop"
+          role="presentation"
+          onMouseDown={closeEditCategory}
+        >
+          <section
+            className="admin-room-modal admin-menu-modal admin-menu-category-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-menu-category-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <p className="admin-room-eyebrow">DANH MỤC MÓN ĂN</p>
+            <h2 id="admin-menu-category-modal-title">Chỉnh sửa danh mục</h2>
+
+            <form className="admin-room-form admin-menu-form" onSubmit={saveCategoryEdit}>
+              <label>
+                <span>Tên danh mục *</span>
+                <input
+                  autoFocus
+                  required
+                  maxLength={120}
+                  value={categoryEditName}
+                  onChange={(event) => setCategoryEditName(event.target.value)}
+                  placeholder="Nhập tên danh mục"
+                />
+              </label>
+
+              <label>
+                <span>Mô tả</span>
+                <textarea
+                  rows={4}
+                  maxLength={500}
+                  value={categoryEditDescription}
+                  onChange={(event) => setCategoryEditDescription(event.target.value)}
+                  placeholder="Mô tả ngắn cho danh mục (không bắt buộc)"
+                />
+              </label>
+
+              {categoryEditError && (
+                <div className="admin-room-form-notice error" role="alert">
+                  ⚠ {categoryEditError}
+                </div>
+              )}
+
+              <div className="admin-room-modal-actions">
+                <button
+                  className="admin-secondary-button"
+                  type="button"
+                  onClick={closeEditCategory}
+                  disabled={categoryEditSaving}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="admin-primary-button"
+                  type="submit"
+                  disabled={categoryEditSaving}
+                >
+                  {categoryEditSaving ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </div>
             </form>

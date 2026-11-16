@@ -36,6 +36,8 @@ export default function AdminRoomsPage() {
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<"ALL" | RoomStatus>("ALL")
   const [roomToDelete, setRoomToDelete] = useState<RoomPrototype | null>(null)
+  const [deleteError, setDeleteError] = useState("")
+  const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [notice, setNotice] = useState(initialNotice)
   const [loading, setLoading] = useState(true)
@@ -75,13 +77,31 @@ export default function AdminRoomsPage() {
   }, [query, rooms, status])
 
   const confirmDelete = async (room: RoomPrototype) => {
+    setDeleteError("")
+    setDeletingRoomId(room.id)
+
     try {
       await deleteRoom(room.id)
       setRoomToDelete(null)
       setNotice(`Đã xóa ${room.code} khỏi database.`)
       await loadRooms()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể xóa phòng")
+      const message = err instanceof Error ? err.message : "Không thể xóa phòng."
+      const normalizedMessage = message.toLocaleLowerCase("vi")
+      const hasRelatedRecords = [
+        "foreign key",
+        "constraint fails",
+        "cannot delete or update a parent row",
+        "er_row_is_referenced",
+      ].some((keyword) => normalizedMessage.includes(keyword))
+
+      setDeleteError(
+        hasRelatedRecords
+          ? "Không thể xóa phòng này vì phòng đã có dữ liệu lưu trú liên quan. Để giữ lịch sử đặt phòng và lưu trú, hãy đóng hộp thoại rồi chuyển trạng thái phòng sang Tạm ngưng."
+          : message,
+      )
+    } finally {
+      setDeletingRoomId(null)
     }
   }
 
@@ -229,7 +249,10 @@ export default function AdminRoomsPage() {
                         <button
                           className="admin-icon-button danger"
                           type="button"
-                          onClick={() => setRoomToDelete(room)}
+                          onClick={() => {
+                            setDeleteError("")
+                            setRoomToDelete(room)
+                          }}
                           aria-label={`Xóa ${room.name}`}
                           title="Xóa phòng"
                         >
@@ -273,7 +296,13 @@ export default function AdminRoomsPage() {
 
       <DeleteRoomDialog
         room={roomToDelete}
-        onCancel={() => setRoomToDelete(null)}
+        error={deleteError}
+        isDeleting={deletingRoomId !== null && deletingRoomId === roomToDelete?.id}
+        onCancel={() => {
+          if (deletingRoomId !== null) return
+          setRoomToDelete(null)
+          setDeleteError("")
+        }}
         onConfirm={(room) => void confirmDelete(room)}
       />
     </AdminRoomLayout>

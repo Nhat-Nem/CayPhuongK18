@@ -1046,3 +1046,37 @@ button,
   .blog-grid { grid-template-columns: repeat(2, 1fr); }
   .blog-heading { flex-direction: column; align-items: flex-start; gap: 14px; }
 }
+
+/* Keep the menu category list compact on phones while preserving access to every category. */
+.menu-catalog-nav .menu-tabs .menu-tabs-more { display: none; }
+
+@media (max-width: 700px) {
+  .menu-catalog-nav .menu-tabs:not(.is-expanded) .menu-tab-extra {
+    display: none;
+  }
+
+  .menu-catalog-nav .menu-tabs .menu-tabs-more {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 0;
+    border-top: 1px solid #70463a22;
+    border-radius: 0;
+    background: #f7f2e8;
+    color: #23487a;
+    font-family: "Montserrat:Medium", sans-serif;
+    font-size: .72rem;
+    letter-spacing: .02em;
+    text-align: center;
+    text-transform: none;
+  }
+
+  .menu-catalog-nav .menu-tabs .menu-tabs-more:hover {
+    background: #eee5d7;
+    color: #70463a;
+    transform: none;
+  }
+}
