@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { RoomsLogger } from './rooms.logger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Room } from './entities/room.entity';
@@ -77,6 +77,7 @@ export class RoomsService {
     }
 
     // Xóa phòng
+    // Condition: Chi xoa dc phong neu chua co lich sử sử dụng
     async deleteRoom(id: number) {
         const room = await this.roomRepository.findOneBy({ id })
 
@@ -84,6 +85,17 @@ export class RoomsService {
             throw new NotFoundException(`Room with id ${id} not found`)
         }
 
+        // Check if the room has a history of previous stays
+        const hasRoomStay = await this.roomRepository.manager
+            .getRepository('room_stays')
+            .createQueryBuilder('roomStay')
+            .where('roomStay.room_id = :id', { id })
+            .getExists()
+
+        if (hasRoomStay) {
+            throw new BadRequestException(`Cannot Delete this room because it has stay history. Please deactivate it instead`)
+        }
+        
         await this.roomRepository.remove(room)
 
         // Log ra console -> LOG: Delete room 'id' ... 
