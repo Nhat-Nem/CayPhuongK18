@@ -109,15 +109,14 @@ export class MenuItemsService {
   async remove(id: string) {
     const item = await this.findOne(id);
 
-    this.menuItemLogger.log(`Delete menu item by id ${id} successfully at ${this.getCurrentTime()}`)
-
     try {
       await this.menuItemRepository.remove(item);
+
+      this.menuItemLogger.log(`Delete menu item by id ${id} successfully at ${this.getCurrentTime()}`)
+
       return { message: 'Delete menu item successfully' };
     } catch {
-      throw new BadRequestException(
-        'Cannot delete a dish that is currently being used in an order or promotion.',
-      );
+      throw new BadRequestException('Cannot delete a dish that is currently being used in an order or promotion.',);
     }
   }
 }
