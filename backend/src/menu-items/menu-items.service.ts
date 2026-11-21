@@ -90,7 +90,8 @@ export class MenuItemsService {
         throw new BadRequestException('Category Not Found');
       }
 
-      item.categoryId = category.id;
+      item.category = category
+      item.categoryId = category.id
     }
 
     if (dto.name !== undefined) item.name = dto.name;
