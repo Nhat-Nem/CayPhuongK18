@@ -92,7 +92,7 @@ export class OrdersService {
             totalAmount: '0.00'
         }) 
 
-        const result = await this.orderItemRepository.save(order)
+        const result = await this.orderRepository.save(order)
 
         this.ordersLogger.log(`Create order ID ${result.id} (${result.code}) successfully at ${this.getCurrentTime()}`)
 
@@ -273,7 +273,7 @@ export class OrdersService {
 
         order.status = dto.status
 
-        const result = await this.orderItemRepository.save(order)
+        const result = await this.orderRepository.save(order)
 
         this.ordersLogger.log(`Update order ID ${id} status from ${oldStatus} to ${dto.status} successfully at ${this.getCurrentTime()}`)
 
