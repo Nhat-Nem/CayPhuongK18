@@ -35,7 +35,7 @@ export class GalleryService {
 
     // Admin: thêm ảnh
     async create(dto: CreateGalleryDto) {
-        const image = await this.galleryRepository.create(dto)
+        const image = this.galleryRepository.create(dto)
 
         return this.galleryRepository.save(image)
     }

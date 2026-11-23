@@ -75,7 +75,7 @@ import { GalleryModule } from './gallery/gallery.module';
             : {}),
 
           autoLoadEntities: true,
-          synchronize: true,
+          synchronize: false,
         };
       },
     }),
