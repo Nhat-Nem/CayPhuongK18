@@ -32,8 +32,6 @@ export class ContactService {
             throw new NotFoundException("Contact setting not found")
         }   
 
-        this.contactLogger.log(`Get contact setting successfully at ${this.getCurrentTime()}`)
-
         return setting
     }
 

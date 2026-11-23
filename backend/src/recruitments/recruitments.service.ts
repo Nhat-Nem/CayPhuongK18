@@ -24,8 +24,6 @@ export class RecruitmentsService {
 
     // lay tat ca
     async findAll() {
-        this.recruitmentLogger.log(`Get all recruitments sucessfully at ${this.getCurrentTime()}`)
-
         return this.recruitmentReposiroty.find({
             order: { createdAt: "DESC" }
         })
@@ -41,8 +39,6 @@ export class RecruitmentsService {
             throw new NotFoundException("Recruitment Not Found")
         }
 
-        this.recruitmentLogger.log(`Get recruiments id ${id} successfully at ${this.getCurrentTime()}`)
-
         return recruiment
     }
 
@@ -53,9 +49,11 @@ export class RecruitmentsService {
             employmentType: dto.employment_type
         })
 
-        this.recruitmentLogger.log(`Create recruitment successfully at ${this.getCurrentTime()}`)
+        const result = await this.recruitmentReposiroty.save(recruitment)
+
+        this.recruitmentLogger.log(`Create recruitment ID ${result.id} successfully at ${this.getCurrentTime()}`)
         
-        return this.recruitmentReposiroty.save(recruitment)
+        return result
     }
 
     // Update
@@ -72,9 +70,11 @@ export class RecruitmentsService {
                 dto.employment_type ?? recruitment.employmentType
         })
 
-        this.recruitmentLogger.log(`Update recruitment successfully at ${this.getCurrentTime()}`)
+        const result = await this.recruitmentReposiroty.save(recruitment)
 
-        return this.recruitmentReposiroty.save(recruitment)
+        this.recruitmentLogger.log(`Update recruitment ID ${id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Remove
@@ -87,7 +87,7 @@ export class RecruitmentsService {
 
         await this.recruitmentReposiroty.remove(recruitment)
 
-        this.recruitmentLogger.log(`Delete recruitment successfully`)
+        this.recruitmentLogger.log(`Delete recruitment ID ${id} successfully at ${this.getCurrentTime()}`)
 
         return { message: "Delete recruitment successfully" }
     }

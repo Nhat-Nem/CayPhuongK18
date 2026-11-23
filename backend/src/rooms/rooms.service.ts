@@ -24,8 +24,6 @@ export class RoomsService {
 
     // Lấy tất cả phòng
     async getAllRooms() {
-        // Log ra console -> LOG: Get all rooms...
-        this.roomsLogger.log(`Get all rooms at ${this.getCurrentTime()}`)
         return await this.roomRepository.find();
     }
 
@@ -37,9 +35,6 @@ export class RoomsService {
             throw new NotFoundException(`Room with id ${id} not found`)
         }
 
-        // Log ra console -> LOG: Get room 'id' ... 
-        this.roomsLogger.log(`Get room id ${id} successfully at ${this.getCurrentTime()}`)
-
         return room
     }
 
@@ -48,10 +43,12 @@ export class RoomsService {
     async createRoom(createRoomDto: CreateRoomDTO) {
         const room = this.roomRepository.create(createRoomDto)
 
-        // Log ra console -> LOG: Create room... 
-        this.roomsLogger.log(`Create room successfully at ${this.getCurrentTime()}`)
+        const result = await this.roomRepository.save(room)
 
-        return await this.roomRepository.save(room)
+        // Log ra console -> LOG: Create room... 
+        this.roomsLogger.log(`Create room ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Cập nhật phòng
@@ -70,7 +67,7 @@ export class RoomsService {
         const updatedRoom = await this.roomRepository.save(room);
 
         this.roomsLogger.log(
-            `Update room id ${id} successfully at ${this.getCurrentTime()}`
+            `Update room ID ${id} successfully at ${this.getCurrentTime()}`
         );
 
         return updatedRoom;
@@ -99,7 +96,7 @@ export class RoomsService {
         await this.roomRepository.remove(room)
 
         // Log ra console -> LOG: Delete room 'id' ... 
-        this.roomsLogger.log(`Delete room ${id} successfully at ${this.getCurrentTime()}`);
+        this.roomsLogger.log(`Delete room ID ${id} successfully at ${this.getCurrentTime()}`);
 
         return {
             message: `Room with id ${id} deleted successfully`

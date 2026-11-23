@@ -8,6 +8,7 @@ import { WalkInVisit } from '../walk-in-visits/entities/walk-in-visit.entity';
 import { DataSource } from 'typeorm';
 import { CreateRoomStayDto } from './dto/create-room-stay.dto';
 import { CheckoutRoomStayDto } from './dto/checkout-room-stay.dto';
+import { RoomStaysLogger } from './room-stays.logger';
 
 @Injectable()
 export class RoomStaysService {
@@ -25,8 +26,16 @@ export class RoomStaysService {
         private readonly walkInVisitRepository: Repository<WalkInVisit>,
 
         @InjectDataSource()
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+
+        private readonly roomStaysLogger: RoomStaysLogger
     ) {}
+
+    private getCurrentTime() {
+        return new Date().toLocaleString("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh"
+        });
+    }
 
     async findAll() {
         return this.roomStayRepository.find({
@@ -34,6 +43,8 @@ export class RoomStaysService {
             order: { createdAt: 'DESC' },
         })
     }
+
+    
 
     // Check in
     async checkIn(dto: CreateRoomStayDto) {
@@ -44,7 +55,7 @@ export class RoomStaysService {
             throw new BadRequestException("Exactly one of the following two IDs must be provided: bookingRequestId or walkInVisitId")
         }
 
-        return this.dataSource.transaction(async (manager) => {
+        const savedStay = await this.dataSource.transaction(async (manager) => {
             const roomRepository = manager.getRepository(Room)
             const stayRepository = manager.getRepository(RoomStay)
             const bookingRepository = manager.getRepository(RoomBookingRequest)
@@ -147,10 +158,16 @@ export class RoomStaysService {
 
             return savedStay;
         })
+
+        this.roomStaysLogger.log(
+            `Check-in room stay ID ${savedStay.id}, room ID ${savedStay.roomId} successfully at ${this.getCurrentTime()}`
+        );
+
+        return savedStay
     }
 
     async checkOut(id: string, dto: CheckoutRoomStayDto) {
-        return this.dataSource.transaction(async (manager) => {
+        const savedStay = await this.dataSource.transaction(async (manager) => {
             const stayRepository = manager.getRepository(RoomStay)
 
             const stay = await stayRepository.findOne({
@@ -199,5 +216,11 @@ export class RoomStaysService {
 
             return savedStay
         })
+
+        this.roomStaysLogger.log(
+            `Check-out room stay ID ${savedStay.id}, room ID ${savedStay.roomId}, amount ${savedStay.totalAmount}, payment method ${savedStay.paymentMethod} successfully at ${this.getCurrentTime()}`
+        );
+
+        return savedStay;
     }
 }

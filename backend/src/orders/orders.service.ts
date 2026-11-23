@@ -12,6 +12,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
 import { DataSource } from 'typeorm';
+import { OrdersLogger } from './orders.logger';
 
 @Injectable()
 export class OrdersService {
@@ -25,8 +26,17 @@ export class OrdersService {
         @InjectRepository(MenuItem)
         private readonly menuItemRepository: Repository<MenuItem>,
 
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+
+        private readonly ordersLogger: OrdersLogger
     ) {}
+
+    // Lấy thời gian hiện tại
+    private getCurrentTime() {
+        return new Date().toLocaleString("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh"
+        })
+    }
 
     // Tìm đơn hàng
     async findOne(id: string) {
@@ -42,7 +52,7 @@ export class OrdersService {
         return order
     }
 
-    // Tính lại tổng tìn6
+    // Tính lại tổng tiền
     private async recalculateTotal(orderId: string) {
         const items = await this.orderItemRepository.find({
             where: { orderId }
@@ -82,7 +92,11 @@ export class OrdersService {
             totalAmount: '0.00'
         }) 
 
-        return this.orderRepository.save(order)
+        const result = await this.orderItemRepository.save(order)
+
+        this.ordersLogger.log(`Create order ID ${result.id} (${result.code}) successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Thêm món vào đơn
@@ -107,7 +121,11 @@ export class OrdersService {
         await this.orderItemRepository.save(item)
         await this.recalculateTotal(orderId)
 
-        return this.findOne(orderId)
+        const result = await this.findOne(orderId)
+
+        this.ordersLogger.log(`Add menu item ID ${dto.menuItemId} to order ID ${orderId} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Thay đổi số lượng
@@ -126,12 +144,18 @@ export class OrdersService {
             throw new NotFoundException("Item not found in the order")
         }
 
+        const oldQuantity = item.quantity
+
         item.quantity = dto.quantity
 
         await this.orderItemRepository.save(item)
         await this.recalculateTotal(orderId)
 
-        return this.findOne(orderId)
+        const result = await this.findOne(orderId)
+
+        this.ordersLogger.log(`Update order item ${itemId} quantity from ${oldQuantity} to ${dto.quantity} in order ${orderId} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Xoa mon khỏi đơn
@@ -149,7 +173,11 @@ export class OrdersService {
         await this.orderItemRepository.remove(item)
         await this.recalculateTotal(orderId)
 
-        return this.findOne(orderId)
+        const result = await this.findOne(orderId)
+
+        this.ordersLogger.log(`Remove order item ${itemId} from order ${orderId} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Update note
@@ -163,7 +191,11 @@ export class OrdersService {
             note: dto.note ?? null
         })
 
-        return this.findOne(orderId)
+        const result = await this.findOne(orderId)
+
+        this.ordersLogger.log(`Update note for order ID ${orderId} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Update đơn
@@ -181,7 +213,11 @@ export class OrdersService {
 
         await this.orderRepository.save(order)
 
-        return this.findOne(id)
+        const result = await this.findOne(id)
+
+        this.ordersLogger.log(`Update order ID ${id} successfullt at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Xem danh sách đơn hàng
@@ -233,14 +269,20 @@ export class OrdersService {
             throw new BadRequestException("Cannot complete an empty order")
         }
 
+        const oldStatus = order.status
+
         order.status = dto.status
 
-        return this.orderRepository.save(order)
+        const result = await this.orderItemRepository.save(order)
+
+        this.ordersLogger.log(`Update order ID ${id} status from ${oldStatus} to ${dto.status} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Ghi nhan thanh toan
     async recordPayment(id: string, dto: RecordOrderPaymentDto) {
-        return this.dataSource.transaction(async (manager) => {
+        const result = await this.dataSource.transaction(async (manager) => {
             const orderRepo = manager.getRepository(Order)
 
             // Khoa ban ghi order trog xu li
@@ -275,5 +317,9 @@ export class OrdersService {
 
             return orderRepo.save(order)
         })
+
+        this.ordersLogger.log(`Record payment for order ID ${id} using ${dto.paymentMethod} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 }

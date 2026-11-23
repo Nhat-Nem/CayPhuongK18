@@ -22,12 +22,12 @@ export class CategoryService {
     }
 
     // Tim het
-    findAll() {
-        this.categoryLogger.log(`Get all category successfully at ${this.getCurrentTime()}`)
-
-        return this.categoryReposiroty.find({
+    async findAll() {
+        const categories = await this.categoryReposiroty.find({
             order: { id: "ASC" }
         })
+
+        return categories
     }
 
     // Tao danh muc
@@ -37,9 +37,11 @@ export class CategoryService {
             description: dto.description
         }) 
 
-        this.categoryLogger.log(`Create category successfully at ${this.getCurrentTime()}`)
+        const result = await this.categoryReposiroty.save(category)
 
-        return this.categoryReposiroty.save(category)
+        this.categoryLogger.log(`Create category ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Xoa danh muc
@@ -52,7 +54,7 @@ export class CategoryService {
 
         await this.categoryReposiroty.remove(category)
 
-        this.categoryLogger.log(`Delete category successfully at ${this.getCurrentTime()}`)
+        this.categoryLogger.log(`Delete category ID ${id} successfully at ${this.getCurrentTime()}`)
 
         return { message: "Delete category successfully" }
     }

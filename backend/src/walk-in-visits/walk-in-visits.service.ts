@@ -23,8 +23,6 @@ export class WalkInVisitsService {
 
     // tim het
     async findAll() {
-        this.walkInLogger.log(`GET all walk in visits at ${this.getCurrentTime()}`)
-
         return this.walkInVisitRepository.find({
             order: {createdAt: "DESC"}
         })
@@ -45,12 +43,18 @@ export class WalkInVisitsService {
                 throw new BadRequestException("Trạng thái không hợp lệ")
             }
 
+            const oldStatus = visit.status
+
             visit.status = data.status
+
+            const result = await this.walkInVisitRepository.save(visit)
+
+            this.walkInLogger.log(`Update walk in visit ID ${id} status from ${oldStatus} to ${data.status} successfully at ${this.getCurrentTime()}`)
+
+            return result
         }
 
-        this.walkInLogger.log(`Update walk in visit successfully at ${this.getCurrentTime()}`)
-
-        return this.walkInVisitRepository.save(visit)
+        return visit
     }
 
     // xoa
@@ -61,7 +65,7 @@ export class WalkInVisitsService {
             throw new NotFoundException("Không tìm thấy lượt khách")
         }
 
-        this.walkInLogger.log(`Delete walk in visit successfully at ${this.getCurrentTime()}`)
+        this.walkInLogger.log(`Delete walk in visit ID ${id} successfully at ${this.getCurrentTime()}`)
 
         return { message: "Xoá thành công" }
     }
@@ -81,8 +85,10 @@ export class WalkInVisitsService {
             roomId: dto.serviceType === "ROOM" ? dto.roomId : null
         })
 
+        const result = await this.walkInVisitRepository.save(visit)
+
         this.walkInLogger.log(`Create Walk In Visit successfully at ${this.getCurrentTime()}`)
         
-        return this.walkInVisitRepository.save(visit)
+        return result
     }
 }
