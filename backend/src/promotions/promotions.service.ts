@@ -31,8 +31,6 @@ export class PromotionsService {
 
     // Tim tat ca
     async findAll() {
-        this.promotionsLogger.log(`Get all promotions successfully at ${this.getCurrentTime()}`)
-
         return this.promotionRepository.find({
             order: { id: "DESC" }
         })
@@ -46,8 +44,6 @@ export class PromotionsService {
             throw new NotFoundException("Cannot Found This Promotion")
         }
 
-        this.promotionsLogger.log(`Get promotion ${id} successfully at ${this.getCurrentTime()}`)
-
         return promotion
     }
 
@@ -57,9 +53,11 @@ export class PromotionsService {
 
         const promotion = this.promotionRepository.create(dto)
 
-        this.promotionsLogger.log(`Create promotion successfully at ${this.getCurrentTime()}`)
+        const result = await this.promotionRepository.save(promotion)
 
-        return this.promotionRepository.save(promotion)
+        this.promotionsLogger.log(`Create promotion ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Update
@@ -79,9 +77,11 @@ export class PromotionsService {
 
         Object.assign(promotion, dto)
 
-        this.promotionsLogger.log(`Update promotuon ${id} successfully at ${this.getCurrentTime()}`)
+        const result = await this.promotionRepository.save(promotion)
 
-        return this.promotionRepository.save(promotion)
+        this.promotionsLogger.log(`Update promotuon ID ${id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Delete
@@ -93,6 +93,10 @@ export class PromotionsService {
         }
 
         await this.promotionRepository.remove(promotion)
+
+        this.promotionsLogger.log(
+            `Delete promotion ID ${id} successfully at ${this.getCurrentTime()}`
+        )
 
         return { message: "Delete promotion successfully" }
     }

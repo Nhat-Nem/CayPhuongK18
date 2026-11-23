@@ -28,8 +28,6 @@ export class MenuItemsService {
 
   // Tim het
   async findAll() {
-    this.menuItemLogger.log(`Get all menu items successfully at ${this.getCurrentTime()}`)
-
     return this.menuItemRepository.find({
       relations: { category: true },
       order: { createdAt: 'DESC' },
@@ -72,9 +70,11 @@ export class MenuItemsService {
       categoryId: category.id,
     });
 
-    this.menuItemLogger.log(`Create menu items successfully at ${this.getCurrentTime()}`)
+    const result = await this.menuItemRepository.save(item)
 
-    return this.menuItemRepository.save(item);
+    this.menuItemLogger.log(`Create menu items ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+    return result
   }
 
   // Sua
@@ -100,9 +100,11 @@ export class MenuItemsService {
     if (dto.ingredient !== undefined) item.ingredient = dto.ingredient;
     if (dto.image !== undefined) item.image = dto.image;
 
-    this.menuItemLogger.log(`Updaye menu item by id ${id} successfully at ${this.getCurrentTime()}`)
+    const result = await this.menuItemRepository.save(item)
 
-    return this.menuItemRepository.save(item);
+    this.menuItemLogger.log(`Update menu item ID ${id} successfully at ${this.getCurrentTime()}`)
+
+    return result
   }
 
   // Xoa
@@ -112,7 +114,7 @@ export class MenuItemsService {
     try {
       await this.menuItemRepository.remove(item);
 
-      this.menuItemLogger.log(`Delete menu item by id ${id} successfully at ${this.getCurrentTime()}`)
+      this.menuItemLogger.log(`Delete menu item ID ${id} successfully at ${this.getCurrentTime()}`)
 
       return { message: 'Delete menu item successfully' };
     } catch {

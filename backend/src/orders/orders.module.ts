@@ -6,6 +6,7 @@ import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { MenuItem } from '../menu-items/entities/menu-item.entity';
 import { AuthModule } from '../auth/auth.module';
+import { OrdersLogger } from './orders.logger';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { AuthModule } from '../auth/auth.module';
   ],
 
   controllers: [OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, OrdersLogger],
   exports: [OrdersService]
 })
 export class OrdersModule {}

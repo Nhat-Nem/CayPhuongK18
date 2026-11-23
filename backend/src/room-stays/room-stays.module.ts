@@ -7,6 +7,7 @@ import { Room } from '../rooms/entities/room.entity';
 import { RoomBookingRequest } from '../room-booking-requests/entities/room-booking-request.entity';
 import { WalkInVisit } from '../walk-in-visits/entities/walk-in-visit.entity';
 import { AuthModule } from '../auth/auth.module';
+import { RoomStaysLogger } from './room-stays.logger';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AuthModule } from '../auth/auth.module';
     AuthModule
   ],
 
-  providers: [RoomStaysService],
+  providers: [RoomStaysService, RoomStaysLogger],
   controllers: [RoomStaysController],
   exports: [RoomStaysService]
 })

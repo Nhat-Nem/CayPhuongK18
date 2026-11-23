@@ -24,8 +24,6 @@ export class ReviewsService {
 
     // Lay het
     async findAll() {
-        this.reviewLogger.log(`Get all reviews successfully at ${this.getCurrentTime()}`)
-
         return this.reviewRepository.find({
             order: { createdAt: "DESC" }
         })
@@ -35,9 +33,11 @@ export class ReviewsService {
     async create(dto: CreateReviewDto) {
         const review = this.reviewRepository.create(dto)
 
-        this.reviewLogger.log(`Create review successfully at ${this.getCurrentTime()}`)
+        const result = await this.reviewRepository.save(review)
 
-        return this.reviewRepository.save(review)
+        this.reviewLogger.log(`Create review ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // Xoa danh gia
@@ -52,7 +52,7 @@ export class ReviewsService {
 
         await this.reviewRepository.remove(review)
 
-        this.reviewLogger.log(`Delete review ${id} successfullt at ${this.getCurrentTime()}`)
+        this.reviewLogger.log(`Delete review ID ${id} successfullt at ${this.getCurrentTime()}`)
         
         return { message: "Xoa danh gia thanh cong" }
     }
@@ -67,11 +67,13 @@ export class ReviewsService {
             throw new NotFoundException("No reviews found")
         }
 
+        const oldStatus = review.isFeatured
+
         review.isFeatured = dto.isFeatured
 
-        await this.reviewRepository.save(review)
+        const result = await this.reviewRepository.save(review)
 
-        this.reviewLogger.log(`Update feature status of review ${id} successfully at ${this.getCurrentTime()}`)
+        this.reviewLogger.log(`Update feature status of review ID ${id} from ${oldStatus} to ${dto.isFeatured} successfully at ${this.getCurrentTime()}`)
         
         return review
     }

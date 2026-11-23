@@ -24,11 +24,11 @@ export class RoomBookingRequestsService {
 
     // Lay het
     async findAll() {
-        this.roomBookingLogger.log(`Get all room booking request successfully at ${this.getCurrentTime()}`)
-
-        return this.roomBookingRequestRepository.find({
+        const requests = await this.roomBookingRequestRepository.find({
             order: { createdAt: "DESC" }
         })
+
+        return requests
     }
 
     // Tao 
@@ -38,9 +38,11 @@ export class RoomBookingRequestsService {
             status: "PENDING"
         })
 
-        this.roomBookingLogger.log(`Create Room Booking Request successfully at ${this.getCurrentTime()}`)
+        const result = await this.roomBookingRequestRepository.save(request)
+
+        this.roomBookingLogger.log(`Create room booking request successfully at ${this.getCurrentTime()}`)
         
-        return this.roomBookingRequestRepository.save(request)
+        return result
     }
 
     // Cap nhat trang thai
@@ -62,7 +64,7 @@ export class RoomBookingRequestsService {
 
         const result = await this.roomBookingRequestRepository.save(request)
 
-        this.roomBookingLogger.log(`Update room booking request ${id} successfully at ${this.getCurrentTime()}`)
+        this.roomBookingLogger.log(`Update room booking request ${id} status to ${status} successfully at ${this.getCurrentTime()}`)
     
         return result
     }

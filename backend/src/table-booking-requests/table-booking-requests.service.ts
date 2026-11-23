@@ -23,9 +23,7 @@ export class TableBookingRequestsService {
     }
 
     // Lấy all booking
-    findAll() {
-        this.tableBookingLogger.log(`Get all table booking request at ${this.getCurrentTime()}`)
-
+    async findAll() {
         return this.tableBookingRequestRepository.find({
             order: { createdAt: "DESC" }
         })
@@ -37,9 +35,11 @@ export class TableBookingRequestsService {
             ...dto, status: TableBookingStatus.PENDING
         })
 
-        this.tableBookingLogger.log(`Create Table Booking Request successfully at ${this.getCurrentTime()}`)
+        const result = await this.tableBookingRequestRepository.save(request)
 
-        return this.tableBookingRequestRepository.save(request)
+        this.tableBookingLogger.log(`Create Table Booking Request ID ${result.id} successfully at ${this.getCurrentTime()}`)
+
+        return result
     }
 
     // update trang thai
@@ -52,10 +52,14 @@ export class TableBookingRequestsService {
             throw new NotFoundException("Table Booking Request Not Found")
         }
 
+        const oldStatus = request.status
+
         request.status = dto.status
 
-        this.tableBookingLogger.log(`Update Table Booking Request ${id} status to ${dto.status} at ${this.getCurrentTime()}`)
+        const result = await this.tableBookingRequestRepository.save(request)
 
-        return this.tableBookingRequestRepository.save(request)
+        this.tableBookingLogger.log(`Update Table Booking Request ID ${id} status from ${oldStatus} to ${dto.status} at ${this.getCurrentTime()}`)
+
+        return result
     }
 }
