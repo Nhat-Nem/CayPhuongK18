@@ -37,7 +37,7 @@ export class GalleryController {
     // Admin: update
     @Patch(":id")
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles("ADMIn")
+    @Roles("ADMIN")
     update(
         @Param('id') id: string,
         @Body() dto: UpdateGalleryDto
