@@ -32,7 +32,7 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`Server is runng at: localhost:${port}/api/v1`);
+  console.log(`Server is runng at: /api/v1`);
   // Check Connect DB thành công hay không
   const dataSource = app.get(DataSource);
 
