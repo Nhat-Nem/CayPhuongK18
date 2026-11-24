@@ -71,8 +71,10 @@ export class OrdersService {
     private async getEditableOrder(id: string) {
         const order = await this.findOne(id)
 
-        if (order.status !== OrderStatus.PENDING) {
-            throw new BadRequestException("Only orders pending processing can be edited")
+        if (order.status === OrderStatus.COMPLETED || 
+            order.status === OrderStatus.CANCELLED 
+        ) {
+            throw new BadRequestException(`Completed or cancelled orders cannot be edited`)
         }
 
         // k cho edit don da thanh toan
@@ -85,9 +87,18 @@ export class OrdersService {
 
     // Tạo đơn hàng
     async create(dto: CreateOrderDto) {
+        const hasTable = !!dto.tableNumber?.trim()
+        const hasRoom = !!dto.roomNumber?.trim()
+
+        if (hasTable === hasRoom) {
+            throw new BadRequestException(`You must either table number or room number`)
+        }
+    
         const order = this.orderRepository.create({
             code: `ORD-${Date.now()}`,
             note: dto.note ?? null,
+            tableNumber: hasTable ? dto.tableNumber?.trim() : null,
+            roomNumber: hasRoom ? dto.roomNumber?.trim() : null,
             status: OrderStatus.PENDING,
             totalAmount: '0.00'
         }) 
@@ -200,14 +211,7 @@ export class OrdersService {
 
     // Update đơn
     async update(id: string, dto: UpdateOrderDto) {
-        const order = await this.findOne(id)
-
-        if (
-            order.status === OrderStatus.COMPLETED ||
-            order.status === OrderStatus.CANCELLED
-        ) {
-            throw new BadRequestException("Orders that have been completed or cancelled cannot be modified.")
-        }
+        const order = await this.getEditableOrder(id)
 
         Object.assign(order, dto)
 

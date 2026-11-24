@@ -30,6 +30,12 @@ export class Order {
     @Column({ type: "text", nullable: true })
     note: string | null
 
+    @Column({ name: 'table_number', type: 'varchar', length: 20, nullable: true })
+    tableNumber: string | null
+
+    @Column({ name: 'room_number', type: 'varchar', length: 20, nullable: true })
+    roomNumber: string | null
+
     @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.PENDING  })
     status: OrderStatus
 
