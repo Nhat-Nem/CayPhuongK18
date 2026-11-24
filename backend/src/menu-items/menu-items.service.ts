@@ -109,16 +109,49 @@ export class MenuItemsService {
 
   // Xoa
   async remove(id: string) {
-    const item = await this.findOne(id);
+    const item = await this.menuItemRepository.findOne({
+      where: { id },
+      withDeleted: true
+    });
 
-    try {
-      await this.menuItemRepository.remove(item);
+   if (!item) {
+    throw new NotFoundException(`Menu Item Not Found`)
+   }
 
-      this.menuItemLogger.log(`Delete menu item ID ${id} successfully at ${this.getCurrentTime()}`)
+   if (item.deletedAt) {
+    throw new BadRequestException(`Menu Item has already been deleted`)
+   }
 
-      return { message: 'Delete menu item successfully' };
-    } catch {
-      throw new BadRequestException('Cannot delete a dish that is currently being used in an order or promotion.',);
+   await this.menuItemRepository.softDelete(id)
+
+   this.menuItemLogger.log(`Soft delete menu item ID ${id} successfully at ${this.getCurrentTime()}`)
+
+   return {
+      message: 'Delete menu item successfully'
+    };
+  }
+
+  // Restore
+  async restore(id: string) {
+    const item = await this.menuItemRepository.findOne({
+      where: { id },
+      withDeleted: true
+    })
+
+    if (!item) {
+      throw new NotFoundException(`Menu Items Not Found`)
+    }
+
+    if (!item.deletedAt) {
+      throw new BadRequestException(`Menu Items Not Found`)
+    }
+
+    await this.menuItemRepository.restore(id)
+
+    this.menuItemLogger.log(`Restore menu item ID ${id} successfully at ${this.getCurrentTime()}`)
+
+    return {
+      message: "Restore menu items successfully"
     }
   }
 }
