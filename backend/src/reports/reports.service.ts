@@ -26,6 +26,7 @@ export class ReportsService {
     async getFoodRevenue(from?: string, to?: string) {
         const query = this.orderItemRepository
             .createQueryBuilder('item')
+            .withDeleted()
             .innerJoin("item.order", 'order')
             .innerJoin('item.menuItem', 'menuItem')
             .select('menuItem.id', 'menuItemId')
