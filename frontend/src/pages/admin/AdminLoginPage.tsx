@@ -1,11 +1,7 @@
 import { useState, type FormEvent } from "react"
 import logoImg from "@/imports/logo.png"
 import { routes } from "@/config/routes"
-import {
-  getAuthenticatedUser,
-  isAdminAuthenticated,
-  loginAdmin,
-} from "@/utils/adminAuth"
+import { loginAdmin } from "@/utils/adminAuth"
 
 interface AdminLoginPageProps {
   redirectTo?: string
@@ -55,11 +51,6 @@ export default function AdminLoginPage({
     }
   }
 
-  const alreadyLoggedIn = isAdminAuthenticated()
-  const currentUser = getAuthenticatedUser()
-  const currentPortal =
-    currentUser?.role === "STAFF" ? routes.adminOrders : routes.adminRooms
-
   return (
     <main className="admin-login-page">
       <section className="admin-login-visual" aria-label="Cây Phượng K18">
@@ -98,13 +89,6 @@ export default function AdminLoginPage({
             <p className="admin-login-session-expired" role="status">
               Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.
             </p>
-          )}
-
-          {alreadyLoggedIn && (
-            <div className="admin-login-success">
-              Bạn đang đăng nhập với quyền {currentUser?.role || "quản lý"}.{" "}
-              <a href={currentPortal}>Vào hệ thống →</a>
-            </div>
           )}
 
           <form className="admin-login-form" onSubmit={handleSubmit}>

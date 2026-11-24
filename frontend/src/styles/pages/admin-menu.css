@@ -5,7 +5,29 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.admin-menu-modal { width: min(100%, 680px); max-height: 92vh; overflow-y: auto; }
+/* Keep the add/edit dish dialog compact without showing a tiny inner scrollbar.
+   Desktop can still scroll if content exceeds the viewport; the scrollbar is hidden.
+   On mobile, the backdrop owns vertical scrolling instead of the dialog. */
+.admin-menu-modal:not(.admin-menu-category-modal) {
+  width: min(100%, 680px);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.admin-menu-modal:not(.admin-menu-category-modal)::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (max-width: 760px) {
+  .admin-menu-modal:not(.admin-menu-category-modal) {
+    max-height: none;
+    overflow: visible;
+  }
+}
 .admin-menu-form { margin-top: 20px; }
 .admin-menu-form label { display: grid; gap: 7px; }
 .admin-menu-form label > span { color: #4d555d; font-family: "Montserrat:Medium", sans-serif; font-size: .74rem; }

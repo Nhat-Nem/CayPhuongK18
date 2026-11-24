@@ -93,6 +93,7 @@ export default function AdminRoomsPage() {
         "constraint fails",
         "cannot delete or update a parent row",
         "er_row_is_referenced",
+        "stay history",
       ].some((keyword) => normalizedMessage.includes(keyword))
 
       setDeleteError(
