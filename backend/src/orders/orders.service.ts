@@ -13,6 +13,8 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
 import { DataSource } from 'typeorm';
 import { OrdersLogger } from './orders.logger';
+import { Promotion, PromotionAppliesTo, PromotionStatus, PromotionType } from '../promotions/entities/promotion.entity';
+import { ApplyPromotionDto } from './dto/apply-promotion.dto';
 
 @Injectable()
 export class OrdersService {
@@ -26,6 +28,9 @@ export class OrdersService {
         @InjectRepository(MenuItem)
         private readonly menuItemRepository: Repository<MenuItem>,
 
+        @InjectRepository(Promotion)
+        private readonly promotionRepository: Repository<Promotion>,
+
         private readonly dataSource: DataSource,
 
         private readonly ordersLogger: OrdersLogger
@@ -38,11 +43,52 @@ export class OrdersService {
         })
     }
 
+    // Tính lại tổng tiền sau khuyến mãi
+    private async recalculateTotal(orderId: string) {
+        const items = await this.orderItemRepository.find({
+            where: { orderId }
+        })
+
+        const order = await this.orderRepository.findOneBy({ id: orderId })
+
+        if (!order) {
+            throw new NotFoundException(`Cannot find order`)
+        }
+
+        // Tiền trước giảm
+        const subtotal = items.reduce(
+            (sum, item) => sum + Number(item.unitPrice) * item.quantity, 0
+        )
+
+        let discount = 0
+
+        if  (order.promotionType && order.promotionValue !== null) {
+            if (order.promotionType === PromotionType.PERCENTAGE) {
+                discount = subtotal * Number(order.promotionValue) / 100
+            } else {
+                discount = Number(order.promotionValue)
+            }
+        }
+
+        // Không cho giảm vượt quá tổng
+        discount = Math.max(0, Math.min(discount, subtotal))
+
+        // Làm tròn
+        discount = Number(discount.toFixed(2))
+
+        const total = Number((subtotal - discount).toFixed(2))
+
+        await this.orderRepository.update(orderId, {
+            discountAmount: discount.toFixed(2),
+            totalAmount: total.toFixed(2)
+        })
+    }
+
     // Tìm đơn hàng
     async findOne(id: string) {
         const order = await this.orderRepository.findOne({
             where: { id },
-            relations: {items: { menuItem: true } }
+            relations: {items: { menuItem: true }, promotion: true }
         })
 
         if (!order) {
@@ -50,21 +96,6 @@ export class OrdersService {
         }
 
         return order
-    }
-
-    // Tính lại tổng tiền
-    private async recalculateTotal(orderId: string) {
-        const items = await this.orderItemRepository.find({
-            where: { orderId }
-        })
-
-        const total = items.reduce(
-            (sum, item) => sum += Number(item.unitPrice) * item.quantity, 0
-        )
-
-        await this.orderRepository.update(orderId, {
-            totalAmount: total.toFixed(2)
-        })
     }
 
     // Kiểm tra đơn còn được phép chỉnh không
@@ -99,6 +130,13 @@ export class OrdersService {
             note: dto.note ?? null,
             tableNumber: hasTable ? dto.tableNumber?.trim() : null,
             roomNumber: hasRoom ? dto.roomNumber?.trim() : null,
+
+            promotionId: null,
+            promotionName: null,
+            promotionType: null,
+            promotionValue: null, 
+            discountAmount: '0.00',
+
             status: OrderStatus.PENDING,
             totalAmount: '0.00'
         }) 
@@ -227,7 +265,7 @@ export class OrdersService {
     // Xem danh sách đơn hàng
     async findAll() {
         return this.orderRepository.find({
-            relations: { items: { menuItem: true } },
+            relations: { items: { menuItem: true }, promotion: true },
             order: { createdAt: "DESC" }
         })
     }
@@ -323,6 +361,94 @@ export class OrdersService {
         })
 
         this.ordersLogger.log(`Record payment for order ID ${id} using ${dto.paymentMethod} successfully at ${this.getCurrentTime()}`)
+
+        return result
+    }
+
+    async applyPromotion(id: string, dto: ApplyPromotionDto) {
+        const order = await this.getEditableOrder(id)
+
+        const promotion = await this.promotionRepository.findOne({
+            where: { id: dto.promotionId }
+        })
+
+        if (!promotion) {
+            throw new NotFoundException("Cannot find promotion")
+        }
+
+        // Check status
+        if (promotion.status !== PromotionStatus.ACTIVE) {
+            throw new BadRequestException("Promotion is not active")
+        }
+
+        // Kiem tra thoi han
+        const now = new Date()
+
+        if (
+            now < new Date(promotion.startDate) || 
+            now >= new Date(promotion.endDate)
+        ) {
+            throw new BadRequestException("Promotion is expered or not started")
+        }
+
+        // Loai don hàng
+        const appliesTo = order.tableNumber 
+            ? PromotionAppliesTo.RESTAURANT
+            : PromotionAppliesTo.HOTEL
+
+        if (promotion.appliesTo !== appliesTo) {
+            throw new BadRequestException("This promotion cannot be applied to this order")
+        }
+
+        // Kiem tra gai tri promotion
+        const value = Number(promotion.discountValue)
+
+        if (
+            !Number.isFinite(value) || 
+            value <= 0 ||
+            (promotion.discountType === PromotionType.PERCENTAGE && value > 100)
+        ) {
+            throw new BadRequestException("Invalid promotion value")
+        }
+
+        // Luu thong tin
+        order.promotionId = promotion.id
+        order.promotionName = promotion.name
+        order.promotionType = promotion.discountType
+        order.promotionValue = String(promotion.discountValue)
+            
+        await this.orderRepository.save(order)
+
+        await this.recalculateTotal(id)
+
+        const result = await this.findOne(id)
+
+        this.ordersLogger.log(`Apply promotion ID ${promotion.id} to order ID ${id} successfully at ${this.getCurrentTime()}`)
+
+        return result
+    }
+
+    // Bỏ khuyến mãi
+    async removePromotion(id: string) {
+        const order = await this.getEditableOrder(id)
+
+        if (!order.promotionId && !order.promotionType) {
+            throw new BadRequestException("This order has no promotion")
+        }
+
+        order.promotionId = null
+        order.promotionName = null
+        order.promotionType = null
+        order.promotionValue = null
+        order.discountAmount = "0.00"
+
+        await this.orderRepository.save(order)
+
+        await this.recalculateTotal(id)
+
+        const result = await this.findOne(id)
+
+        this.ordersLogger.log(`Remove promotion order ID ${id} successfully at ${this.getCurrentTime()}`)
 
         return result
     }

@@ -10,6 +10,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { RecordOrderPaymentDto } from './dto/record-order-payment.dto';
+import { ApplyPromotionDto } from './dto/apply-promotion.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -119,5 +120,22 @@ export class OrdersController {
         @Body() dto: RecordOrderPaymentDto 
     ) {
         return this.ordersService.recordPayment(id, dto)
+    }
+
+    // PATCH /api/v1/orders/:id/promotion
+    // Thêm promotion
+    @Patch(':id/promotion')
+    applyPromotion(
+        @Param('id') id: string,
+        @Body() dto: ApplyPromotionDto
+    ) { 
+        return this.ordersService.applyPromotion(id, dto)
+    }
+
+    // DELETE /api/v1/orders/:id/promotion
+    // Xoa promotion
+    @Delete(":id/promotion")
+    removePromotion(@Param('id') id: string) {
+        return this.ordersService.removePromotion(id)
     }
 }

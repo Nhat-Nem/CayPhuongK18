@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderItem } from "./order-item.entity";
+import { Promotion, PromotionType } from "../../promotions/entities/promotion.entity";
 
 export enum OrderStatus {
     PENDING = "PENDING",
@@ -39,6 +40,21 @@ export class Order {
     @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.PENDING  })
     status: OrderStatus
 
+    @Column({ name: 'promotion_id', type: 'bigint', nullable: true })
+    promotionId: string | null
+
+    @Column({ name: "promotion_name", type: "varchar", length: 255, nullable: true })
+    promotionName: string | null
+
+    @Column({ name: "promotion_type", type: 'enum', enum: PromotionType, nullable: true })
+    promotionType: PromotionType | null
+
+    @Column({ name: "promotion_value", type: "decimal", precision: 12, scale: 2, nullable: true })
+    promotionValue: string | null
+
+    @Column({ name: 'discount_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+    discountAmount: string
+
     @Column({ name: "total_amount", type: "decimal", precision: 12, scale: 2, default: 0 })
     totalAmount: string 
 
@@ -62,4 +78,8 @@ export class Order {
 
     @UpdateDateColumn({ name: "updated_at" })
     updatedAt: Date
+
+    @ManyToOne(() => Promotion, { nullable: true, onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'promotion_id' })
+    promotion: Promotion | null
 }
