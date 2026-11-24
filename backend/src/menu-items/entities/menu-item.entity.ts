@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Category } from "../../category/entities/category.entity";
 
 @Entity("menu_items")
@@ -36,4 +36,7 @@ export class MenuItem {
 
     @UpdateDateColumn({ name: "updated_at", type: "datetime" })
     updatedAt: Date
+
+    @DeleteDateColumn({ name: "deleted_at", nullable: true, type: "datetime" })
+    deletedAt: Date | null
 }

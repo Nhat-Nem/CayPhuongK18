@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('rooms')
 export class Room {
@@ -28,4 +28,7 @@ export class Room {
 
     @Column({ name: 'secondary_image', type: "longtext", nullable: true })
     secondaryImage: string
+
+    @DeleteDateColumn({ name: 'delete_at', nullable: true })
+    deletedAt: Date
 }

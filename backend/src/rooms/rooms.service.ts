@@ -5,6 +5,7 @@ import { Room } from './entities/room.entity';
 import { Repository } from 'typeorm';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { UpdateRoomDTO } from './dto/update-room.dto';
+import { RoomStay, RoomStayStatus } from '../room-stays/entities/room-stay.entity';
 
 @Injectable()
 export class RoomsService {
@@ -74,32 +75,61 @@ export class RoomsService {
     }
 
     // Xóa phòng
-    // Condition: Chi xoa dc phong neu chua co lich sử sử dụng
     async deleteRoom(id: number) {
-        const room = await this.roomRepository.findOneBy({ id })
+        const room = await this.roomRepository.findOne({
+            where: { id },
+            withDeleted: true
+        })
 
         if (!room) {
             throw new NotFoundException(`Room with id ${id} not found`)
         }
 
-        // Check if the room has a history of previous stays
-        const hasRoomStay = await this.roomRepository.manager
-            .getRepository('room_stays')
-            .createQueryBuilder('roomStay')
-            .where('roomStay.room_id = :id', { id })
-            .getExists()
-
-        if (hasRoomStay) {
-            throw new BadRequestException(`Cannot Delete this room because it has stay history. Please deactivate it instead`)
+        if (room.deletedAt) {
+            throw new BadRequestException(`Room has already been deleted`);
         }
-        
-        await this.roomRepository.remove(room)
 
-        // Log ra console -> LOG: Delete room 'id' ... 
+        const activeStay = await this.roomRepository.manager
+            .getRepository(RoomStay)
+            .findOne({
+                where: {
+                    roomId: String(id),
+                    status: RoomStayStatus.CHECKED_IN
+                }
+            })
+
+        if (activeStay) {
+            throw new BadRequestException(`Cannot delete a room that is current occupied`)
+        }
+
+        await this.roomRepository.softDelete(id)
+        
         this.roomsLogger.log(`Delete room ID ${id} successfully at ${this.getCurrentTime()}`);
 
         return {
             message: `Room with id ${id} deleted successfully`
         }
+    }
+
+    // Restore
+    async restoreRoom(id: number) {
+        const room = await this.roomRepository.findOne({
+            where: { id },
+            withDeleted: true
+        })
+
+        if (!room) {
+            throw new NotFoundException(`Room with id ${id} not found`)
+        }
+
+        if (!room.deletedAt) {
+            throw new BadRequestException(`Room is not deleted`)
+        }
+
+        await this.roomRepository.restore(id)
+
+        this.roomsLogger.log(`Restore ${id} successfully at ${this.getCurrentTime()}`)
+
+        return { message: `Room with id ${id} restored successfully` }
     }
 }
