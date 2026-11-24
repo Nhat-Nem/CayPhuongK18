@@ -285,11 +285,13 @@ p {
   font-size: .88rem;
 }
 
+/* Brand starts at the header logo, contact ends at the header booking button,
+   and the gaps between all four blocks are equal. */
 .footer-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+  display: flex;
+  justify-content: space-between;
   gap: clamp(24px, 2vw, 36px);
-  align-items: start;
+  align-items: flex-start;
   padding: 64px 20px 48px;
 }
 
@@ -297,19 +299,8 @@ p {
   min-width: 0;
 }
 
-/* Nudge only the two middle link columns slightly right.
-   The contact column keeps its original position and right-edge alignment. */
-@media (min-width: 701px) {
-  .footer-main > .footer-column {
-    position: relative;
-    left: 18px;
-  }
-}
-
-/* Keep the contact column's right edge aligned with the header booking button.
-   The content inside the column remains left-aligned. */
+/* Content inside the contact column stays left-aligned. */
 .footer-main > .footer-contact {
-  justify-self: end;
   width: fit-content;
   max-width: 100%;
   align-items: flex-start;
@@ -483,14 +474,13 @@ p {
   }
 
   .footer-main {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex-wrap: wrap;
     gap: 28px 24px;
     padding: 48px 20px 38px;
   }
 
   .footer-main > .footer-brand {
-    grid-column: 1 / -1;
-    max-width: 620px;
+    flex: 0 0 100%;
   }
 
   .nav-shell {
@@ -542,6 +532,7 @@ p {
   }
 
   .footer-main {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 26px 20px;
     padding: 38px 20px 30px;
@@ -750,8 +741,8 @@ p {
   .nav-shell {
     width: 100%;
     max-width: none;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
   }
 
   .section {

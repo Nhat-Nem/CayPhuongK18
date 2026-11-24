@@ -202,29 +202,14 @@
   transform: translateY(-50%);
 }
 
-.admin-login-error,
-.admin-login-success {
-  padding: 12px 14px;
-  border-radius: 9px;
-  font-size: .82rem;
-}
-
 .admin-login-error {
   margin: -3px 0 0;
+  padding: 12px 14px;
   border: 1px solid #efc6c2;
+  border-radius: 9px;
   background: #fff2f0;
   color: #a0433e;
-}
-
-.admin-login-success {
-  margin: 0 0 24px;
-  border: 1px solid #b9d8c1;
-  background: #f1faf3;
-  color: #356943;
-}
-
-.admin-login-success a {
-  font-family: "Montserrat:SemiBold", sans-serif;
+  font-size: .82rem;
 }
 
 .admin-login-session-expired {
