@@ -11,6 +11,8 @@ export interface PromotionRecord {
   applyType: PromotionApplyType
   image: string | null
   backendStatus: "ACTIVE" | "INACTIVE"
+  /** Kiểu giảm giá từ backend; trang quản lý ưu đãi hiện chỉ tạo PERCENTAGE. */
+  discountType?: "PERCENTAGE" | "FIXED_AMOUNT"
 }
 
 type BackendPromotion = {
@@ -44,6 +46,7 @@ function normalizePromotion(row: BackendPromotion): PromotionRecord {
     applyType: row.appliesTo === "HOTEL" ? 1 : 2,
     image: row.image ?? null,
     backendStatus: row.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+    discountType: row.discountType,
   }
 }
 

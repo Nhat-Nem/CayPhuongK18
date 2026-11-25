@@ -137,7 +137,7 @@ export default function App() {
   else if (
     isAdminPage &&
     authenticatedUser?.role === "STAFF" &&
-    ![routes.adminMenu, routes.adminOrders, routes.adminRevenueReports].some((allowedPath) => allowedPath === path)
+    ![routes.adminMenu, routes.adminOrders, routes.adminRevenueReports, routes.adminRecruitments].some((allowedPath) => allowedPath === path)
   ) {
     page = <AdminOrdersPage />
   }

@@ -88,6 +88,19 @@
   resize: vertical;
 }
 
+.admin-order-form input:disabled,
+.admin-order-form textarea:disabled {
+  background: #f4f4f1;
+  color: #7a8087;
+  cursor: not-allowed;
+}
+
+.admin-order-form-hint {
+  margin-top: -8px;
+  color: #7a8087;
+  font-size: .76rem;
+}
+
 .admin-order-form input:focus,
 .admin-order-form textarea:focus,
 .admin-order-add-item select:focus {
@@ -363,6 +376,25 @@
   background: #fff;
   color: #29323d;
   font: inherit;
+}
+
+.admin-order-payment-summary {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #e4e5e1;
+}
+
+.admin-order-payment-summary > p:not(.admin-order-payment-total) {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: #5f666d;
+}
+
+.admin-order-payment-summary > p.admin-order-payment-discount {
+  color: #2f7a4b;
 }
 
 .admin-order-payment-total {

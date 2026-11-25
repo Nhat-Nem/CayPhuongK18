@@ -13,6 +13,7 @@ import {
   normalizeEmploymentType,
   type RecruitmentDataSource,
 } from "@/services/recruitmentApi"
+import { isStaffAuthenticated } from "@/utils/adminAuth"
 
 
 function compareNewestIdFirst(
@@ -30,6 +31,8 @@ function sourceLabel(_source: RecruitmentDataSource) {
 }
 
 export default function AdminRecruitmentsPage() {
+  // Backend chỉ cho ADMIN thêm/sửa/xóa tuyển dụng; nhân viên chỉ xem.
+  const readOnly = isStaffAuthenticated()
   const [items, setItems] = useState<RecruitmentRecord[]>([])
   const [source, setSource] = useState<RecruitmentDataSource>("api")
   const [query, setQuery] = useState("")
@@ -112,15 +115,21 @@ export default function AdminRecruitmentsPage() {
     <AdminRoomLayout
       eyebrow="TUYỂN DỤNG"
       title="Quản lý danh sách tuyển dụng"
-      subtitle="Thêm, xem, sửa và xóa thông tin tuyển dụng."
+      subtitle={
+        readOnly
+          ? "Xem thông tin các vị trí đang tuyển dụng. Chỉ Admin được thêm, sửa hoặc xóa."
+          : "Thêm, xem, sửa và xóa thông tin tuyển dụng."
+      }
       primaryAction={
-        <button
-          className="admin-primary-button"
-          type="button"
-          onClick={() => setShowCreate(true)}
-        >
-          + Thêm tuyển dụng
-        </button>
+        readOnly ? undefined : (
+          <button
+            className="admin-primary-button"
+            type="button"
+            onClick={() => setShowCreate(true)}
+          >
+            + Thêm tuyển dụng
+          </button>
+        )
       }
     >
       <section
@@ -191,7 +200,7 @@ export default function AdminRecruitmentsPage() {
                   <th>Địa điểm</th>
                   <th>Lương</th>
                   <th>Mô tả</th>
-                  <th aria-label="Thao tác" />
+                  {!readOnly && <th aria-label="Thao tác" />}
                 </tr>
               </thead>
 
@@ -214,6 +223,7 @@ export default function AdminRecruitmentsPage() {
                         {item.description || "Chưa có mô tả"}
                       </span>
                     </td>
+                    {!readOnly && (
                     <td>
                       <div className="admin-room-row-actions">
                         <a
@@ -238,6 +248,7 @@ export default function AdminRecruitmentsPage() {
                         </button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -249,7 +260,9 @@ export default function AdminRecruitmentsPage() {
           <div className="admin-room-empty">
             <strong>Chưa có thông tin tuyển dụng</strong>
             <span>
-              Bấm “+ Thêm tuyển dụng” để tạo vị trí tuyển dụng mới.
+              {readOnly
+                ? "Hiện chưa có vị trí tuyển dụng nào."
+                : "Bấm “+ Thêm tuyển dụng” để tạo vị trí tuyển dụng mới."}
             </span>
           </div>
         )}

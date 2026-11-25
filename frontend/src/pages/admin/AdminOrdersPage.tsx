@@ -14,14 +14,43 @@ import {
   updateOrderItemQuantity,
   updateOrderStatus,
   recordOrderPayment,
+  applyOrderPromotion,
+  removeOrderPromotion,
   type OrderItemRecord,
   type OrderPaymentMethod,
   type OrderRecord,
   type OrderStatus,
 } from "@/services/orderApi"
+import {
+  getPromotions,
+  promotionStatus,
+  type PromotionRecord,
+} from "@/services/promotionStore"
+import { isAdminRole } from "@/utils/adminAuth"
 
 const EMPTY_FORM = {
   note: "",
+}
+
+const EMPTY_CREATE_FORM = {
+  tableNumber: "",
+  roomNumber: "",
+  note: "",
+}
+
+/** Theo backend: đơn sửa được cho tới khi đã thanh toán, hoàn thành hoặc bị hủy. */
+function canEditOrder(order: OrderRecord) {
+  return (
+    order.status !== "COMPLETED" &&
+    order.status !== "CANCELLED" &&
+    order.paymentStatus !== "PAID"
+  )
+}
+
+function promotionDiscountLabel(type: string | null | undefined, value: number) {
+  return type === "FIXED_AMOUNT"
+    ? `-${new Intl.NumberFormat("vi-VN").format(value)} VNĐ`
+    : `-${value}%`
 }
 
 type DraftOrderItem = {
@@ -135,6 +164,7 @@ function orderEmployeeLabel(
 }
 
 export default function AdminOrdersPage() {
+  const isAdmin = isAdminRole()
   const [orders, setOrders] = useState<OrderRecord[]>([])
   const [menuItems, setMenuItems] = useState<MenuDish[]>([])
   const [query, setQuery] = useState("")
@@ -151,7 +181,7 @@ export default function AdminOrdersPage() {
   const [saving, setSaving] = useState(false)
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState(EMPTY_FORM)
+  const [createForm, setCreateForm] = useState(EMPTY_CREATE_FORM)
   const [createItems, setCreateItems] = useState<DraftOrderItem[]>([])
   const [selectedCreateMenuItemId, setSelectedCreateMenuItemId] = useState("")
 
@@ -161,6 +191,9 @@ export default function AdminOrdersPage() {
   const [paymentOrder, setPaymentOrder] = useState<OrderRecord | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>("CASH")
   const [paymentError, setPaymentError] = useState("")
+  const [paymentPromotions, setPaymentPromotions] = useState<PromotionRecord[]>([])
+  const [paymentPromotionId, setPaymentPromotionId] = useState("")
+  const [loadingPromotions, setLoadingPromotions] = useState(false)
 
   const refreshOrders = async () => {
     setLoading(true)
@@ -247,6 +280,8 @@ export default function AdminOrdersPage() {
         order.id,
         order.code,
         order.status,
+        order.tableNumber,
+        order.roomNumber,
         order.note,
         orderEmployeeLabel(order, employeesById),
         ...((order.items ?? []).map(itemName)),
@@ -311,7 +346,7 @@ export default function AdminOrdersPage() {
   }, 0), [createItems, menuItems])
 
   const openCreate = () => {
-    setCreateForm(EMPTY_FORM)
+    setCreateForm(EMPTY_CREATE_FORM)
     setCreateItems([])
     setSelectedCreateMenuItemId(menuItems[0]?.id ?? "")
     setError("")
@@ -343,8 +378,8 @@ export default function AdminOrdersPage() {
 
   const openEditor = async (order: OrderRecord) => {
     setError("")
-    if (order.status === "COMPLETED") {
-      setError("Đơn hàng đã hoàn thành nên không thể chỉnh sửa.")
+    if (!canEditOrder(order)) {
+      setError("Đơn hàng đã thanh toán, hoàn thành hoặc bị hủy nên không thể sửa.")
       return
     }
 
@@ -367,12 +402,23 @@ export default function AdminOrdersPage() {
 
   const submitCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const tableNumber = createForm.tableNumber.trim()
+    const roomNumber = createForm.roomNumber.trim()
+
+    // Backend bắt buộc có đúng một trong hai: số bàn hoặc số phòng.
+    if (Boolean(tableNumber) === Boolean(roomNumber)) {
+      setError("Vui lòng nhập số bàn hoặc số phòng (chỉ một trong hai).")
+      return
+    }
+
     setSaving(true)
     setError("")
 
     try {
       const created = await createOrder({
         note: createForm.note.trim() || undefined,
+        tableNumber: tableNumber || undefined,
+        roomNumber: roomNumber || undefined,
       })
 
       let itemAddError = ""
@@ -386,7 +432,7 @@ export default function AdminOrdersPage() {
       }
 
       setCreateOpen(false)
-      setCreateForm(EMPTY_FORM)
+      setCreateForm(EMPTY_CREATE_FORM)
       setCreateItems([])
       await refreshOrders()
       await openEditor(created)
@@ -415,7 +461,13 @@ export default function AdminOrdersPage() {
       if (editingOrder?.id === order.id) setEditingOrder(null)
       await refreshOrders()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Không thể xóa đơn hàng.")
+      const message = err instanceof Error ? err.message : ""
+      // Backend hiện chưa có DELETE /api/v1/orders/:id nên trả 404 "Cannot DELETE ...".
+      setError(
+        /cannot delete|api error 404/i.test(message)
+          ? "Backend chưa hỗ trợ xóa đơn hàng. Có thể chuyển đơn sang “Đã hủy” trong lúc chờ backend bổ sung."
+          : message || "Không thể xóa đơn hàng.",
+      )
     } finally {
       setSaving(false)
     }
@@ -520,7 +572,63 @@ export default function AdminOrdersPage() {
     setPaymentOrder(order)
     setPaymentMethod("CASH")
     setPaymentError("")
+    setPaymentPromotionId(order.promotionId ? String(order.promotionId) : "")
+    setLoadingPromotions(true)
+
+    // Backend: đơn tại bàn nhận ưu đãi Nhà hàng (applyType 2), đơn giao phòng nhận ưu đãi Khách sạn (applyType 1).
+    const applyType = order.tableNumber ? 2 : 1
+    getPromotions()
+      .then((rows) => {
+        setPaymentPromotions(rows.filter((item) => item.applyType === applyType && promotionStatus(item) === "active"))
+      })
+      .catch(() => {
+        setPaymentPromotions([])
+        setPaymentError("Không thể tải danh sách ưu đãi. Bạn vẫn có thể thanh toán không kèm ưu đãi.")
+      })
+      .finally(() => setLoadingPromotions(false))
   }
+
+  const syncPaidOrder = (updated: OrderRecord) => {
+    setOrders((current) => current.map((item) =>
+      item.id === updated.id ? { ...item, ...updated, items: updated.items ?? item.items } : item,
+    ))
+    setEditingOrder((current) => current?.id === updated.id
+      ? { ...current, ...updated, items: updated.items ?? current.items }
+      : current,
+    )
+  }
+
+  // Áp hoặc bỏ ưu đãi ngay khi chọn; backend tính lại tổng tiền và trả về đơn mới.
+  const changePaymentPromotion = async (promotionId: string) => {
+    if (!paymentOrder) return
+
+    const previousId = paymentPromotionId
+    setPaymentPromotionId(promotionId)
+    setSaving(true)
+    setPaymentError("")
+    try {
+      const updated = promotionId
+        ? await applyOrderPromotion(paymentOrder.id, promotionId)
+        : await removeOrderPromotion(paymentOrder.id)
+      setPaymentOrder((current) => current ? { ...current, ...updated, items: updated.items ?? current.items } : current)
+      syncPaidOrder(updated)
+      setPaymentPromotionId(updated.promotionId ? String(updated.promotionId) : "")
+    } catch (err) {
+      setPaymentPromotionId(previousId)
+      setPaymentError(err instanceof Error ? err.message : "Không thể áp dụng ưu đãi.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const paymentDiscount = Number(paymentOrder?.discountAmount || 0)
+  const paymentTotal = Number(paymentOrder?.totalAmount || 0)
+  const paymentSubtotal = paymentTotal + paymentDiscount
+  // Ưu đãi đã gắn với đơn nhưng không còn trong danh sách đang áp dụng (ví dụ vừa hết hạn) vẫn được hiển thị.
+  const appliedPromotionMissing = Boolean(
+    paymentOrder?.promotionId &&
+    !paymentPromotions.some((item) => item.id === String(paymentOrder.promotionId)),
+  )
 
   const submitPayment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -530,13 +638,7 @@ export default function AdminOrdersPage() {
     setPaymentError("")
     try {
       const updated = await recordOrderPayment(paymentOrder.id, paymentMethod)
-      setOrders((current) => current.map((item) =>
-        item.id === paymentOrder.id ? { ...item, ...updated, items: updated.items ?? item.items } : item,
-      ))
-      setEditingOrder((current) => current?.id === paymentOrder.id
-        ? { ...current, ...updated, items: updated.items ?? current.items }
-        : current,
-      )
+      syncPaidOrder(updated)
       setPaymentOrder(null)
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Không thể ghi nhận thanh toán.")
@@ -688,9 +790,11 @@ export default function AdminOrdersPage() {
                   <th>Đơn hàng</th>
                   <th>Trạng thái</th>
                   <th>Nhân viên phụ trách</th>
+                  <th>Số bàn</th>
+                  <th>Số phòng</th>
                   <th>Món</th>
-                  <th>Ghi chú</th>
                   <th>Tổng tiền</th>
+                  <th>Ghi chú</th>
                   <th />
                 </tr>
               </thead>
@@ -742,18 +846,28 @@ export default function AdminOrdersPage() {
                       )}
                     </td>
 
-                    <td>{itemSummary(order)}</td>
+                    <td>{order.tableNumber || "—"}</td>
 
-                    <td>
-                      <span className="admin-order-note-preview">
-                        {order.note || "—"}
-                      </span>
-                    </td>
+                    <td>{order.roomNumber || "—"}</td>
+
+                    <td>{itemSummary(order)}</td>
 
                     <td>
                       <strong className="admin-order-money">
                         {formatMoney(Number(order.totalAmount || 0))}
                       </strong>
+                      {Number(order.discountAmount || 0) > 0 && (
+                        <small className="admin-order-cell-subtext">
+                          Đã giảm {formatMoney(Number(order.discountAmount))}
+                          {order.promotionName ? ` · ${order.promotionName}` : ""}
+                        </small>
+                      )}
+                    </td>
+
+                    <td>
+                      <span className="admin-order-note-preview">
+                        {order.note || "—"}
+                      </span>
                     </td>
 
                     <td>
@@ -770,25 +884,27 @@ export default function AdminOrdersPage() {
                               Thanh toán
                             </button>
                           )}
-                        {order.status !== "COMPLETED" && (
+                        {canEditOrder(order) && (
                           <button
                             className="admin-icon-button"
                             type="button"
                             onClick={() => void openEditor(order)}
-                            title="Mở và chỉnh sửa đơn hàng"
+                            title="Sửa đơn hàng"
                           >
                             ✎
                           </button>
                         )}
-                        <button
-                          className="admin-icon-button danger"
-                          type="button"
-                          onClick={() => void removeOrder(order)}
-                          disabled={saving || order.status !== "PENDING"}
-                          title={order.status === "PENDING" ? "Xóa đơn hàng" : "Chỉ xóa được đơn đang chờ xử lý"}
-                        >
-                          ⌫
-                        </button>
+                        {isAdmin && (
+                          <button
+                            className="admin-icon-button danger"
+                            type="button"
+                            onClick={() => void removeOrder(order)}
+                            disabled={saving || order.status !== "PENDING"}
+                            title={order.status === "PENDING" ? "Xóa đơn hàng" : "Chỉ xóa được đơn đang chờ xử lý"}
+                          >
+                            ⌫
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -808,16 +924,33 @@ export default function AdminOrdersPage() {
       >
         <form className="admin-order-editor" onSubmit={submitCreate}>
           <div className="admin-order-form">
-            <label className="admin-order-form-full">
-              <span>Ghi chú</span>
-              <textarea
-                value={createForm.note}
+            <label>
+              <span>Số bàn</span>
+              <input
+                value={createForm.tableNumber}
                 onChange={(event) =>
-                  setCreateForm((current) => ({ ...current, note: event.target.value }))
+                  setCreateForm((current) => ({ ...current, tableNumber: event.target.value }))
                 }
-                placeholder="Yêu cầu đặc biệt của khách..."
+                placeholder="VD: B05"
+                maxLength={20}
+                disabled={saving || Boolean(createForm.roomNumber.trim())}
               />
             </label>
+            <label>
+              <span>Số phòng</span>
+              <input
+                value={createForm.roomNumber}
+                onChange={(event) =>
+                  setCreateForm((current) => ({ ...current, roomNumber: event.target.value }))
+                }
+                placeholder="VD: P101"
+                maxLength={20}
+                disabled={saving || Boolean(createForm.tableNumber.trim())}
+              />
+            </label>
+            <small className="admin-order-form-full admin-order-form-hint">
+              Nhập số bàn cho khách ăn tại nhà hàng, hoặc số phòng cho món giao lên phòng (chỉ một trong hai).
+            </small>
           </div>
 
           <div className="admin-order-divider" />
@@ -893,6 +1026,21 @@ export default function AdminOrdersPage() {
             )}
           </section>
 
+          <div className="admin-order-divider" />
+
+          <div className="admin-order-form">
+            <label className="admin-order-form-full">
+              <span>Ghi chú</span>
+              <textarea
+                value={createForm.note}
+                onChange={(event) =>
+                  setCreateForm((current) => ({ ...current, note: event.target.value }))
+                }
+                placeholder="Yêu cầu đặc biệt của khách..."
+              />
+            </label>
+          </div>
+
           {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
 
           <div className="admin-order-form-actions">
@@ -908,39 +1056,32 @@ export default function AdminOrdersPage() {
 
       <AdminFormModal
         open={Boolean(editingOrder)}
-        eyebrow="CHI TIẾT ĐƠN"
-        title={editingOrder ? `Chỉnh sửa đơn ${orderLabel(editingOrder)}` : "Chỉnh sửa đơn"}
+        eyebrow="SỬA ĐƠN"
+        title={editingOrder ? `Sửa đơn ${orderLabel(editingOrder)}` : "Sửa đơn"}
         onClose={() => setEditingOrder(null)}
         size="wide"
       >
         {editingOrder && (
           <div className="admin-order-editor">
             {error && <div className="admin-room-form-notice error">⚠ {error}</div>}
-            <form className="admin-order-form" onSubmit={saveOrderInfo}>
-              <label className="admin-order-form-full">
-                <span>Ghi chú</span>
-                <textarea
-                  value={editingForm.note}
-                  onChange={(event) =>
-                    setEditingForm((current) => ({ ...current, note: event.target.value }))
-                  }
-                  placeholder="Yêu cầu đặc biệt của khách..."
-                />
-              </label>
 
-              <div className="admin-order-form-actions admin-order-form-full">
-                <button className="admin-primary-button" type="submit" disabled={saving}>
-                  {saving ? "Đang lưu..." : "Lưu thông tin đơn"}
-                </button>
-              </div>
-            </form>
+            <div className="admin-order-form">
+              <label>
+                <span>Số bàn</span>
+                <input value={editingOrder.tableNumber || "—"} readOnly disabled />
+              </label>
+              <label>
+                <span>Số phòng</span>
+                <input value={editingOrder.roomNumber || "—"} readOnly disabled />
+              </label>
+            </div>
 
             <div className="admin-order-divider" />
 
             <section className="admin-order-items-section">
-              {editingOrder.status !== "PENDING" && (
+              {!canEditOrder(editingOrder) && (
                 <div className="admin-room-form-notice">
-                  Đơn đang ở trạng thái {orderStatusLabel(editingOrder.status)}. Theo quy tắc backend, chỉ đơn “Chờ xử lý” mới được thêm, sửa hoặc xóa món.
+                  Đơn đã thanh toán, hoàn thành hoặc bị hủy nên không thể sửa món.
                 </div>
               )}
 
@@ -960,7 +1101,7 @@ export default function AdminOrdersPage() {
                     loadingMenu ||
                     menuItems.length === 0 ||
                     saving ||
-                    editingOrder.status !== "PENDING"
+                    !canEditOrder(editingOrder)
                   }
                 >
                   {menuItems.length === 0 ? (
@@ -981,7 +1122,7 @@ export default function AdminOrdersPage() {
                   disabled={
                     !selectedMenuItemId ||
                     saving ||
-                    editingOrder.status !== "PENDING"
+                    !canEditOrder(editingOrder)
                   }
                 >
                   ＋ Thêm món
@@ -1016,7 +1157,7 @@ export default function AdminOrdersPage() {
                           disabled={
                             item.quantity <= 1 ||
                             saving ||
-                            editingOrder.status !== "PENDING"
+                            !canEditOrder(editingOrder)
                           }
                           title="Giảm số lượng"
                         >−</button>
@@ -1024,7 +1165,7 @@ export default function AdminOrdersPage() {
                         <button
                           type="button"
                           onClick={() => void changeQuantity(item, item.quantity + 1)}
-                          disabled={saving || editingOrder.status !== "PENDING"}
+                          disabled={saving || !canEditOrder(editingOrder)}
                           title="Tăng số lượng"
                         >＋</button>
                       </div>
@@ -1037,7 +1178,7 @@ export default function AdminOrdersPage() {
                         className="admin-order-remove-item"
                         type="button"
                         onClick={() => void removeDish(item)}
-                        disabled={saving || editingOrder.status !== "PENDING"}
+                        disabled={saving || !canEditOrder(editingOrder)}
                         title="Xóa món khỏi đơn"
                       >×</button>
                     </article>
@@ -1045,6 +1186,28 @@ export default function AdminOrdersPage() {
                 </div>
               )}
             </section>
+
+            <div className="admin-order-divider" />
+
+            <form className="admin-order-form" onSubmit={saveOrderInfo}>
+              <label className="admin-order-form-full">
+                <span>Ghi chú</span>
+                <textarea
+                  value={editingForm.note}
+                  onChange={(event) =>
+                    setEditingForm((current) => ({ ...current, note: event.target.value }))
+                  }
+                  placeholder="Yêu cầu đặc biệt của khách..."
+                  disabled={!canEditOrder(editingOrder)}
+                />
+              </label>
+
+              <div className="admin-order-form-actions admin-order-form-full">
+                <button className="admin-primary-button" type="submit" disabled={saving || !canEditOrder(editingOrder)}>
+                  {saving ? "Đang lưu..." : "Lưu ghi chú"}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </AdminFormModal>
@@ -1057,9 +1220,32 @@ export default function AdminOrdersPage() {
       >
         {paymentOrder && (
           <form className="admin-order-payment-form" onSubmit={submitPayment}>
-            <p className="admin-order-payment-total">
-              Tổng tiền cần thanh toán: <strong>{formatMoney(Number(paymentOrder.totalAmount || 0))}</strong>
-            </p>
+            <label>
+              <span>Ưu đãi</span>
+              <select
+                value={paymentPromotionId}
+                onChange={(event) => void changePaymentPromotion(event.target.value)}
+                disabled={saving || loadingPromotions}
+              >
+                <option value="">
+                  {loadingPromotions
+                    ? "Đang tải ưu đãi..."
+                    : paymentPromotions.length || appliedPromotionMissing
+                      ? "Không áp dụng ưu đãi"
+                      : `Không có ưu đãi ${paymentOrder.tableNumber ? "nhà hàng" : "khách sạn"} đang áp dụng`}
+                </option>
+                {appliedPromotionMissing && (
+                  <option value={String(paymentOrder.promotionId)}>
+                    {paymentOrder.promotionName || `Ưu đãi #${paymentOrder.promotionId}`}
+                  </option>
+                )}
+                {paymentPromotions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({promotionDiscountLabel(item.discountType, item.discountPercent)})
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               <span>Phương thức thanh toán</span>
               <select
@@ -1072,12 +1258,34 @@ export default function AdminOrdersPage() {
                 <option value="CARD">Thẻ</option>
               </select>
             </label>
+            <div className="admin-order-payment-summary">
+              {paymentDiscount > 0 && (
+                <>
+                  <p>
+                    <span>Tạm tính</span>
+                    <span>{formatMoney(paymentSubtotal)}</span>
+                  </p>
+                  <p className="admin-order-payment-discount">
+                    <span>
+                      Ưu đãi{paymentOrder.promotionName ? ` ${paymentOrder.promotionName}` : ""}
+                      {paymentOrder.promotionValue != null
+                        ? ` (${promotionDiscountLabel(paymentOrder.promotionType, Number(paymentOrder.promotionValue))})`
+                        : ""}
+                    </span>
+                    <span>-{formatMoney(paymentDiscount)}</span>
+                  </p>
+                </>
+              )}
+              <p className="admin-order-payment-total">
+                Tổng tiền cần thanh toán: <strong>{formatMoney(paymentTotal)}</strong>
+              </p>
+            </div>
             {paymentError && <div className="admin-room-form-notice error">⚠ {paymentError}</div>}
             <div className="admin-order-form-actions">
               <button className="admin-secondary-button" type="button" onClick={() => setPaymentOrder(null)} disabled={saving}>
                 Hủy
               </button>
-              <button className="admin-primary-button" type="submit" disabled={saving || Number(paymentOrder.totalAmount || 0) <= 0}>
+              <button className="admin-primary-button" type="submit" disabled={saving || paymentTotal <= 0}>
                 {saving ? "Đang lưu..." : "Xác nhận đã thanh toán"}
               </button>
             </div>

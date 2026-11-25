@@ -70,6 +70,18 @@ export default function AdminRoomLayout({
             <span>▥</span> Báo cáo doanh thu
           </a>
 
+          {isStaff && (
+            <>
+              <p>TUYỂN DỤNG</p>
+              <a
+                className={path === routes.adminRecruitments ? "active" : ""}
+                href={routes.adminRecruitments}
+              >
+                <span>▤</span> Danh sách tuyển dụng
+              </a>
+            </>
+          )}
+
           {!isStaff && (
             <>
               <p>TIẾP NHẬN</p>
