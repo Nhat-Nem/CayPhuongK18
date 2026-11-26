@@ -1,289 +1,91 @@
 # Cây Phượng K18 — Restaurant & Hotel Management Website
 
-> **Website Quản lý Quán ăn & Khách sạn Cây Phượng K18**
+Website giới thiệu và quản lý hoạt động kinh doanh của **Quán ăn & Khách sạn Cây Phượng K18**.
 
-Dự án xây dựng website hỗ trợ **Quán ăn & Khách sạn Cây Phượng K18** quản lý và hiển thị các thông tin về phòng, món ăn và các thông tin liên quan đến cơ sở kinh doanh.
+Hệ thống cung cấp giao diện cho khách hàng tra cứu thông tin dịch vụ và trang quản trị hỗ trợ nhân viên quản lý dữ liệu.
 
-Website hướng đến hai nhóm người dùng chính:
+## ✨ Features
 
-* **Khách hàng:** Xem thông tin phòng, menu, không gian, địa điểm và thông tin liên hệ.
-* **Admin:** Quản lý thông tin phòng và menu món ăn thông qua trang quản trị.
+### Customer
+- View hotel and room information.
+- Browse food and drink menus.
+- Explore restaurant and hotel spaces.
+- View nearby attractions and locations.
+- View contact information and map location.
 
----
+### Admin
+- Authentication and role-based access control.
+- Room management (CRUD).
+- Menu and category management (CRUD).
+- Website information management.
+- Walk-in guest and booking management.
+- Order and revenue management.
+- Business reports.
 
-## Project Information
+## 🛠️ Tech Stack
 
-| Thông tin       | Nội dung                                           |
-| --------------- | -------------------------------------------------- |
-| **Project**     | Website Quản lý Quán ăn & Khách sạn Cây Phượng K18 |
-| **Team**        | Nhóm 01                                            |
-| **Methodology** | Scrum                                              |
-| **Mentor**      | Nguyễn Minh Tân                                    |
-| **Customer**    | Anh Trực                                           |
-| **Development** | Sprint 0 → Sprint 8                                |
-| **Repository**  | Git / GitHub                                       |
+| Category | Technologies |
+|---|---|
+| Frontend | ReactJS, JavaScript, HTML5, CSS3, Vite |
+| Backend | Node.js, NestJS |
+| Database | MySQL |
+| API | REST API |
+| Version Control | Git, GitHub |
 
----
-
-## 🎯 Objectives
-
-Dự án nhằm xây dựng một website giúp Cây Phượng K18:
-
-* Giới thiệu thông tin khách sạn và quán ăn.
-* Hiển thị danh sách các loại phòng.
-* Hiển thị menu món ăn và đồ uống.
-* Cung cấp thông tin về không gian và địa điểm.
-* Cung cấp thông tin liên hệ.
-* Cho phép Admin quản lý dữ liệu phòng.
-* Cho phép Admin quản lý dữ liệu menu.
-* Cung cấp giao diện trực quan, dễ sử dụng cho khách hàng và Admin.
-
----
-
-## 👥 Team
-
-| Thành viên                | Vai trò                  |
-| ------------------------- | ------------------------ |
-| **Nguyễn Hoàng Nhật Nam** | Scrum Master / Developer |
-| **Trương Văn Lợi**        | Developer / Product Owner|
-| **Lê Gia Kiệt**           | Developer                |
-| **Lưu Đỗ Hà Đông**        | Developer                |
-| **Nguyễn Kim Linh**       | Developer                |
-| **Nguyễn Đinh Anh Hào**   | Developer                |
-| **Nguyễn Minh Tân**       | Mentor                   |
-| **Anh Trực**              | Customer                 |
-
----
-
-## ✨ Main Features
-
-### 👤 Customer
-
-Khách hàng có thể:
-
-* Xem thông tin khách sạn.
-* Xem danh sách phòng.
-* Xem thông tin chi tiết phòng.
-* Xem menu món ăn.
-* Xem thông tin chi tiết món ăn.
-* Xem không gian của Cây Phượng K18.
-* Xem các địa điểm/thông tin xung quanh.
-* Xem thông tin liên hệ.
-* Xem vị trí trên bản đồ.
-
-### 🔐 Admin
-
-Admin có thể:
-
-* Đăng nhập trang quản trị.
-* Quản lý phòng.
-
-  * Thêm phòng.
-  * Xem phòng.
-  * Chỉnh sửa phòng.
-  * Xóa phòng.
-* Quản lý menu.
-
-  * Thêm món.
-  * Xem món.
-  * Chỉnh sửa món.
-  * Xóa món.
-* Quản lý các thông tin website.
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-
-* ReactJS
-* HTML5
-* CSS3
-* JavaScript
-* Vite
-
-### Backend
-
-* Node.js
-* NestJS
-
-### Database
-
-* - MySQL
-
-### Development Tools
-
-* Visual Studio Code
-* Git
-* GitHub
-* Jira
-* Microsoft Excel
-* draw.io
-
-### Communication
-
-* Zalo
-* Microsoft Teams
-* Google Meet
-
----
-
-## System Architecture
+## 🏗️ Architecture
 
 ```text
-┌───────────────────────┐
-│       Customer        │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│      ReactJS Web      │
-│       Frontend        │
-└───────────┬───────────┘
-            │ REST API
-            ▼
-┌───────────────────────┐
-│    Node.js / NestJS   │
-│        Backend        │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│         MySQL         │
-│       Database        │
-└───────────────────────┘
-
-            ▲
-            │
-      REST API
-            │
-┌───────────┴───────────┐
-│    ReactJS Admin      │
-│     Dashboard         │
-└───────────────────────┘
+ReactJS Frontend
+       │
+       │ REST API
+       ▼
+NestJS Backend
+       │
+       ▼
+    MySQL
 ```
 
----
+The system follows a Client–Server architecture, using ReactJS for the user interface, NestJS for backend services, and MySQL for data storage.
 
-## Development Plan
-
-Project được thực hiện theo mô hình **Scrum** với các Sprint:
-
-| Sprint       | Thời gian               | Nội dung chính                                 |
-| ------------ | ----------------------- | ---------------------------------------------- |
-| **Sprint 0** | 07/09/2026 – 27/09/2026 | Planning, Requirement, Architecture, Design    |
-| **Sprint 1** | 28/09/2026 – 18/10/2026 | Customer pages                                 |
-| **Sprint 2** | 19/10/2026 – 08/11/2026 | Admin Room & Menu                              |
-| **Sprint 3** | 09/11/2026 – 01/12/2026 | Admin information, walk-in guests, map/address |
-
----
-
-## 📋 Sprint Scope
-
-### Sprint 1 — Customer Website
-
-Các chức năng chính:
-
-* Room Information
-* Menu
-* Space
-* Attractions
-* Contact
-
-### Sprint 2 — Admin Management
-
-Các chức năng chính:
-
-* Room CRUD
-* Menu CRUD
-* Category Management
-
-### Sprint 3 — Additional Management
-
-Các chức năng chính:
-
-* Website Information Management
-* Walk-in Guest Management
-* Address / Map
-* Các chức năng hoàn thiện hệ thống
-
----
-
-## Repository Structure
+## 📁 Project Structure
 
 ```text
-QLTiepNhan-Nhom01/
-│
-├── 1. KICK-OFF/
-│   └── Kick-off Presentation
-│
-├── 2. PROJECT PLANNING/
-│   ├── Project Plan
-│   ├── Configuration Management Plan
-│   ├── Milestone
-│   ├── Team Charter
-│   ├── Release Plan
-│   ├── Risk Management Plan
-│   └── Risk List
-│
-├── 3. REQUIREMENT & ARCHITECTURE/
-│   ├── Concept of Operations
-│   ├── Function List
-│   ├── Architecture Driver
-│   ├── Architecture Design
-│   └── Database Design
-│
-├── 4. SPRINT EXECUTE/
-│   ├── Sprint 0/
-│   ├── Sprint 1/
-│   ├── Sprint 2/
-│   └── Sprint 3/
-│
-├── 5. CLOSURE/
-│   ├── User Guide
-│   ├── Installation Guide
-│   └── Release Product
-│
-├── 6. MONITORING & CONTROLLING/
-│   ├── Meeting Minutes
-│   └── Risk & Issue Log
+CayPhuongK18/
+├── frontend/
+│   └── ReactJS + Vite
+├── backend/
+│   └── NestJS
 └── README.md
 ```
 
----
+## 🚀 Getting Started
 
-## Development Workflow
+### Prerequisites
+- Node.js
+- npm
+- MySQL
 
-Nhóm sử dụng **Git/GitHub** để quản lý source code.
+### Backend
 
-```text
-Issue / User Story
-        ↓
-Jira Backlog
-        ↓
-Sprint
-        ↓
-Task / Subtask
-        ↓
-Development
-        ↓
-Testing
-        ↓
-Code Review
-        ↓
-Merge
-        ↓
-Sprint Review
-        ↓
-Retrospective
+```bash
+cd backend
+npm install
 ```
 
-Mỗi User Story có thể được chia thành các Subtask:
+Create a `.env` file and configure the database connection and environment variables.
 
-```text
-User Story
-├── Prototype
-├── Frontend
-├── Backend
-└── Test Case
+```bash
+npm run start:dev
 ```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 📄 License
+
+This project was developed as part of a university software engineering project.
