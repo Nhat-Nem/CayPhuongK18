@@ -330,13 +330,7 @@
 }
 
 .admin-room-booking-table {
-  min-width: 1320px;
-}
-
-.admin-room-booking-note {
-  min-width: 190px;
-  max-width: 280px;
-  white-space: normal;
+  min-width: 940px;
 }
 
 .admin-room-booking-call {

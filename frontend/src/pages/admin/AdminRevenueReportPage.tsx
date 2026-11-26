@@ -22,12 +22,12 @@ type DailyRevenueRow = {
   revenue: number
   count: number
 }
-type RestaurantDailyRow = DailyRevenueRow & { averageOrder: number }
+type TotalDailyRow = DailyRevenueRow & { food: number; hotel: number }
 
 const TAB_LABELS: Record<RevenueTab, string> = {
   food: "Doanh thu món ăn",
   hotel: "Doanh thu khách sạn",
-  restaurant: "Tổng doanh thu nhà hàng",
+  restaurant: "Tổng doanh thu",
 }
 
 function numeric(value: unknown) {
@@ -239,22 +239,8 @@ export default function AdminRevenueReportPage() {
     [paidOrders],
   )
 
-  const restaurantDailyRows = useMemo(() => {
-    const rows = buildDailyRows(paidOrders.map((order) => ({
-      paidAt: order.paidAt,
-      revenue: numeric(order.totalAmount),
-    })))
-    const counts = new Map<string, number>()
-    for (const order of paidOrders) {
-      const key = dateKey(order.paidAt)
-      if (key) counts.set(key, (counts.get(key) ?? 0) + 1)
-    }
-    return rows.map((row) => ({
-      ...row,
-      count: counts.get(row.date) ?? 0,
-      averageOrder: row.count > 0 ? row.revenue / row.count : 0,
-    }))
-  }, [paidOrders])
+  // Tổng doanh thu = tiền thực thu từ đơn món + lượt lưu trú đã thanh toán.
+  const grandTotal = restaurantTotal + hotelTotal
 
   const foodDailyRows = useMemo(() => buildDailyRows(paidOrders.map((order) => ({
     paidAt: order.paidAt,
@@ -269,21 +255,39 @@ export default function AdminRevenueReportPage() {
     revenue: numeric(stay.totalAmount),
   }))), [paidRoomStays])
 
+  const totalDailyRows = useMemo((): TotalDailyRow[] => {
+    const orderDays = buildDailyRows(paidOrders.map((order) => ({
+      paidAt: order.paidAt,
+      revenue: numeric(order.totalAmount),
+    })))
+    const dates = [...new Set([...orderDays, ...hotelDailyRows].map((row) => row.date))].sort()
+    return dates.map((date) => {
+      const food = orderDays.find((row) => row.date === date)
+      const hotel = hotelDailyRows.find((row) => row.date === date)
+      return {
+        date,
+        food: food?.revenue ?? 0,
+        hotel: hotel?.revenue ?? 0,
+        revenue: (food?.revenue ?? 0) + (hotel?.revenue ?? 0),
+        count: (food?.count ?? 0) + (hotel?.count ?? 0),
+      }
+    })
+  }, [paidOrders, hotelDailyRows])
+
   const activeTrend: DailyRevenueRow[] = activeTab === "food"
     ? foodDailyRows
     : activeTab === "hotel"
       ? hotelDailyRows
-      : restaurantDailyRows
+      : totalDailyRows
   const trendMaximum = Math.max(1, ...activeTrend.map((row) => row.revenue))
 
   const foodQuantity = foodRows.reduce((sum, row) => sum + row.quantitySold, 0)
   const uniqueRooms = new Set(paidRoomStays.map((stay) => String(stay.roomId))).size
-  const averageRestaurantOrder = paidOrders.length > 0 ? restaurantTotal / paidOrders.length : 0
   const isLoadingActive = activeTab === "food"
     ? (loadingOrders || (isAdmin && loadingFoodReport))
     : activeTab === "hotel"
       ? loadingRoomStays
-      : loadingOrders
+      : loadingOrders || loadingRoomStays
 
   const clearDateFilters = () => {
     setFromDate("")
@@ -321,8 +325,8 @@ export default function AdminRevenueReportPage() {
 
     downloadCsv(
       buildFilename(activeTab, role, fromDate, toDate),
-      ["Ngày thanh toán", "Số đơn đã thanh toán", "Doanh thu (VNĐ)", "Giá trị trung bình/đơn (VNĐ)"],
-      restaurantDailyRows.map((row) => [formatDate(row.date), row.count, row.revenue.toFixed(2), row.averageOrder.toFixed(2)]),
+      ["Ngày thanh toán", "Món ăn (VNĐ)", "Khách sạn (VNĐ)", "Tổng doanh thu (VNĐ)"],
+      totalDailyRows.map((row) => [formatDate(row.date), row.food.toFixed(2), row.hotel.toFixed(2), row.revenue.toFixed(2)]),
     )
   }
 
@@ -333,7 +337,7 @@ export default function AdminRevenueReportPage() {
       : activeTab === "hotel"
         ? "Doanh thu khách sạn được tính từ lượt lưu trú đã trả phòng và thanh toán thành công."
         : activeTab === "restaurant"
-          ? "Tổng doanh thu nhà hàng được tính từ tổng tiền các đơn đã thanh toán."
+          ? "Tổng doanh thu = tiền thực thu từ đơn món ăn (đã trừ ưu đãi) + tiền phòng đã thanh toán."
           : "Số liệu chỉ bao gồm các giao dịch đã thanh toán thành công."
 
   return (
@@ -341,7 +345,7 @@ export default function AdminRevenueReportPage() {
       eyebrow="BÁO CÁO DOANH THU"
       title="Báo cáo doanh thu"
       subtitle={isAdmin
-        ? "Theo dõi doanh thu món ăn, dịch vụ khách sạn và tổng doanh thu nhà hàng."
+        ? "Theo dõi doanh thu món ăn, dịch vụ khách sạn và tổng doanh thu."
         : "Xem doanh thu phục vụ công việc theo dõi hoạt động kinh doanh."}
       primaryAction={(
         <button className="admin-primary-button admin-revenue-export" type="button" onClick={handleExport}>
@@ -405,7 +409,7 @@ export default function AdminRevenueReportPage() {
       {activeTab !== "hotel" && ordersError && (
         <div className="admin-room-form-notice error">Không thể tải đơn hàng: {ordersError}</div>
       )}
-      {activeTab === "hotel" && roomStaysError && (
+      {activeTab !== "food" && roomStaysError && (
         <div className="admin-room-form-notice error">Không thể tải lượt lưu trú: {roomStaysError}</div>
       )}
 
@@ -415,7 +419,7 @@ export default function AdminRevenueReportPage() {
             <article>
               <span>TỔNG DOANH THU MÓN ĂN</span>
               <strong>{formatMoney(foodTotal)}</strong>
-              <small>Chỉ tính đơn đã thanh toán</small>
+              <small>Theo giá món của đơn đã thanh toán, chưa trừ ưu đãi</small>
             </article>
             <article>
               <span>TỔNG SỐ PHẦN ĐÃ BÁN</span>
@@ -451,19 +455,19 @@ export default function AdminRevenueReportPage() {
         {activeTab === "restaurant" && (
           <>
             <article>
-              <span>TỔNG DOANH THU NHÀ HÀNG</span>
+              <span>TỔNG DOANH THU</span>
+              <strong>{formatMoney(grandTotal)}</strong>
+              <small>Món ăn + khách sạn đã thanh toán</small>
+            </article>
+            <article>
+              <span>MÓN ĂN (THỰC THU)</span>
               <strong>{formatMoney(restaurantTotal)}</strong>
-              <small>Doanh thu từ các đơn đã thanh toán</small>
+              <small>{paidOrders.length} đơn đã thanh toán, đã trừ ưu đãi</small>
             </article>
             <article>
-              <span>SỐ ĐƠN ĐÃ THANH TOÁN</span>
-              <strong>{paidOrders.length}</strong>
-              <small>Đơn có ghi nhận thời điểm thanh toán</small>
-            </article>
-            <article>
-              <span>TRUNG BÌNH MỖI ĐƠN</span>
-              <strong>{formatMoney(averageRestaurantOrder)}</strong>
-              <small>Doanh thu chia số đơn đã thanh toán</small>
+              <span>KHÁCH SẠN</span>
+              <strong>{formatMoney(hotelTotal)}</strong>
+              <small>{paidRoomStays.length} lượt lưu trú đã thanh toán</small>
             </article>
           </>
         )}
@@ -508,7 +512,7 @@ export default function AdminRevenueReportPage() {
               ? `${foodRows.length} món ăn`
               : activeTab === "hotel"
                 ? `${paidRoomStays.length} lượt lưu trú`
-                : `${restaurantDailyRows.length} ngày`}
+                : `${totalDailyRows.length} ngày`}
           </span>
         </div>
         {isLoadingActive ? (
@@ -557,19 +561,19 @@ export default function AdminRevenueReportPage() {
               </table>
             </div>
           )
-        ) : restaurantDailyRows.length === 0 ? (
-          <div className="admin-room-empty"><strong>Chưa có doanh thu nhà hàng trong kỳ</strong></div>
+        ) : totalDailyRows.length === 0 ? (
+          <div className="admin-room-empty"><strong>Chưa có doanh thu trong kỳ</strong></div>
         ) : (
           <div className="admin-room-table-wrap">
             <table className="admin-room-table admin-revenue-table">
-              <thead><tr><th>Ngày thanh toán</th><th>Số đơn đã thanh toán</th><th>Doanh thu</th><th>Trung bình/đơn</th></tr></thead>
+              <thead><tr><th>Ngày thanh toán</th><th>Món ăn</th><th>Khách sạn</th><th>Tổng doanh thu</th></tr></thead>
               <tbody>
-                {restaurantDailyRows.map((row) => (
+                {totalDailyRows.map((row) => (
                   <tr key={row.date}>
                     <td><strong>{formatDate(row.date)}</strong></td>
-                    <td>{row.count}</td>
+                    <td>{formatMoney(row.food)}</td>
+                    <td>{formatMoney(row.hotel)}</td>
                     <td><strong className="admin-revenue-money">{formatMoney(row.revenue)}</strong></td>
-                    <td>{formatMoney(row.averageOrder)}</td>
                   </tr>
                 ))}
               </tbody>

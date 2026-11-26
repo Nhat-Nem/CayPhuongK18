@@ -169,10 +169,28 @@ function compareMenuItemsNewestFirst(a: BackendMenuItem, b: BackendMenuItem) {
   })
 }
 
-export async function getMenuDishes(): Promise<MenuDish[]> {
-  const rows = await apiRequest<BackendMenuItem[]>(MENU_ITEMS_API_PATH)
+type BackendMenuItemsPage = {
+  data: BackendMenuItem[]
+  meta: { totalPages: number }
+}
 
-  return [...rows]
+export async function getMenuDishes(): Promise<MenuDish[]> {
+  // Backend chia trang (mặc định 10 món) nhưng trang khách và admin cần đủ thực đơn, nên đọc hết các trang.
+  const rows: BackendMenuItem[] = []
+  for (let page = 1; ; page += 1) {
+    const result = await apiRequest<BackendMenuItem[] | BackendMenuItemsPage>(
+      `${MENU_ITEMS_API_PATH}?page=${page}&limit=100`,
+    )
+    // Backend bản cũ chưa chia trang thì trả thẳng mảng.
+    if (Array.isArray(result)) {
+      rows.push(...result)
+      break
+    }
+    rows.push(...result.data)
+    if (page >= result.meta.totalPages) break
+  }
+
+  return rows
     .sort(compareMenuItemsNewestFirst)
     .map(normalizeMenuItem)
 }
