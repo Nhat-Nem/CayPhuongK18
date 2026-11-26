@@ -27,7 +27,16 @@ export type OrderRecord = {
   id: string
   code: string
   note: string | null
+  /** Đơn tại bàn có tableNumber, đơn giao phòng có roomNumber (backend bắt buộc đúng một trong hai). */
+  tableNumber?: string | null
+  roomNumber?: string | null
   status: OrderStatus
+  promotionId?: string | null
+  promotionName?: string | null
+  promotionType?: "PERCENTAGE" | "FIXED_AMOUNT" | null
+  promotionValue?: string | number | null
+  /** Số tiền đã giảm; totalAmount là số tiền sau giảm. */
+  discountAmount?: string | number
   totalAmount: string | number
   paymentStatus: OrderPaymentStatus
   paymentMethod: OrderPaymentMethod | null
@@ -38,9 +47,11 @@ export type OrderRecord = {
   updatedAt: string
 }
 
-/** Backend hiện chỉ nhận note khi tạo/cập nhật đơn. */
+/** Backend nhận note khi tạo/cập nhật đơn; số bàn hoặc số phòng chỉ gửi khi tạo đơn. */
 export type OrderPayload = {
   note?: string | null
+  tableNumber?: string
+  roomNumber?: string
 }
 
 const ORDERS_API_PATH = "/api/v1/orders"
@@ -69,6 +80,8 @@ export async function createOrder(payload: OrderPayload) {
     method: "POST",
     body: JSON.stringify({
       ...(payload.note !== undefined ? { note: payload.note } : {}),
+      ...(payload.tableNumber ? { tableNumber: payload.tableNumber } : {}),
+      ...(payload.roomNumber ? { roomNumber: payload.roomNumber } : {}),
     }),
   })
 }
@@ -99,6 +112,22 @@ export async function recordOrderPayment(
   return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/payment`, {
     method: "PATCH",
     body: JSON.stringify({ paymentMethod }),
+  })
+}
+
+/** PATCH /api/v1/orders/:id/promotion — backend tự kiểm tra ưu đãi và tính lại tổng tiền. */
+export async function applyOrderPromotion(id: string, promotionId: string) {
+  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/promotion`, {
+    method: "PATCH",
+    // ApplyPromotionDto của backend khai báo @IsString() cho promotionId.
+    body: JSON.stringify({ promotionId: String(promotionId) }),
+  })
+}
+
+/** DELETE /api/v1/orders/:id/promotion — bỏ ưu đãi và tính lại tổng tiền. */
+export async function removeOrderPromotion(id: string) {
+  return apiRequest<OrderRecord>(`${ORDERS_API_PATH}/${encodeId(id)}/promotion`, {
+    method: "DELETE",
   })
 }
 

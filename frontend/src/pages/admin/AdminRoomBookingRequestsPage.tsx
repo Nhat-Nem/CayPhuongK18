@@ -83,6 +83,7 @@ export default function AdminRoomBookingRequestsPage() {
   const [keyword, setKeyword] = useState("")
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [activeAction, setActiveAction] = useState<RoomBookingAction | null>(null)
+  const [selectedRecord, setSelectedRecord] = useState<RoomBookingRequestRecord | null>(null)
   const [selectedRoomId, setSelectedRoomId] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<RoomStayPaymentMethod>("CASH")
   const [actionLoading, setActionLoading] = useState(false)
@@ -355,6 +356,7 @@ export default function AdminRoomBookingRequestsPage() {
                   <th>Ngày trả</th>
                   <th>Nội dung</th>
                   <th>Trạng thái</th>
+                  <th>Chi tiết</th>
                 </tr>
               </thead>
 
@@ -441,6 +443,15 @@ export default function AdminRoomBookingRequestsPage() {
                         )}
                       </div>
                     </td>
+                    <td>
+                      <button
+                        className="admin-table-booking-detail"
+                        type="button"
+                        onClick={() => setSelectedRecord(record)}
+                      >
+                        Xem chi tiết
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -501,6 +512,39 @@ export default function AdminRoomBookingRequestsPage() {
             </div>
           </form>
         ) : null}
+      </AdminFormModal>
+
+      <AdminFormModal
+        open={Boolean(selectedRecord)}
+        eyebrow="CHI TIẾT YÊU CẦU ĐẶT PHÒNG"
+        title={selectedRecord ? `DP-${selectedRecord.id.padStart(6, "0")}` : "Chi tiết yêu cầu"}
+        onClose={() => setSelectedRecord(null)}
+        size="wide"
+      >
+        {selectedRecord && (
+          <div className="admin-table-booking-detail-panel">
+            <div className="admin-table-booking-detail-grid">
+              <div><span>Họ và tên</span><strong>{selectedRecord.customerName || "—"}</strong></div>
+              <div><span>Số điện thoại</span><strong>{selectedRecord.customerPhone || "—"}</strong></div>
+              <div><span>Email</span><strong>{selectedRecord.customerEmail || "—"}</strong></div>
+              <div><span>Hạng phòng</span><strong>{selectedRecord.roomType || "—"}</strong></div>
+              <div><span>Số khách</span><strong>{selectedRecord.guests ?? "—"}</strong></div>
+              <div><span>Ngày nhận</span><strong>{formatDate(selectedRecord.checkIn)}</strong></div>
+              <div><span>Ngày trả</span><strong>{formatDate(selectedRecord.checkOut)}</strong></div>
+              <div><span>Thời gian gửi</span><strong>{formatCreatedAt(selectedRecord.createdAt)}</strong></div>
+              <div><span>Trạng thái</span><strong>{statusLabel(selectedRecord.status)}</strong></div>
+            </div>
+            <div className="admin-table-booking-detail-note">
+              <span>Nội dung khách gửi</span>
+              <p>{selectedRecord.note?.trim() || "Khách không để lại ghi chú."}</p>
+            </div>
+            {selectedRecord.customerPhone && (
+              <a className="admin-primary-button admin-table-booking-call-button" href={`tel:${selectedRecord.customerPhone}`}>
+                Gọi khách hàng
+              </a>
+            )}
+          </div>
+        )}
       </AdminFormModal>
     </AdminRoomLayout>
   )
