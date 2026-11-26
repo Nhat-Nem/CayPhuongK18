@@ -42,6 +42,15 @@ function statusLabel(status: RoomBookingStatus) {
   return "Đã hủy"
 }
 
+// Giống backend khi trả phòng: đếm theo ngày lịch, tối thiểu 1 đêm.
+function calendarNights(from: string, to: string | Date) {
+  const day = (value: string | Date) => {
+    const date = new Date(value)
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+  }
+  return Math.max(1, Math.round((day(to) - day(from)) / 86400000))
+}
+
 function formatMoney(value: number) {
   return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(value)} VNĐ`
 }
@@ -348,13 +357,11 @@ export default function AdminRoomBookingRequestsPage() {
                 <tr>
                   <th>Mã form</th>
                   <th>Họ và tên</th>
-                  <th>Số điện thoại</th>
-                  <th>Email</th>
+                  <th>Liên hệ</th>
                   <th>Hạng phòng</th>
                   <th>Số khách</th>
                   <th>Ngày nhận</th>
                   <th>Ngày trả</th>
-                  <th>Nội dung</th>
                   <th>Trạng thái</th>
                   <th>Chi tiết</th>
                 </tr>
@@ -372,6 +379,7 @@ export default function AdminRoomBookingRequestsPage() {
                     </td>
                     <td>
                       <strong>{record.customerPhone || "—"}</strong>
+                      {record.customerEmail && <small>{record.customerEmail}</small>}
                       {record.customerPhone && (
                         <a
                           className="admin-room-booking-call"
@@ -381,7 +389,6 @@ export default function AdminRoomBookingRequestsPage() {
                         </a>
                       )}
                     </td>
-                    <td>{record.customerEmail || "—"}</td>
                     <td>
                       <strong>{record.roomType || "—"}</strong>
                     </td>
@@ -390,9 +397,6 @@ export default function AdminRoomBookingRequestsPage() {
                     </td>
                     <td>{formatDate(record.checkIn)}</td>
                     <td>{formatDate(record.checkOut)}</td>
-                    <td className="admin-room-booking-note">
-                      {record.note || "—"}
-                    </td>
                     <td>
                       <div className="admin-room-booking-row-actions">
                         {(record.status === "PENDING" || record.status === "CONFIRMED") && (
@@ -495,6 +499,21 @@ export default function AdminRoomBookingRequestsPage() {
             <p className="admin-room-booking-modal-note admin-s2-full">
               {activeAction.stay.room?.name || `Phòng #${activeAction.stay.roomId}`} · {formatMoney(Number(activeAction.stay.roomPrice))}/đêm. Hệ thống tính tiền theo số đêm lưu trú và chỉ cộng doanh thu sau khi xác nhận thanh toán.
             </p>
+            <div className="admin-order-payment-summary admin-s2-full">
+              <p>
+                <span>Số đêm (nhận phòng {formatCreatedAt(activeAction.stay.checkInAt)} → hôm nay)</span>
+                <span>{calendarNights(activeAction.stay.checkInAt, new Date())} đêm</span>
+              </p>
+              {activeAction.record.checkIn && activeAction.record.checkOut && (
+                <p>
+                  <span>Khách đặt ({formatDate(activeAction.record.checkIn)} → {formatDate(activeAction.record.checkOut)})</span>
+                  <span>{calendarNights(`${activeAction.record.checkIn}T00:00:00`, `${activeAction.record.checkOut}T00:00:00`)} đêm</span>
+                </p>
+              )}
+              <p className="admin-order-payment-total">
+                Thành tiền dự kiến: <strong>{formatMoney(calendarNights(activeAction.stay.checkInAt, new Date()) * Number(activeAction.stay.roomPrice))}</strong>
+              </p>
+            </div>
             <label className="admin-s2-full">
               <span>Phương thức thanh toán</span>
               <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as RoomStayPaymentMethod)}>

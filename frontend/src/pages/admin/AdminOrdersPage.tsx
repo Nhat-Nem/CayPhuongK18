@@ -437,7 +437,6 @@ export default function AdminOrdersPage() {
       setCreateForm(EMPTY_CREATE_FORM)
       setCreateItems([])
       await refreshOrders()
-      await openEditor(created)
       if (itemAddError) {
         setError(`Đơn đã được tạo nhưng một số món chưa thêm được: ${itemAddError}`)
       }
@@ -449,12 +448,13 @@ export default function AdminOrdersPage() {
   }
 
   const removeOrder = async (order: OrderRecord) => {
-    if (order.status !== "PENDING") {
-      setError("Chỉ có thể xóa đơn đang ở trạng thái Chờ xử lý.")
+    // Backend (xóa mềm) chỉ cho xóa đơn đã hoàn thành hoặc đã hủy.
+    if (order.status !== "COMPLETED" && order.status !== "CANCELLED") {
+      setError("Chỉ có thể xóa đơn đã hoàn thành hoặc đã hủy.")
       return
     }
 
-    if (!window.confirm(`Bạn có chắc muốn xóa đơn ${orderLabel(order)}? Toàn bộ món trong đơn cũng sẽ bị xóa.`)) return
+    if (!window.confirm(`Bạn có chắc muốn xóa đơn ${orderLabel(order)}? Đơn sẽ bị ẩn khỏi danh sách và báo cáo doanh thu.`)) return
 
     setSaving(true)
     setError("")
@@ -906,8 +906,8 @@ export default function AdminOrdersPage() {
                             className="admin-icon-button danger"
                             type="button"
                             onClick={() => void removeOrder(order)}
-                            disabled={saving || order.status !== "PENDING"}
-                            title={order.status === "PENDING" ? "Xóa đơn hàng" : "Chỉ xóa được đơn đang chờ xử lý"}
+                            disabled={saving || (order.status !== "COMPLETED" && order.status !== "CANCELLED")}
+                            title={order.status === "COMPLETED" || order.status === "CANCELLED" ? "Xóa đơn hàng" : "Chỉ xóa được đơn đã hoàn thành hoặc đã hủy"}
                           >
                             ⌫
                           </button>
