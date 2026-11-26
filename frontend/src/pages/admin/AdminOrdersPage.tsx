@@ -577,9 +577,13 @@ export default function AdminOrdersPage() {
 
     // Backend: đơn tại bàn nhận ưu đãi Nhà hàng (applyType 2), đơn giao phòng nhận ưu đãi Khách sạn (applyType 1).
     const applyType = order.tableNumber ? 2 : 1
+    // Backend coi ngày kết thúc là mốc 00:00 (không tính trọn ngày) nên ẩn ưu đãi vào ngày cuối.
+    const todayKey = localDateKey(new Date().toISOString())
     getPromotions()
       .then((rows) => {
-        setPaymentPromotions(rows.filter((item) => item.applyType === applyType && promotionStatus(item) === "active"))
+        setPaymentPromotions(rows.filter((item) =>
+          item.applyType === applyType && promotionStatus(item) === "active" && item.endDate > todayKey,
+        ))
       })
       .catch(() => {
         setPaymentPromotions([])
@@ -607,9 +611,14 @@ export default function AdminOrdersPage() {
     setSaving(true)
     setPaymentError("")
     try {
-      const updated = promotionId
+      let updated = promotionId
         ? await applyOrderPromotion(paymentOrder.id, promotionId)
         : await removeOrderPromotion(paymentOrder.id)
+      // Backend không cho ghi nhận thanh toán đơn 0đ, nên gỡ ưu đãi giảm hết giá trị đơn.
+      if (promotionId && Number(updated.totalAmount) <= 0) {
+        updated = await removeOrderPromotion(paymentOrder.id)
+        setPaymentError("Ưu đãi này giảm hết giá trị đơn nên chưa thể thanh toán. Đã bỏ ưu đãi.")
+      }
       setPaymentOrder((current) => current ? { ...current, ...updated, items: updated.items ?? current.items } : current)
       syncPaidOrder(updated)
       setPaymentPromotionId(updated.promotionId ? String(updated.promotionId) : "")
