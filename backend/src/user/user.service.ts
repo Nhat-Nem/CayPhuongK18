@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt'
@@ -28,6 +28,22 @@ export class UserService {
         });
 
         return users;
+    }
+
+    async getStaffDirectory() {
+        return this.userRepository.find({
+            where: {
+                role: UserRole.STAFF,
+                is_activate: true
+            },
+
+            order: { full_name: "DESC" },
+
+            select: {
+                id: true,
+                full_name: true
+            }
+        })
     }
 
     async findOne(id: string) {
