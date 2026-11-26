@@ -209,12 +209,15 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     void refreshOrders()
 
-    getStaffDirectory()
-      .then(setStaffUsers)
-      .catch((err: Error) => {
-        // Danh sách đơn vẫn dùng được nếu endpoint người dùng tạm thời không khả dụng.
-        setStaffDirectoryError(err.message || "Không thể tải danh sách nhân viên.")
-      })
+    // GET /user chỉ dành cho ADMIN; nhân viên gọi sẽ bị 403 nên bỏ qua.
+    if (isAdmin) {
+      getStaffDirectory()
+        .then(setStaffUsers)
+        .catch((err: Error) => {
+          // Danh sách đơn vẫn dùng được nếu endpoint người dùng tạm thời không khả dụng.
+          setStaffDirectoryError(err.message || "Không thể tải danh sách nhân viên.")
+        })
+    }
 
     getMenuDishes()
       .then((rows) => {
