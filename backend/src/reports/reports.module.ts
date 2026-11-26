@@ -6,13 +6,15 @@ import { Order } from '../orders/entities/order.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
 import { MenuItem } from '../menu-items/entities/menu-item.entity';
 import { AuthModule } from '../auth/auth.module';
+import { RoomStay } from '../room-stays/entities/room-stay.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Order,
       OrderItem,
-      MenuItem
+      MenuItem,
+      RoomStay
     ]),
     AuthModule
   ],

@@ -21,25 +21,38 @@ export class ReportsController {
         return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
     }
 
-    @Get("food-revenue")
-    @Roles("ADMIN")
-    getFoodRevenue(
-        @Query('from') from?: string,
-        @Query("to") to?: string
-    ) {
+    private validateRange(from?: string, to?: string) {
         if (
-            (from && !this.isValidDate(from)) ||
+            (from && !this.isValidDate(from)) || 
             (to && !this.isValidDate(to))
         ) {
             throw new BadRequestException("Dates must use YYYY-MM-DD format")
         }
 
         if (from && to && from > to) {
-            throw new BadRequestException(
-                'The from date must not be later than the to date',
-            );
+            throw new BadRequestException("The from date must not be later than the to date")
         }
+    }
+
+    @Get("food-revenue")
+    @Roles("ADMIN")
+    getFoodRevenue(
+        @Query('from') from?: string,
+        @Query("to") to?: string
+    ) {
+        this.validateRange(from, to)
 
         return this.reportsService.getFoodRevenue(from, to)
+    }
+
+    @Get('hotel-revenue')
+    @Roles("ADMIN")
+    getHotelRevenue(
+        @Query('from') from?: string,
+        @Query('to') to?: string
+    ) {
+        this.validateRange(from, to)
+
+        return this.reportsService.getHotelRevenue(from, to)
     }
 }

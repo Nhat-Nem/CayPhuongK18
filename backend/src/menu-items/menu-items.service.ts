@@ -27,11 +27,25 @@ export class MenuItemsService {
   }
 
   // Tim het
-  async findAll() {
-    return this.menuItemRepository.find({
+  async findAll(page: number = 1, limit: number = 10) {
+    const [items, total] = await this.menuItemRepository.findAndCount({
       relations: { category: true },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
+      skip: (page - 1) * limit,
+      take: limit
     });
+
+    return {
+      data: items,
+      meta: {
+        total, 
+        page, 
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1
+      }
+    }
   }
 
   // Tim theo id
