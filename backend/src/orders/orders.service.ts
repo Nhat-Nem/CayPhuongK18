@@ -452,4 +452,24 @@ export class OrdersService {
 
         return result
     }
+
+    // Soft Delete
+    async remove(id: string) {
+        const order = await this.findOne(id)
+
+        if (
+            order.status !== OrderStatus.CANCELLED &&
+            order.status !== OrderStatus.COMPLETED
+        ) {
+            throw new BadRequestException("Only completed or cancelled orders can be deleted")
+        }
+
+        await this.orderRepository.softDelete(id)
+
+        this.ordersLogger.log(`Soft delete order ID ${id} successfully at ${this.getCurrentTime()}`)
+
+        return {
+            message: "Order deleted successfully"
+        }
+    }
 }

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OrderItem } from "./order-item.entity";
 import { Promotion, PromotionType } from "../../promotions/entities/promotion.entity";
 
@@ -82,4 +82,7 @@ export class Order {
     @ManyToOne(() => Promotion, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'promotion_id' })
     promotion: Promotion | null
+
+    @DeleteDateColumn({ name: "deleted_at", type: "datetime", nullable: true })
+    deletedAt: Date | null
 }
