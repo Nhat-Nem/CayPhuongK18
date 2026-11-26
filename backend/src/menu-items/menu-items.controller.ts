@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { MenuItemsService } from './menu-items.service';
 import { CreateMenuItemDto } from './dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu-item.dto';
@@ -14,8 +14,14 @@ export class MenuItemsController {
     ) {}
 
     @Get()
-    findAll() {
-        return this.menuItemsService.findAll()
+    findAll(
+        @Query('page') page: string = "1",
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.menuItemsService.findAll(
+            Number(page),
+            Number(limit)
+        )
     }
 
     @Get(':id')
