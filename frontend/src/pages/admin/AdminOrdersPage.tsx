@@ -336,7 +336,9 @@ export default function AdminOrdersPage() {
   }, [orders])
 
   const totalValue = useMemo(
-    () => orders.reduce((total, order) => total + Number(order.totalAmount || 0), 0),
+    () => orders
+      .filter((order) => order.status !== "CANCELLED")
+      .reduce((total, order) => total + Number(order.totalAmount || 0), 0),
     [orders],
   )
 
@@ -607,9 +609,14 @@ export default function AdminOrdersPage() {
     setSaving(true)
     setPaymentError("")
     try {
-      const updated = promotionId
+      let updated = promotionId
         ? await applyOrderPromotion(paymentOrder.id, promotionId)
         : await removeOrderPromotion(paymentOrder.id)
+      // Backend không cho ghi nhận thanh toán đơn 0đ, nên gỡ ưu đãi giảm hết giá trị đơn.
+      if (promotionId && Number(updated.totalAmount) <= 0) {
+        updated = await removeOrderPromotion(paymentOrder.id)
+        setPaymentError("Ưu đãi này giảm hết giá trị đơn nên chưa thể thanh toán. Đã bỏ ưu đãi.")
+      }
       setPaymentOrder((current) => current ? { ...current, ...updated, items: updated.items ?? current.items } : current)
       syncPaidOrder(updated)
       setPaymentPromotionId(updated.promotionId ? String(updated.promotionId) : "")

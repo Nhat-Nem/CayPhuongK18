@@ -32,8 +32,13 @@ type BackendPromotion = {
 
 const API_PATH = "/api/v1/promotions"
 
+// Đọc ngày theo giờ máy người dùng: 00:00 giờ VN được backend trả về là 17:00 UTC hôm trước.
 function dateOnly(value: string) {
-  return String(value ?? "").slice(0, 10)
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value ?? "").slice(0, 10)
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${date.getFullYear()}-${month}-${day}`
 }
 
 function normalizePromotion(row: BackendPromotion): PromotionRecord {
@@ -56,8 +61,9 @@ function toBackendPayload(payload: Omit<PromotionRecord, "id" | "backendStatus">
     discountType: "PERCENTAGE" as const,
     discountValue: payload.discountPercent,
     appliesTo: payload.applyType === 1 ? ("HOTEL" as const) : ("RESTAURANT" as const),
-    startDate: payload.startDate,
-    endDate: payload.endDate,
+    // Gửi kèm giờ Việt Nam để ưu đãi chạy trọn ngày bắt đầu và ngày kết thúc.
+    startDate: `${payload.startDate}T00:00:00+07:00`,
+    endDate: `${payload.endDate}T23:59:59+07:00`,
     image: payload.image?.trim() ?? "",
     status: "ACTIVE" as const,
   }
