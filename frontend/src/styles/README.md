@@ -1,24 +1,7 @@
 # CSS structure
 
-The original `src/index.css` was split without changing selector content or source order.
+`src/index.css` is the import manifest; it lists every stylesheet the app loads, in order.
 
-- `fonts.css` — font-face declarations
-- `globals.css` — global reset/base rules
-- `layout/header.css` — header/navigation
-- `common/hero.css` — shared hero styles
-- `layout/floating-actions.css` — social rail + quick phone
-- `pages/home.css` — homepage sections and sliders
-- `pages/blog.css` — blog cards
-- `pages/rooms.css` — room listing
-- `pages/menu.css` — menu listing/catalog
-- `pages/about.css` — about/story sections
-- `pages/careers.css` — careers page
-- `pages/contact.css` — contact page/form
-- `pages/offers.css` — offers pages
-- `pages/room-detail.css` — room detail
-- `pages/menu-detail.css` — dish detail
-- `layout/footer.css` — footer
-- `common/actions.css` — shared action/button font rules
-- `responsive.css` — all responsive overrides; imported last
-
-`src/index.css` is now only the import manifest.
+- `prototype-original.css` — all public/customer-facing styles from the original prototype
+- `prototype-compat.css` — small additions for API-backed room data
+- `pages/*.css` — pages without an equivalent in the prototype (booking, admin screens, promotions, recruitment, reviews, not-found) plus `reference-ui-polish.css`, the shared alignment and polish layer

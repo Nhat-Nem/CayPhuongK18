@@ -336,7 +336,9 @@ export default function AdminOrdersPage() {
   }, [orders])
 
   const totalValue = useMemo(
-    () => orders.reduce((total, order) => total + Number(order.totalAmount || 0), 0),
+    () => orders
+      .filter((order) => order.status !== "CANCELLED")
+      .reduce((total, order) => total + Number(order.totalAmount || 0), 0),
     [orders],
   )
 
@@ -577,13 +579,9 @@ export default function AdminOrdersPage() {
 
     // Backend: đơn tại bàn nhận ưu đãi Nhà hàng (applyType 2), đơn giao phòng nhận ưu đãi Khách sạn (applyType 1).
     const applyType = order.tableNumber ? 2 : 1
-    // Backend coi ngày kết thúc là mốc 00:00 (không tính trọn ngày) nên ẩn ưu đãi vào ngày cuối.
-    const todayKey = localDateKey(new Date().toISOString())
     getPromotions()
       .then((rows) => {
-        setPaymentPromotions(rows.filter((item) =>
-          item.applyType === applyType && promotionStatus(item) === "active" && item.endDate > todayKey,
-        ))
+        setPaymentPromotions(rows.filter((item) => item.applyType === applyType && promotionStatus(item) === "active"))
       })
       .catch(() => {
         setPaymentPromotions([])

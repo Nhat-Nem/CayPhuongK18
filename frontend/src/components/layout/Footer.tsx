@@ -1,7 +1,26 @@
+import { useEffect, useState } from "react"
 import footerLogoImg from "@/imports/footer-logo.png"
 import { A } from "@/config/assets"
+import {
+  CONTACT_UPDATED_EVENT,
+  defaultContactSettings,
+  getContactSettings,
+  getPhoneHref,
+} from "@/services/contactApi"
 
 export default function Footer() {
+  const [contact, setContact] = useState(defaultContactSettings)
+
+  useEffect(() => {
+    const refresh = () => {
+      void getContactSettings().then(setContact)
+    }
+
+    refresh()
+    window.addEventListener(CONTACT_UPDATED_EVENT, refresh)
+    return () => window.removeEventListener(CONTACT_UPDATED_EVENT, refresh)
+  }, [])
+
   return (
     <footer className="footer">
       <div className="footer-main">
@@ -37,8 +56,8 @@ export default function Footer() {
         <div className="footer-contact">
           <h3>Liên hệ</h3>
           <p>Tây Ninh, Việt Nam</p>
-          <a href="tel:0123456789">0123 456 789</a>
-          <a href="mailto:mail@gmail.com">mail@gmail.com</a>
+          <a href={getPhoneHref(contact.hotline)}>{contact.hotline}</a>
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
         </div>
       </div>
       <div className="footer-bottom">
