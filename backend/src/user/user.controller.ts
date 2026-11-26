@@ -15,6 +15,14 @@ export class UserController {
         private readonly userService: UserService
     ) {}
 
+    // API trả về tên nhân viên cho STAFF
+    @Get("staff-directory")
+    @Roles(UserRole.ADMIN, UserRole.STAFF)
+    getStaffDirectory() {
+        return this.userService.getStaffDirectory()
+    }
+
+    // ADMIN Only
     @Get()
     findAll() {
         return this.userService.findAll()

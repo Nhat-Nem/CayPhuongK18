@@ -35,7 +35,7 @@ export class ReportsController {
     }
 
     @Get("food-revenue")
-    @Roles("ADMIN")
+    @Roles("ADMIN", "STAFF")
     getFoodRevenue(
         @Query('from') from?: string,
         @Query("to") to?: string
@@ -46,7 +46,7 @@ export class ReportsController {
     }
 
     @Get('hotel-revenue')
-    @Roles("ADMIN")
+    @Roles("ADMIN", "STAFF")
     getHotelRevenue(
         @Query('from') from?: string,
         @Query('to') to?: string
