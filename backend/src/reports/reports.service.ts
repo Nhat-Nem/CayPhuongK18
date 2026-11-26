@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { OrderItem } from '../orders/entities/order-item.entity';
 import { Repository } from 'typeorm';
 import { PaymentStatus } from '../orders/entities/order.entity';
+import { RoomStay, RoomStayPaymentStatus } from '../room-stays/entities/room-stay.entity';
 
 @Injectable()
 export class ReportsService {
     constructor(
         @InjectRepository(OrderItem)
-        private readonly orderItemRepository: Repository<OrderItem>
+        private readonly orderItemRepository: Repository<OrderItem>,
+
+        @InjectRepository(RoomStay)
+        private readonly roomStayRepository: Repository<RoomStay>
     ) {}
 
     private getNextDay(date: string): string {
@@ -69,6 +73,81 @@ export class ReportsService {
                 revenue: Number(item.revenue).toFixed(2)
             }))
         }
+    }
 
+    // Doanh thu khach san
+    async getHotelRevenue(from?: string, to?: string) {
+        const query = this.roomStayRepository
+            .createQueryBuilder('stay')
+            .withDeleted()
+            .innerJoin('stay.room', 'room')
+            .select('room.id', 'roomId')
+            .addSelect('room.name', 'roomName')
+            .addSelect('COUNT(stay.id)', 'stayCount')
+            .addSelect('SUM(stay.totalAmount)', 'revenue')
+
+            // Doanh thu tu khach dat truoc
+            .addSelect(
+                'SUM(CASE WHEN stay.bookingRequestId IS NOT NULL THEN stay.totalAmount ELSE 0 END)',
+                'bookingRevenue'
+            )
+
+            // Doanh thu tu khach vang lai
+            .addSelect(
+                'SUM(CASE WHEN stay.walkInVisitId IS NOT NULL THEN stay.totalAmount ELSE 0 END)',
+                'walkInRevenue'
+            )
+
+            .where('stay.paymentStatus = :paymentStatus', {
+                paymentStatus: RoomStayPaymentStatus.PAID
+            })
+
+        if (from) {
+            query.andWhere('stay.paidAt >= :from', {
+                from: `${from} 00:00:00`
+            })
+        }
+
+        if (to) {
+            query.andWhere('stay.paidAt < :to', {
+                to: this.getNextDay(to)
+            })
+        }
+
+        const items = await query
+            .groupBy('room.id')
+            .addGroupBy('room.name')
+            .orderBy('revenue', 'DESC')
+            .getRawMany()
+
+        const totalRevenue = items.reduce(
+            (sum, item) => sum + Number(item.revenue), 0
+        )
+
+        const totalBookingRevenue = items.reduce(
+            (sum, item) => sum + Number(item.bookingRevenue), 0
+        )
+
+        const totalWalkInRevenue = items.reduce(
+            (sum, item) => sum + Number(item.walkInRevenue), 0
+        )
+
+        return {
+            from: from ?? null,
+            to: to ?? null,
+
+            totalRevenue: totalRevenue.toFixed(2),
+            totalBookingRevenue: totalBookingRevenue.toFixed(2),
+            totalWalkInRevenue: totalWalkInRevenue.toFixed(2),
+
+            items: items.map((item) => ({
+                roomId: item.roomId,
+                roomName: item.roomName,
+                stayCount: Number(item.stayCount),
+                revenue: Number(item.revenue).toFixed(2),
+                bookingRevenue: Number(item.bookingRevenue).toFixed(2),
+                walkInRevenue: Number(item.walkInRevenue).toFixed(2)
+            }))
+        }
     }
 }
