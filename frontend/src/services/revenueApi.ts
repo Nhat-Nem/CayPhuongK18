@@ -17,6 +17,14 @@ export type FoodRevenueResponse = {
 
 export type RoomStayRevenueRecord = RoomStayRecord
 
+export type HotelRevenueResponse = {
+  from: string | null
+  to: string | null
+  totalRevenue: string | number
+  totalBookingRevenue: string | number
+  totalWalkInRevenue: string | number
+}
+
 /** GET /api/v1/reports/food-revenue — endpoint hiện tại chỉ dành cho ADMIN. */
 export async function getFoodRevenueReport(from?: string, to?: string) {
   const params = new URLSearchParams()
@@ -26,6 +34,18 @@ export async function getFoodRevenueReport(from?: string, to?: string) {
   const query = params.toString()
   return apiRequest<FoodRevenueResponse>(
     `/api/v1/reports/food-revenue${query ? `?${query}` : ""}`,
+  )
+}
+
+/** GET /api/v1/reports/hotel-revenue — chỉ dành cho ADMIN. */
+export async function getHotelRevenueReport(from?: string, to?: string) {
+  const params = new URLSearchParams()
+  if (from) params.set("from", from)
+  if (to) params.set("to", to)
+
+  const query = params.toString()
+  return apiRequest<HotelRevenueResponse>(
+    `/api/v1/reports/hotel-revenue${query ? `?${query}` : ""}`,
   )
 }
 

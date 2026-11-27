@@ -76,7 +76,7 @@ export default function MenuDetailPage() {
               <div><span>Nguyên liệu</span><strong>{dish.ingredient || "Theo món"}</strong></div>
               <div><span>Phục vụ</span><strong>Mỗi ngày</strong></div>
             </div>
-            <a className="dish-order-link" href="/lien-he?type=table">Liên hệ đặt món <span>→</span></a>
+            <a className="dish-order-link" href="/lien-he?type=table#yeu-cau-truc-tuyen">Liên hệ đặt món <span>→</span></a>
           </div>
         </article>
 

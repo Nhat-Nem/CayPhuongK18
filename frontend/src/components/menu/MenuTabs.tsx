@@ -10,6 +10,7 @@ import {
 
 export default function MenuTabs() {
   const [tab, setTab] = useState("all")
+  const [query, setQuery] = useState("")
   const [allDishes, setAllDishes] = useState<MenuDish[]>([])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,13 +62,18 @@ export default function MenuTabs() {
     return () => window.removeEventListener(MENU_UPDATED_EVENT, handleUpdate)
   }, [])
 
-  const visibleDishes = useMemo(
-    () =>
-      tab === "all"
-        ? allDishes
-        : allDishes.filter((dish) => dish.categoryId === tab),
-    [allDishes, tab],
-  )
+  const visibleDishes = useMemo(() => {
+    // Bỏ dấu để khách gõ "ga" vẫn ra "Gà".
+    const fold = (value: string) =>
+      value.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase()
+    const keyword = fold(query.trim())
+
+    return allDishes.filter(
+      (dish) =>
+        (tab === "all" || dish.categoryId === tab) &&
+        (!keyword || fold(`${dish.name} ${dish.ingredient}`).includes(keyword)),
+    )
+  }, [allDishes, tab, query])
 
   const tabs = [
     { id: "all", name: "Tất cả" },
@@ -79,6 +85,17 @@ export default function MenuTabs() {
       <aside className="menu-catalog-nav">
         <p className="eyebrow">DANH MỤC THỰC ĐƠN</p>
         <h3>Hôm nay bạn muốn thưởng thức gì?</h3>
+
+        <label className="menu-search">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Tìm món, nguyên liệu..."
+            aria-label="Tìm món ăn"
+          />
+        </label>
 
         <div
           className={`tabs menu-tabs${showAllMobileCategories ? " is-expanded" : ""}`}
@@ -120,7 +137,7 @@ export default function MenuTabs() {
         <div className="menu-reservation-note">
           <span className="script">Bữa ngon</span>
           <p>Đặt bàn trước để chúng tôi chuẩn bị không gian và món ăn chu đáo nhất.</p>
-          <a href="/lien-he?type=table">Đặt bàn ngay <span>→</span></a>
+          <a href="/lien-he?type=table#yeu-cau-truc-tuyen">Đặt bàn ngay <span>→</span></a>
         </div>
       </aside>
 
@@ -146,7 +163,9 @@ export default function MenuTabs() {
             </div>
 
             {visibleDishes.length === 0 && (
-              <div className="career-data-notice">Danh mục này hiện chưa có món ăn.</div>
+              <div className="career-data-notice">
+                {query.trim() ? "Không tìm thấy món phù hợp." : "Danh mục này hiện chưa có món ăn."}
+              </div>
             )}
           </>
         )}

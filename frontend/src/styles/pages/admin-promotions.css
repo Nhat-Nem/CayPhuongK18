@@ -1,18 +1,5 @@
 .admin-promotion-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
 
-.admin-promotion-storage-note {
-  display: flex;
-  gap: 7px;
-  margin: 0 18px 14px;
-  padding: 11px 13px;
-  border: 1px solid #e4d4b7;
-  border-radius: 8px;
-  background: #fff9ed;
-  color: #806442;
-  font-size: .73rem;
-  line-height: 1.5;
-}
-
 .admin-promotion-percent {
   color: #173d6d;
   font-family: "Montserrat:SemiBold", sans-serif;
@@ -144,7 +131,6 @@
 @media (max-width: 720px) {
   .admin-promotion-form { grid-template-columns: 1fr; }
   .admin-promotion-full { grid-column: auto; }
-  .admin-promotion-storage-note { flex-direction: column; }
 }
 
 

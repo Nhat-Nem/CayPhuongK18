@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import type { RoomPrototype } from "@/data/roomPrototype"
 import { getRooms } from "@/services/roomApi"
@@ -266,6 +267,7 @@ export default function AdminRoomBookingRequestsPage() {
       ].some((value) => String(value).toLowerCase().includes(q)),
     )
   }, [keyword, records])
+  const pager = usePagination(filteredRecords)
 
   const pendingCount = records.filter(
     (record) => record.status === "PENDING",
@@ -351,6 +353,7 @@ export default function AdminRoomBookingRequestsPage() {
             </p>
           </div>
         ) : (
+          <>
           <div className="admin-s2-table-wrap">
             <table className="admin-s2-table admin-room-booking-table">
               <thead>
@@ -368,7 +371,7 @@ export default function AdminRoomBookingRequestsPage() {
               </thead>
 
               <tbody>
-                {filteredRecords.map((record) => (
+                {pager.pageRows.map((record) => (
                   <tr key={record.id}>
                     <td>
                       <strong>DP-{record.id.padStart(6, "0")}</strong>
@@ -461,6 +464,8 @@ export default function AdminRoomBookingRequestsPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         )}
       </section>
       <AdminFormModal
@@ -485,6 +490,10 @@ export default function AdminRoomBookingRequestsPage() {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="admin-s2-full admin-checkin-id-check">
+              <input type="checkbox" required />
+              <span>Đã kiểm tra CCCD/căn cước của khách và đối chiếu đúng họ tên.</span>
             </label>
             {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
             <div className="admin-s2-form-actions admin-s2-full">

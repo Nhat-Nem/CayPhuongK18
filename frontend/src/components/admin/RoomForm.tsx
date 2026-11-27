@@ -304,10 +304,6 @@ export default function RoomForm({
                 {getRoomStatusLabel("UNAVAILABLE")}
               </option>
             </select>
-            <small>
-              Backend lưu AVAILABLE / UNAVAILABLE; giao diện render nhãn tiếng
-              Việt.
-            </small>
           </label>
 
           <label>

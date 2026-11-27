@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import { getMenuDishes, type MenuDish } from "@/services/menuStore"
 import { getStaffDirectory, type StaffDirectoryUser } from "@/services/userApi"
@@ -21,6 +22,7 @@ import {
   type OrderRecord,
   type OrderStatus,
 } from "@/services/orderApi"
+import { defaultContactSettings, getContactSettings } from "@/services/contactApi"
 import {
   getPromotions,
   promotionStatus,
@@ -36,6 +38,15 @@ const EMPTY_CREATE_FORM = {
   tableNumber: "",
   roomNumber: "",
   note: "",
+}
+
+/** Bỏ dấu để gõ "ga" vẫn tìm ra "Gà". */
+function foldText(value: string) {
+  return value.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase()
+}
+
+function dishMatches(dish: MenuDish, categoryId: string, query: string) {
+  return (!categoryId || dish.categoryId === categoryId) && foldText(dish.name).includes(foldText(query.trim()))
 }
 
 /** Theo backend: đơn sửa được cho tới khi đã thanh toán, hoàn thành hoặc bị hủy. */
@@ -143,6 +154,60 @@ function itemName(item: OrderItemRecord) {
   return item.menuItem?.name || `Món #${item.menuItemId}`
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`)
+}
+
+/** In hoá đơn qua iframe ẩn: không mở cửa sổ mới nên trình duyệt không chặn, kể cả sau khi chờ API. */
+async function printOrderInvoice(order: OrderRecord) {
+  const contact = await getContactSettings().catch(() => defaultContactSettings)
+  const total = Number(order.totalAmount || 0)
+  const discount = Number(order.discountAmount || 0)
+  const rows = (order.items ?? []).map((item) => {
+    const price = Number(item.unitPrice || 0)
+    return `<tr><td>${escapeHtml(itemName(item))}</td><td class="n">${item.quantity}</td><td class="n">${formatMoney(price)}</td><td class="n">${formatMoney(price * item.quantity)}</td></tr>`
+  }).join("")
+  const place = order.tableNumber ? `Bàn ${order.tableNumber}` : order.roomNumber ? `Phòng ${order.roomNumber}` : ""
+
+  const html = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Hoá đơn ${escapeHtml(orderLabel(order))}</title>
+<style>
+body{font-family:Arial,sans-serif;color:#222;margin:24px;font-size:13px}
+h1{font-size:18px;margin:0;text-align:center}h2{font-size:15px;margin:14px 0 4px;text-align:center}
+.c{text-align:center;margin:2px 0}.meta{margin:12px 0}.meta p{margin:3px 0}
+table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:6px 4px;border-bottom:1px dashed #999;text-align:left}
+.n{text-align:right;white-space:nowrap}.sum td{border:0}.total td{font-weight:bold;font-size:15px}
+.thanks{text-align:center;margin-top:20px}
+</style></head><body>
+<h1>CÂY PHƯỢNG K18</h1>
+<p class="c">Nhà hàng &amp; Homestay · Hotline ${escapeHtml(contact.hotline)} · ${escapeHtml(contact.email)}</p>
+<h2>HOÁ ĐƠN THANH TOÁN</h2>
+<div class="meta">
+<p>Mã đơn: <b>${escapeHtml(orderLabel(order))}</b>${place ? ` · ${escapeHtml(place)}` : ""}</p>
+<p>Thời gian: ${formatDateTime(order.paidAt || order.createdAt)}</p>
+<p>Phương thức: ${paymentMethodLabel(order.paymentMethod) || "—"}</p>
+</div>
+<table><thead><tr><th>Món</th><th class="n">SL</th><th class="n">Đơn giá</th><th class="n">Thành tiền</th></tr></thead><tbody>${rows}</tbody>
+<tbody>
+<tr class="sum"><td colspan="3">Tạm tính</td><td class="n">${formatMoney(total + discount)}</td></tr>
+${discount > 0 ? `<tr class="sum"><td colspan="3">Ưu đãi${order.promotionName ? ` (${escapeHtml(order.promotionName)})` : ""}</td><td class="n">-${formatMoney(discount)}</td></tr>` : ""}
+<tr class="sum total"><td colspan="3">TỔNG THANH TOÁN</td><td class="n">${formatMoney(total)}</td></tr>
+</tbody></table>
+<p class="thanks">Cảm ơn quý khách và hẹn gặp lại!</p>
+</body></html>`
+
+  const frame = document.createElement("iframe")
+  frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0"
+  document.body.appendChild(frame)
+  const view = frame.contentWindow
+  if (!view) return frame.remove()
+  view.document.open()
+  view.document.write(html)
+  view.document.close()
+  view.onafterprint = () => frame.remove()
+  view.focus()
+  view.print()
+}
+
 function localDateKey(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
@@ -188,6 +253,8 @@ export default function AdminOrdersPage() {
   const [editingOrder, setEditingOrder] = useState<OrderRecord | null>(null)
   const [editingForm, setEditingForm] = useState(EMPTY_FORM)
   const [selectedMenuItemId, setSelectedMenuItemId] = useState("")
+  const [dishCategory, setDishCategory] = useState("")
+  const [dishQuery, setDishQuery] = useState("")
   const [paymentOrder, setPaymentOrder] = useState<OrderRecord | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>("CASH")
   const [paymentError, setPaymentError] = useState("")
@@ -209,12 +276,15 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     void refreshOrders()
 
-    getStaffDirectory()
-      .then(setStaffUsers)
-      .catch((err: Error) => {
-        // Danh sách đơn vẫn dùng được nếu endpoint người dùng tạm thời không khả dụng.
-        setStaffDirectoryError(err.message || "Không thể tải danh sách nhân viên.")
-      })
+    // GET /user chỉ dành cho ADMIN; nhân viên gọi sẽ bị 403 nên bỏ qua.
+    if (isAdmin) {
+      getStaffDirectory()
+        .then(setStaffUsers)
+        .catch((err: Error) => {
+          // Danh sách đơn vẫn dùng được nếu endpoint người dùng tạm thời không khả dụng.
+          setStaffDirectoryError(err.message || "Không thể tải danh sách nhân viên.")
+        })
+    }
 
     getMenuDishes()
       .then((rows) => {
@@ -302,6 +372,49 @@ export default function AdminOrdersPage() {
     employeesById,
     invalidDateRange,
   ])
+  const pager = usePagination(filteredOrders)
+
+  const dishCategories = useMemo(
+    () => [...new Map(menuItems.map((dish) => [dish.categoryId, dish.category] as const)).entries()],
+    [menuItems],
+  )
+  const pickableDishes = useMemo(
+    () => menuItems.filter((dish) => dishMatches(dish, dishCategory, dishQuery)),
+    [menuItems, dishCategory, dishQuery],
+  )
+
+  // Lọc lại thì chọn sẵn món đầu tiên còn khớp, để nút "Thêm món" không thêm món đã bị lọc mất.
+  const changeDishFilter = (categoryId: string, query: string) => {
+    setDishCategory(categoryId)
+    setDishQuery(query)
+    const first = menuItems.find((dish) => dishMatches(dish, categoryId, query))?.id ?? ""
+    setSelectedCreateMenuItemId(first)
+    setSelectedMenuItemId(first)
+  }
+
+  const dishFilter = (
+    <div className="admin-order-dish-filter">
+      <select
+        value={dishCategory}
+        onChange={(event) => changeDishFilter(event.target.value, dishQuery)}
+        disabled={loadingMenu || menuItems.length === 0}
+        aria-label="Lọc món theo danh mục"
+      >
+        <option value="">Tất cả danh mục</option>
+        {dishCategories.map(([id, name]) => (
+          <option key={id} value={id}>{name}</option>
+        ))}
+      </select>
+      <input
+        type="search"
+        value={dishQuery}
+        onChange={(event) => changeDishFilter(dishCategory, event.target.value)}
+        disabled={loadingMenu || menuItems.length === 0}
+        placeholder="Tìm tên món..."
+        aria-label="Tìm tên món"
+      />
+    </div>
+  )
 
   const availableYears = useMemo(() => {
     const years = new Set(orders.map((order) => {
@@ -350,7 +463,7 @@ export default function AdminOrdersPage() {
   const openCreate = () => {
     setCreateForm(EMPTY_CREATE_FORM)
     setCreateItems([])
-    setSelectedCreateMenuItemId(menuItems[0]?.id ?? "")
+    changeDishFilter("", "")
     setError("")
     setCreateOpen(true)
   }
@@ -391,7 +504,7 @@ export default function AdminOrdersPage() {
       setEditingForm({
         note: fresh.note ?? "",
       })
-      setSelectedMenuItemId((current) => current || menuItems[0]?.id || "")
+      changeDishFilter("", "")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải chi tiết đơn hàng.")
     }
@@ -467,7 +580,7 @@ export default function AdminOrdersPage() {
       // Backend hiện chưa có DELETE /api/v1/orders/:id nên trả 404 "Cannot DELETE ...".
       setError(
         /cannot delete|api error 404/i.test(message)
-          ? "Backend chưa hỗ trợ xóa đơn hàng. Có thể chuyển đơn sang “Đã hủy” trong lúc chờ backend bổ sung."
+          ? "Hiện chưa xóa được đơn hàng. Có thể chuyển đơn sang “Đã hủy”."
           : message || "Không thể xóa đơn hàng.",
       )
     } finally {
@@ -647,6 +760,7 @@ export default function AdminOrdersPage() {
       const updated = await recordOrderPayment(paymentOrder.id, paymentMethod)
       syncPaidOrder(updated)
       setPaymentOrder(null)
+      void printOrderInvoice({ ...paymentOrder, ...updated, items: updated.items ?? paymentOrder.items })
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : "Không thể ghi nhận thanh toán.")
     } finally {
@@ -673,7 +787,7 @@ export default function AdminOrdersPage() {
         <article>
           <span>TỔNG ĐƠN</span>
           <strong>{orders.length}</strong>
-          <small>Trong database</small>
+          <small>Tổng số đơn hàng</small>
         </article>
 
         <article>
@@ -776,11 +890,6 @@ export default function AdminOrdersPage() {
         {staffDirectoryError && (
           <p className="admin-order-filter-hint">Không tải được danh sách nhân viên: {staffDirectoryError}</p>
         )}
-        {!loading && orders.length > 0 && orders.every((order) => !order.createdBy) && (
-          <p className="admin-order-filter-hint">
-            Backend hiện chưa ghi nhận nhân viên tạo đơn (createdBy đang trống). Các đơn này được hiển thị là “Chưa ghi nhận”; lọc theo tên nhân viên chỉ hoạt động với đơn có createdBy.
-          </p>
-        )}
 
         {loading ? (
           <div className="admin-room-empty"><strong>Đang tải đơn hàng...</strong></div>
@@ -790,6 +899,7 @@ export default function AdminOrdersPage() {
             <span>{orders.length > 0 ? "Hãy thử thay đổi ngày, tháng, năm, nhân viên hoặc từ khóa tìm kiếm." : "Nhấn “Tạo đơn hàng” để bắt đầu."}</span>
           </div>
         ) : (
+          <>
           <div className="admin-room-table-wrap">
             <table className="admin-room-table admin-order-table">
               <thead>
@@ -807,7 +917,7 @@ export default function AdminOrdersPage() {
               </thead>
 
               <tbody>
-                {filteredOrders.map((order) => (
+                {pager.pageRows.map((order) => (
                   <tr key={order.id}>
                     <td>
                       <strong>{orderLabel(order)}</strong>
@@ -848,9 +958,6 @@ export default function AdminOrdersPage() {
 
                     <td>
                       <strong>{orderEmployeeLabel(order, employeesById)}</strong>
-                      {!order.createdBy && (
-                        <small className="admin-order-cell-subtext">Backend chưa ghi nhận người tạo đơn</small>
-                      )}
                     </td>
 
                     <td>{order.tableNumber || "—"}</td>
@@ -891,6 +998,17 @@ export default function AdminOrdersPage() {
                               Thanh toán
                             </button>
                           )}
+                        {order.paymentStatus === "PAID" && (
+                          <button
+                            className="admin-icon-button"
+                            type="button"
+                            onClick={() => void printOrderInvoice(order)}
+                            title="In hoá đơn"
+                            aria-label="In hoá đơn"
+                          >
+                            🧾
+                          </button>
+                        )}
                         {canEditOrder(order) && (
                           <button
                             className="admin-icon-button"
@@ -919,6 +1037,8 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         )}
       </section>
 
@@ -971,16 +1091,17 @@ export default function AdminOrdersPage() {
               <strong>{formatMoney(createItemsTotal)}</strong>
             </div>
 
+            {dishFilter}
             <div className="admin-order-add-item">
               <select
                 value={selectedCreateMenuItemId}
                 onChange={(event) => setSelectedCreateMenuItemId(event.target.value)}
-                disabled={loadingMenu || menuItems.length === 0 || saving}
+                disabled={loadingMenu || pickableDishes.length === 0 || saving}
               >
-                {menuItems.length === 0 ? (
-                  <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món"}</option>
+                {pickableDishes.length === 0 ? (
+                  <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món phù hợp"}</option>
                 ) : (
-                  menuItems.map((dish) => (
+                  pickableDishes.map((dish) => (
                     <option key={dish.id} value={dish.id}>
                       {dish.name} · {dish.price}
                     </option>
@@ -1100,21 +1221,22 @@ export default function AdminOrdersPage() {
                 <strong>{formatMoney(Number(editingOrder.totalAmount || 0))}</strong>
               </div>
 
+              {canEditOrder(editingOrder) && dishFilter}
               <div className="admin-order-add-item">
                 <select
                   value={selectedMenuItemId}
                   onChange={(event) => setSelectedMenuItemId(event.target.value)}
                   disabled={
                     loadingMenu ||
-                    menuItems.length === 0 ||
+                    pickableDishes.length === 0 ||
                     saving ||
                     !canEditOrder(editingOrder)
                   }
                 >
-                  {menuItems.length === 0 ? (
-                    <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món"}</option>
+                  {pickableDishes.length === 0 ? (
+                    <option value="">{loadingMenu ? "Đang tải thực đơn..." : "Không có món phù hợp"}</option>
                   ) : (
-                    menuItems.map((dish) => (
+                    pickableDishes.map((dish) => (
                       <option key={dish.id} value={dish.id}>
                         {dish.name} · {dish.price}
                       </option>

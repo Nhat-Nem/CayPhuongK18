@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   getTableBookingRequests,
@@ -48,7 +49,7 @@ function describeStatusUpdateError(error: unknown) {
     : "Không thể cập nhật trạng thái yêu cầu đặt bàn."
 
   if (/Cannot PATCH .*\/api\/v1\/table-booking-requests\//i.test(message)) {
-    return `${message}. Frontend đã gọi đúng route PATCH /api/v1/table-booking-requests/:id theo backend mới, nhưng API đang chạy chưa có route này. Cần triển khai lại backend chứa chức năng cập nhật trạng thái.`
+    return "Hiện chưa cập nhật được trạng thái yêu cầu đặt bàn. Vui lòng thử lại sau."
   }
 
   return message
@@ -100,6 +101,7 @@ export default function AdminTableBookingRequestsPage() {
       ].some((value) => String(value).toLocaleLowerCase("vi").includes(query)),
     )
   }, [keyword, requests])
+  const pager = usePagination(filteredRequests)
 
   const pendingCount = requests.filter(
     (request) => request.status === "PENDING",
@@ -167,7 +169,7 @@ export default function AdminTableBookingRequestsPage() {
         <article>
           <span>CHỜ TIẾP NHẬN</span>
           <strong>{pendingCount}</strong>
-          <small>Trạng thái PENDING từ backend</small>
+          <small>Đang chờ xác nhận</small>
         </article>
         <article>
           <span>KẾT QUẢ ĐANG HIỂN THỊ</span>
@@ -197,7 +199,6 @@ export default function AdminTableBookingRequestsPage() {
           <div className="admin-table-booking-message is-error" role="alert">
             <strong>Không thể tải yêu cầu đặt bàn.</strong>
             <span>{error}</span>
-            <small>Endpoint đang sử dụng: GET /api/v1/table-booking-requests</small>
           </div>
         )}
         {statusError && (
@@ -217,6 +218,7 @@ export default function AdminTableBookingRequestsPage() {
             <span>{requests.length ? "Thử thay đổi từ khóa tìm kiếm." : "Khi khách gửi form Đặt bàn trên website, yêu cầu sẽ xuất hiện tại đây."}</span>
           </div>
         ) : !error ? (
+          <>
           <div className="admin-s2-table-wrap">
             <table className="admin-s2-table admin-table-booking-table">
               <thead>
@@ -231,7 +233,7 @@ export default function AdminTableBookingRequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequests.map((request) => (
+                {pager.pageRows.map((request) => (
                   <tr key={request.id}>
                     <td>
                       <strong>{formatRequestCode(request.id)}</strong>
@@ -293,6 +295,8 @@ export default function AdminTableBookingRequestsPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         ) : null}
       </section>
 

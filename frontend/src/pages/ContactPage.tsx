@@ -213,7 +213,7 @@ export default function ContactPage() {
 
   return (
     <Shell>
-      <Hero image="8e9ad.png" title="Thông tin liên hệ" />
+      <Hero image="8e9ad.png" title="THÔNG TIN LIÊN HỆ" />
 
       <section className="contact-overview">
         <div className="contact-overview-heading">

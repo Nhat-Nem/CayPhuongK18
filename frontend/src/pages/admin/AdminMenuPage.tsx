@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   addMenuDish,
@@ -38,6 +39,7 @@ export default function AdminMenuPage() {
   const [items, setItems] = useState<MenuDish[]>([])
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [query, setQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -87,6 +89,7 @@ export default function AdminMenuPage() {
 
     return items.filter((item) => {
       const categoryName = categoryNameById.get(item.categoryId) ?? item.category
+      if (categoryFilter && item.categoryId !== categoryFilter) return false
       return (
         !keyword ||
         [item.name, categoryName, item.description]
@@ -95,7 +98,8 @@ export default function AdminMenuPage() {
           .includes(keyword)
       )
     })
-  }, [items, query, categoryNameById])
+  }, [items, query, categoryFilter, categoryNameById])
+  const pager = usePagination(filtered)
 
   const closeModal = () => {
     setOpen(false)
@@ -269,7 +273,7 @@ export default function AdminMenuPage() {
 
       setCategoryEditError(
         routeNotAvailable
-          ? "Backend hiện chưa có API PATCH /api/v1/category/:id. Giao diện đã sẵn sàng; cần backend bổ sung API này để lưu thay đổi."
+          ? "Hiện chưa lưu được thay đổi danh mục. Vui lòng thử lại sau."
           : message,
       )
     } finally {
@@ -297,7 +301,7 @@ export default function AdminMenuPage() {
     <AdminRoomLayout
       eyebrow="THỰC ĐƠN"
       title="Quản lý thực đơn"
-      subtitle="Món ăn lấy từ /api/v1/menu-items và danh mục lấy từ /api/v1/category."
+      subtitle="Quản lý món ăn và danh mục hiển thị trên trang Ẩm thực."
       primaryAction={
         <button
           className="admin-primary-button"
@@ -379,7 +383,7 @@ export default function AdminMenuPage() {
       </section>
 
       <section className="admin-room-panel">
-        <div className="admin-room-toolbar">
+        <div className="admin-room-toolbar admin-review-toolbar">
           <label className="admin-room-search">
             <span>⌕</span>
             <input
@@ -388,6 +392,16 @@ export default function AdminMenuPage() {
               placeholder="Tìm tên món, danh mục..."
             />
           </label>
+          <select
+            aria-label="Lọc theo danh mục"
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+          >
+            <option value="">Tất cả danh mục</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
           <span className="admin-room-result-count">{filtered.length} món</span>
         </div>
 
@@ -396,6 +410,7 @@ export default function AdminMenuPage() {
             <strong>Đang tải thực đơn...</strong>
           </div>
         ) : (
+          <>
           <div className="admin-room-table-wrap">
             <table className="admin-room-table admin-menu-table">
               <thead>
@@ -408,7 +423,7 @@ export default function AdminMenuPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((item) => (
+                {pager.pageRows.map((item) => (
                   <tr key={item.id}>
                     <td>
                       <div className="admin-room-cell">
@@ -447,6 +462,8 @@ export default function AdminMenuPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         )}
       </section>
 
