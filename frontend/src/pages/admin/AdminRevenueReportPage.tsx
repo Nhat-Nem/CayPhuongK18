@@ -4,9 +4,11 @@ import { getAuthenticatedUser } from "@/utils/adminAuth"
 import { getOrders, type OrderRecord } from "@/services/orderApi"
 import {
   getFoodRevenueReport,
+  getHotelRevenueReport,
   getRoomStayRevenueRecords,
   type FoodRevenueItem,
   type FoodRevenueResponse,
+  type HotelRevenueResponse,
   type RoomStayRevenueRecord,
 } from "@/services/revenueApi"
 
@@ -128,14 +130,68 @@ function buildDailyRows(rows: Array<{ paidAt: string | null; revenue: number }>)
   return [...grouped.values()].sort((a, b) => a.date.localeCompare(b.date))
 }
 
-function csvCell(value: string | number) {
-  const text = String(value ?? "")
-  return `"${text.replace(/"/g, '""')}"`
-}
+type SheetColumn = { header: string; width: number; money?: boolean; sum?: boolean }
 
-function downloadCsv(filename: string, headers: string[], rows: Array<Array<string | number>>) {
-  const content = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n")
-  const blob = new Blob(["\ufeff", content], { type: "text/csv;charset=utf-8;" })
+/** Xuất .xlsx: tiêu đề, kỳ báo cáo, bảng có viền, tiền dạng 1.000.000 và dòng tổng. */
+async function downloadXlsx(
+  filename: string,
+  title: string,
+  period: string,
+  columns: SheetColumn[],
+  rows: Array<Array<string | number>>,
+) {
+  // Tải thư viện khi bấm xuất để không làm nặng trang lúc mở.
+  const { default: ExcelJS } = await import("exceljs")
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet("Báo cáo")
+  const lastColumn = columns.length
+  const border = { style: "thin" as const, color: { argb: "FFBFC5CC" } }
+  const allBorders = { top: border, left: border, bottom: border, right: border }
+
+  sheet.columns = columns.map((column) => ({ width: column.width }))
+  sheet.mergeCells(1, 1, 1, lastColumn)
+  sheet.getCell(1, 1).value = `CÂY PHƯỢNG K18 · ${title.toUpperCase()}`
+  sheet.getCell(1, 1).font = { bold: true, size: 14, color: { argb: "FF17345F" } }
+  sheet.mergeCells(2, 1, 2, lastColumn)
+  sheet.getCell(2, 1).value = `Kỳ báo cáo: ${period}`
+  sheet.mergeCells(3, 1, 3, lastColumn)
+  sheet.getCell(3, 1).value = `Ngày xuất: ${new Date().toLocaleString("vi-VN")}`
+  sheet.getRow(3).font = { italic: true, color: { argb: "FF70767D" } }
+
+  const header = sheet.getRow(5)
+  header.values = columns.map((column) => column.header)
+  header.height = 22
+  header.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } }
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF17345F" } }
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true }
+    cell.border = allBorders
+  })
+
+  const totals: Array<string | number> = columns.map((column, index) =>
+    column.sum ? rows.reduce((sum, row) => sum + Number(row[index] || 0), 0) : "",
+  )
+  totals[0] = "TỔNG CỘNG"
+  const body = [...rows, totals]
+  body.forEach((values, rowIndex) => {
+    const row = sheet.getRow(6 + rowIndex)
+    row.values = values
+    row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+      cell.border = allBorders
+      if (columns[columnNumber - 1]?.money) cell.numFmt = "#,##0"
+      if (typeof cell.value === "number") cell.alignment = { horizontal: "right" }
+    })
+    if (rowIndex === body.length - 1) {
+      row.font = { bold: true }
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF2F7" } }
+      })
+    }
+  })
+  sheet.views = [{ state: "frozen", ySplit: 5 }]
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement("a")
   anchor.href = url
@@ -149,7 +205,7 @@ function downloadCsv(filename: string, headers: string[], rows: Array<Array<stri
 function buildFilename(tab: RevenueTab, role: "ADMIN" | "STAFF", from: string, to: string) {
   const roleLabel = role === "ADMIN" ? "admin" : "nhan-vien"
   const period = [from || "tu-dau", to || "den-nay"].join("-")
-  return `bao-cao-${tab}-${roleLabel}-${period}.csv`
+  return `bao-cao-${tab}-${roleLabel}-${period}.xlsx`
 }
 
 export default function AdminRevenueReportPage() {
@@ -166,6 +222,8 @@ export default function AdminRevenueReportPage() {
   const [ordersError, setOrdersError] = useState("")
   const [roomStaysError, setRoomStaysError] = useState("")
   const [foodReportError, setFoodReportError] = useState("")
+  const [hotelReport, setHotelReport] = useState<HotelRevenueResponse | null>(null)
+  const [hotelReportError, setHotelReportError] = useState("")
   const [loadingOrders, setLoadingOrders] = useState(true)
   const [loadingRoomStays, setLoadingRoomStays] = useState(true)
   const [loadingFoodReport, setLoadingFoodReport] = useState(isAdmin)
@@ -204,6 +262,16 @@ export default function AdminRevenueReportPage() {
       })
       .finally(() => { if (active) setLoadingFoodReport(false) })
 
+    setHotelReportError("")
+    getHotelRevenueReport(fromDate || undefined, toDate || undefined)
+      .then((report) => { if (active) setHotelReport(report) })
+      .catch((error: Error) => {
+        if (active) {
+          setHotelReport(null)
+          setHotelReportError(error.message || "Không thể tải báo cáo doanh thu khách sạn.")
+        }
+      })
+
     return () => { active = false }
   }, [fromDate, toDate, isAdmin])
 
@@ -229,9 +297,12 @@ export default function AdminRevenueReportPage() {
     ? numeric(foodReport.totalRevenue)
     : foodRows.reduce((total, row) => total + row.revenue, 0)
 
+  // ADMIN lấy tổng từ API báo cáo; nhân viên (hoặc khi API lỗi) tự cộng từ danh sách lưu trú.
   const hotelTotal = useMemo(
-    () => paidRoomStays.reduce((total, stay) => total + numeric(stay.totalAmount), 0),
-    [paidRoomStays],
+    () => isAdmin && hotelReport
+      ? numeric(hotelReport.totalRevenue)
+      : paidRoomStays.reduce((total, stay) => total + numeric(stay.totalAmount), 0),
+    [isAdmin, hotelReport, paidRoomStays],
   )
 
   const restaurantTotal = useMemo(
@@ -294,21 +365,34 @@ export default function AdminRevenueReportPage() {
     setToDate("")
   }
 
-  const handleExport = () => {
-    if (activeTab === "food") {
-      downloadCsv(
-        buildFilename(activeTab, role, fromDate, toDate),
-        ["Mã món", "Tên món ăn", "Số lượng đã bán", "Doanh thu (VNĐ)"],
-        foodRows.map((row) => [row.menuItemId, row.menuItemName, row.quantitySold, row.revenue.toFixed(2)]),
-      )
-      return
-    }
+  const handleExport = async () => {
+    const filename = buildFilename(activeTab, role, fromDate, toDate)
+    const period = `${fromDate ? formatDate(fromDate) : "từ đầu"} – ${toDate ? formatDate(toDate) : "đến nay"}`
+    const title = TAB_LABELS[activeTab]
 
-    if (activeTab === "hotel") {
-      downloadCsv(
-        buildFilename(activeTab, role, fromDate, toDate),
-        ["Mã lưu trú", "Mã phòng", "Tên phòng", "Ngày nhận phòng", "Ngày trả phòng", "Ngày thanh toán", "Số đêm", "Phương thức thanh toán", "Doanh thu (VNĐ)"],
-        paidRoomStays.map((stay) => [
+    try {
+      if (activeTab === "food") {
+        await downloadXlsx(filename, title, period, [
+          { header: "Mã món", width: 10 },
+          { header: "Tên món ăn", width: 34 },
+          { header: "Số lượng đã bán", width: 16, sum: true },
+          { header: "Doanh thu (VNĐ)", width: 20, money: true, sum: true },
+        ], foodRows.map((row) => [row.menuItemId, row.menuItemName, row.quantitySold, row.revenue]))
+        return
+      }
+
+      if (activeTab === "hotel") {
+        await downloadXlsx(filename, title, period, [
+          { header: "Mã lưu trú", width: 12 },
+          { header: "Mã phòng", width: 12 },
+          { header: "Tên phòng", width: 26 },
+          { header: "Ngày nhận phòng", width: 16 },
+          { header: "Ngày trả phòng", width: 16 },
+          { header: "Ngày thanh toán", width: 16 },
+          { header: "Số đêm", width: 10, sum: true },
+          { header: "Phương thức thanh toán", width: 22 },
+          { header: "Doanh thu (VNĐ)", width: 20, money: true, sum: true },
+        ], paidRoomStays.map((stay) => [
           stay.id,
           stay.room?.code || stay.roomId,
           stay.room?.name || `Phòng #${stay.roomId}`,
@@ -317,24 +401,29 @@ export default function AdminRevenueReportPage() {
           formatDate(stay.paidAt),
           nightsBetween(stay.checkInAt, stay.checkOutAt),
           formatPaymentMethod(stay.paymentMethod),
-          numeric(stay.totalAmount).toFixed(2),
-        ]),
-      )
-      return
-    }
+          numeric(stay.totalAmount),
+        ]))
+        return
+      }
 
-    downloadCsv(
-      buildFilename(activeTab, role, fromDate, toDate),
-      ["Ngày thanh toán", "Món ăn (VNĐ)", "Khách sạn (VNĐ)", "Tổng doanh thu (VNĐ)"],
-      totalDailyRows.map((row) => [formatDate(row.date), row.food.toFixed(2), row.hotel.toFixed(2), row.revenue.toFixed(2)]),
-    )
+      await downloadXlsx(filename, title, period, [
+        { header: "Ngày thanh toán", width: 18 },
+        { header: "Món ăn (VNĐ)", width: 20, money: true, sum: true },
+        { header: "Khách sạn (VNĐ)", width: 20, money: true, sum: true },
+        { header: "Tổng doanh thu (VNĐ)", width: 22, money: true, sum: true },
+      ], totalDailyRows.map((row) => [formatDate(row.date), row.food, row.hotel, row.revenue]))
+    } catch (err) {
+      window.alert(err instanceof Error ? `Không thể xuất file Excel: ${err.message}` : "Không thể xuất file Excel.")
+    }
   }
 
   const dataNotice = activeTab === "food" && !isAdmin
     ? "Báo cáo nhân viên được tổng hợp từ đơn hàng đã thanh toán qua API hiện có."
     : activeTab === "food" && isAdmin && foodReportError
       ? `API báo cáo món ăn chưa phản hồi (${foodReportError}). Tạm hiển thị số liệu tổng hợp từ đơn hàng đã thanh toán.`
-      : activeTab === "hotel"
+      : activeTab === "hotel" && isAdmin && hotelReportError
+        ? `API báo cáo khách sạn chưa phản hồi (${hotelReportError}). Tạm hiển thị tổng cộng từ các lượt lưu trú đã thanh toán.`
+        : activeTab === "hotel"
         ? "Doanh thu khách sạn được tính từ lượt lưu trú đã trả phòng và thanh toán thành công."
         : activeTab === "restaurant"
           ? "Tổng doanh thu = tiền thực thu từ đơn món ăn (đã trừ ưu đãi) + tiền phòng đã thanh toán."
@@ -348,8 +437,8 @@ export default function AdminRevenueReportPage() {
         ? "Theo dõi doanh thu món ăn, dịch vụ khách sạn và tổng doanh thu."
         : "Xem doanh thu phục vụ công việc theo dõi hoạt động kinh doanh."}
       primaryAction={(
-        <button className="admin-primary-button admin-revenue-export" type="button" onClick={handleExport}>
-          <span aria-hidden="true">⇩</span> Xuất báo cáo CSV
+        <button className="admin-primary-button admin-revenue-export" type="button" onClick={() => void handleExport()}>
+          <span aria-hidden="true">⇩</span> Xuất báo cáo Excel
         </button>
       )}
     >

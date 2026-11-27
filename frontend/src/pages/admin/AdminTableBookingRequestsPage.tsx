@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   getTableBookingRequests,
@@ -100,6 +101,7 @@ export default function AdminTableBookingRequestsPage() {
       ].some((value) => String(value).toLocaleLowerCase("vi").includes(query)),
     )
   }, [keyword, requests])
+  const pager = usePagination(filteredRequests)
 
   const pendingCount = requests.filter(
     (request) => request.status === "PENDING",
@@ -217,6 +219,7 @@ export default function AdminTableBookingRequestsPage() {
             <span>{requests.length ? "Thử thay đổi từ khóa tìm kiếm." : "Khi khách gửi form Đặt bàn trên website, yêu cầu sẽ xuất hiện tại đây."}</span>
           </div>
         ) : !error ? (
+          <>
           <div className="admin-s2-table-wrap">
             <table className="admin-s2-table admin-table-booking-table">
               <thead>
@@ -231,7 +234,7 @@ export default function AdminTableBookingRequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequests.map((request) => (
+                {pager.pageRows.map((request) => (
                   <tr key={request.id}>
                     <td>
                       <strong>{formatRequestCode(request.id)}</strong>
@@ -293,6 +296,8 @@ export default function AdminTableBookingRequestsPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         ) : null}
       </section>
 

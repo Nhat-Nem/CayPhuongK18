@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import {
   deleteReview,
@@ -85,6 +86,7 @@ export default function AdminReviewsPage() {
         .includes(keyword)
     })
   }, [reviews, query, filter])
+  const pager = usePagination(filteredReviews)
 
   const featuredCount = useMemo(
     () => reviews.filter((review) => review.isFeatured).length,
@@ -202,6 +204,7 @@ export default function AdminReviewsPage() {
             <span>{reviews.length ? "Thử thay đổi từ khóa hoặc bộ lọc." : "Đánh giá của khách hàng sẽ xuất hiện tại đây sau khi được gửi."}</span>
           </div>
         ) : (
+          <>
           <div className="admin-room-table-wrap">
             <table className="admin-room-table admin-review-table">
               <thead>
@@ -215,7 +218,7 @@ export default function AdminReviewsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredReviews.map((review) => (
+                {pager.pageRows.map((review) => (
                   <tr key={review.id}>
                     <td>
                       <div className="admin-review-customer">
@@ -272,6 +275,8 @@ export default function AdminReviewsPage() {
               </tbody>
             </table>
           </div>
+            <AdminPagination {...pager} />
+          </>
         )}
       </section>
 

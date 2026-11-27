@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import AdminFormModal from "@/components/admin/AdminFormModal"
+import AdminPagination, { usePagination } from "@/components/admin/AdminPagination"
 import AdminRoomLayout from "@/components/admin/AdminRoomLayout"
 import type { RoomPrototype } from "@/data/roomPrototype"
 import { getRooms } from "@/services/roomApi"
@@ -102,6 +103,7 @@ export default function AdminWalkInPage() {
           .includes(keyword),
     )
   }, [query, rows])
+  const pager = usePagination(filteredRows)
 
   const stats = useMemo(
     () => ({
@@ -319,7 +321,7 @@ export default function AdminWalkInPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((item) => (
+              {pager.pageRows.map((item) => (
                 <tr key={item.id}>
                   <td>
                     <strong>{item.code}</strong>
@@ -387,6 +389,7 @@ export default function AdminWalkInPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination {...pager} />
 
         {filteredRows.length === 0 && (
           <div className="admin-room-empty">
@@ -511,6 +514,10 @@ export default function AdminWalkInPage() {
                   <option key={room.id} value={room.id}>{room.name} · {room.code} · {formatMoney(room.price)}/đêm</option>
                 ))}
               </select>
+            </label>
+            <label className="admin-s2-full admin-checkin-id-check">
+              <input type="checkbox" required />
+              <span>Đã kiểm tra CCCD/căn cước của khách và đối chiếu đúng họ tên.</span>
             </label>
             {actionError && <div className="admin-room-booking-modal-error admin-s2-full" role="alert">{actionError}</div>}
             <div className="admin-s2-form-actions admin-s2-full">

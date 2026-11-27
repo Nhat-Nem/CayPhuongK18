@@ -50,7 +50,7 @@ export default function Hero({ image, title, subtitle }: HeroProps) {
         {subtitle && <p>{subtitle}</p>}
         {isHomeHero && (
           <div className="hero-actions">
-            <a className="hero-primary" href="/lien-he?type=table">
+            <a className="hero-primary" href="/lien-he?type=table#yeu-cau-truc-tuyen">
               Đặt bàn ngay
             </a>
           </div>

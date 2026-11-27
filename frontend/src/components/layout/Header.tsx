@@ -31,7 +31,7 @@ export default function Header() {
         </div>
 
         <div className="nav-actions">
-          <a className="header-booking" href="/lien-he?type=table">
+          <a className="header-booking" href="/lien-he?type=table#yeu-cau-truc-tuyen">
             <span>Đặt bàn</span>
             <i>→</i>
           </a>

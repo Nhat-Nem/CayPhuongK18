@@ -498,3 +498,31 @@
     width: 100%;
   }
 }
+
+/* Category + name filter above the dish picker */
+.admin-order-dish-filter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-order-dish-filter select,
+.admin-order-dish-filter input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid #d7d8d4;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #29323d;
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .admin-order-dish-filter {
+    grid-template-columns: 1fr;
+  }
+}
