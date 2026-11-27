@@ -49,7 +49,7 @@ function describeStatusUpdateError(error: unknown) {
     : "Không thể cập nhật trạng thái yêu cầu đặt bàn."
 
   if (/Cannot PATCH .*\/api\/v1\/table-booking-requests\//i.test(message)) {
-    return `${message}. Frontend đã gọi đúng route PATCH /api/v1/table-booking-requests/:id theo backend mới, nhưng API đang chạy chưa có route này. Cần triển khai lại backend chứa chức năng cập nhật trạng thái.`
+    return "Hiện chưa cập nhật được trạng thái yêu cầu đặt bàn. Vui lòng thử lại sau."
   }
 
   return message
@@ -169,7 +169,7 @@ export default function AdminTableBookingRequestsPage() {
         <article>
           <span>CHỜ TIẾP NHẬN</span>
           <strong>{pendingCount}</strong>
-          <small>Trạng thái PENDING từ backend</small>
+          <small>Đang chờ xác nhận</small>
         </article>
         <article>
           <span>KẾT QUẢ ĐANG HIỂN THỊ</span>
@@ -199,7 +199,6 @@ export default function AdminTableBookingRequestsPage() {
           <div className="admin-table-booking-message is-error" role="alert">
             <strong>Không thể tải yêu cầu đặt bàn.</strong>
             <span>{error}</span>
-            <small>Endpoint đang sử dụng: GET /api/v1/table-booking-requests</small>
           </div>
         )}
         {statusError && (

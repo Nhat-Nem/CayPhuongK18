@@ -418,11 +418,11 @@ export default function AdminRevenueReportPage() {
   }
 
   const dataNotice = activeTab === "food" && !isAdmin
-    ? "Báo cáo nhân viên được tổng hợp từ đơn hàng đã thanh toán qua API hiện có."
+    ? "Doanh thu món ăn được tính từ các đơn hàng đã thanh toán."
     : activeTab === "food" && isAdmin && foodReportError
-      ? `API báo cáo món ăn chưa phản hồi (${foodReportError}). Tạm hiển thị số liệu tổng hợp từ đơn hàng đã thanh toán.`
+      ? "Chưa tải được báo cáo món ăn. Đang tạm tính từ các đơn hàng đã thanh toán."
       : activeTab === "hotel" && isAdmin && hotelReportError
-        ? `API báo cáo khách sạn chưa phản hồi (${hotelReportError}). Tạm hiển thị tổng cộng từ các lượt lưu trú đã thanh toán.`
+        ? "Chưa tải được báo cáo khách sạn. Đang tạm tính từ các lượt lưu trú đã thanh toán."
         : activeTab === "hotel"
         ? "Doanh thu khách sạn được tính từ lượt lưu trú đã trả phòng và thanh toán thành công."
         : activeTab === "restaurant"
@@ -492,9 +492,6 @@ export default function AdminRevenueReportPage() {
         <p>{dataNotice}</p>
       </div>
 
-      {activeTab === "food" && foodReportError && isAdmin && (
-        <div className="admin-room-form-notice error">Không tải được API báo cáo chính thức. Trang đang dùng dữ liệu đơn hàng đã thanh toán nếu API đơn hàng khả dụng.</div>
-      )}
       {activeTab !== "hotel" && ordersError && (
         <div className="admin-room-form-notice error">Không thể tải đơn hàng: {ordersError}</div>
       )}
@@ -672,7 +669,7 @@ export default function AdminRevenueReportPage() {
       </section>
 
       <p className="admin-revenue-footnote">
-        Báo cáo dùng thời điểm thanh toán (paidAt) và chỉ cộng giao dịch có trạng thái PAID. Dữ liệu hiển thị phụ thuộc vào các giao dịch backend đã ghi nhận.
+        Báo cáo tính theo thời điểm thanh toán và chỉ gồm các giao dịch đã thanh toán.
       </p>
     </AdminRoomLayout>
   )

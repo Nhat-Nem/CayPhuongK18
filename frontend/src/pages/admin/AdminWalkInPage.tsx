@@ -268,7 +268,7 @@ export default function AdminWalkInPage() {
         <article>
           <span>Tổng lượt ghi nhận</span>
           <strong>{stats.total}</strong>
-          <small>Dữ liệu Sprint 2</small>
+          <small>Tổng số lượt khách</small>
         </article>
         <article>
           <span>Chờ tiếp nhận</span>
@@ -456,7 +456,7 @@ export default function AdminWalkInPage() {
                 ))}
               </select>
               {availableRooms.length === 0 && (
-                <small>Hiện không có phòng AVAILABLE để tiếp nhận.</small>
+                <small>Hiện không còn phòng trống để tiếp nhận.</small>
               )}
             </label>
           )}

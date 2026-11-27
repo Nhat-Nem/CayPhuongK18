@@ -580,7 +580,7 @@ export default function AdminOrdersPage() {
       // Backend hiện chưa có DELETE /api/v1/orders/:id nên trả 404 "Cannot DELETE ...".
       setError(
         /cannot delete|api error 404/i.test(message)
-          ? "Backend chưa hỗ trợ xóa đơn hàng. Có thể chuyển đơn sang “Đã hủy” trong lúc chờ backend bổ sung."
+          ? "Hiện chưa xóa được đơn hàng. Có thể chuyển đơn sang “Đã hủy”."
           : message || "Không thể xóa đơn hàng.",
       )
     } finally {
@@ -787,7 +787,7 @@ export default function AdminOrdersPage() {
         <article>
           <span>TỔNG ĐƠN</span>
           <strong>{orders.length}</strong>
-          <small>Trong database</small>
+          <small>Tổng số đơn hàng</small>
         </article>
 
         <article>
@@ -890,11 +890,6 @@ export default function AdminOrdersPage() {
         {staffDirectoryError && (
           <p className="admin-order-filter-hint">Không tải được danh sách nhân viên: {staffDirectoryError}</p>
         )}
-        {!loading && orders.length > 0 && orders.every((order) => !order.createdBy) && (
-          <p className="admin-order-filter-hint">
-            Backend hiện chưa ghi nhận nhân viên tạo đơn (createdBy đang trống). Các đơn này được hiển thị là “Chưa ghi nhận”; lọc theo tên nhân viên chỉ hoạt động với đơn có createdBy.
-          </p>
-        )}
 
         {loading ? (
           <div className="admin-room-empty"><strong>Đang tải đơn hàng...</strong></div>
@@ -963,9 +958,6 @@ export default function AdminOrdersPage() {
 
                     <td>
                       <strong>{orderEmployeeLabel(order, employeesById)}</strong>
-                      {!order.createdBy && (
-                        <small className="admin-order-cell-subtext">Backend chưa ghi nhận người tạo đơn</small>
-                      )}
                     </td>
 
                     <td>{order.tableNumber || "—"}</td>

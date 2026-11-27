@@ -84,7 +84,7 @@ export async function loginAdmin(
 
   const normalizedRole = normalizePortalRole(result.user?.role)
   if (!normalizedRole) {
-    throw new Error("Tài khoản chưa có quyền ADMIN hoặc STAFF trong backend.")
+    throw new Error("Tài khoản này không có quyền truy cập trang quản lý.")
   }
 
   const user: AdminUser = {

@@ -27,7 +27,7 @@ function compareNewestIdFirst(
 }
 
 function sourceLabel(_source: RecruitmentDataSource) {
-  return "Dữ liệu backend"
+  return "Hiển thị trên trang Tuyển dụng"
 }
 
 export default function AdminRecruitmentsPage() {
@@ -98,7 +98,7 @@ export default function AdminRecruitmentsPage() {
     try {
       await deleteRecruitment(item.id)
       setToDelete(null)
-      setNotice(`Đã xóa vị trí “${item.title}” khỏi backend.`)
+      setNotice(`Đã xóa vị trí “${item.title}”.`)
       await loadItems()
     } catch (err) {
       setError(

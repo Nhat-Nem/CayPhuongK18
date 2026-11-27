@@ -273,7 +273,7 @@ export default function AdminMenuPage() {
 
       setCategoryEditError(
         routeNotAvailable
-          ? "Backend hiện chưa có API PATCH /api/v1/category/:id. Giao diện đã sẵn sàng; cần backend bổ sung API này để lưu thay đổi."
+          ? "Hiện chưa lưu được thay đổi danh mục. Vui lòng thử lại sau."
           : message,
       )
     } finally {
@@ -301,7 +301,7 @@ export default function AdminMenuPage() {
     <AdminRoomLayout
       eyebrow="THỰC ĐƠN"
       title="Quản lý thực đơn"
-      subtitle="Món ăn lấy từ /api/v1/menu-items và danh mục lấy từ /api/v1/category."
+      subtitle="Quản lý món ăn và danh mục hiển thị trên trang Ẩm thực."
       primaryAction={
         <button
           className="admin-primary-button"

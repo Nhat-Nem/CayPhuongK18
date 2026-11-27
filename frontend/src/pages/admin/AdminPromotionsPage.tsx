@@ -54,7 +54,7 @@ export default function AdminPromotionsPage() {
       setItems(await getPromotions())
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Không thể tải khuyến mãi từ backend.",
+        err instanceof Error ? err.message : "Không thể tải danh sách khuyến mãi.",
       )
     } finally {
       setLoading(false)
@@ -195,7 +195,7 @@ export default function AdminPromotionsPage() {
     <AdminRoomLayout
       eyebrow="KHUYẾN MÃI"
       title="Quản lý khuyến mãi"
-      subtitle="Thêm, sửa và xóa chương trình ưu đãi được lưu trực tiếp qua backend."
+      subtitle="Thêm, sửa và xóa các chương trình ưu đãi."
       primaryAction={
         <button className="admin-primary-button" type="button" onClick={openCreate}>
           + Thêm khuyến mãi
@@ -206,7 +206,7 @@ export default function AdminPromotionsPage() {
         <article>
           <span>Tổng chương trình</span>
           <strong>{items.length}</strong>
-          <small>Trong database</small>
+          <small>Tổng số chương trình</small>
         </article>
         <article>
           <span>Đang áp dụng</span>
@@ -236,11 +236,6 @@ export default function AdminPromotionsPage() {
             />
           </label>
           <span className="admin-room-result-count">{filteredItems.length} kết quả</span>
-        </div>
-
-        <div className="admin-promotion-storage-note">
-          <strong>Backend:</strong>
-          <span>Dữ liệu đang đồng bộ qua /api/v1/promotions.</span>
         </div>
 
         {notice && (

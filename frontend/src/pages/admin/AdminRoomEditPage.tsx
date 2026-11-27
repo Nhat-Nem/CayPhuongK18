@@ -16,7 +16,7 @@ export default function AdminRoomEditPage() {
     getRoomById(roomId).then(setRoom).catch((err: Error) => setError(err.message)).finally(() => setLoading(false))
   }, [roomId])
 
-  if (loading) return <AdminRoomLayout title="Đang tải phòng" subtitle="Đang lấy dữ liệu từ GET /api/v1/rooms/:id" primaryAction={<a className="admin-text-link" href={routes.adminRooms}>← Danh sách phòng</a>}><div className="admin-room-empty"><strong>Đang tải...</strong></div></AdminRoomLayout>
+  if (loading) return <AdminRoomLayout title="Đang tải phòng" subtitle="Đang tải thông tin phòng..." primaryAction={<a className="admin-text-link" href={routes.adminRooms}>← Danh sách phòng</a>}><div className="admin-room-empty"><strong>Đang tải...</strong></div></AdminRoomLayout>
   if (!room) return <AdminRoomLayout title="Không tìm thấy phòng" subtitle={error || "Phòng cần sửa không tồn tại."} primaryAction={<a className="admin-text-link" href={routes.adminRooms}>← Danh sách phòng</a>}><div className="admin-room-empty"><strong>Không tìm thấy dữ liệu phòng.</strong></div></AdminRoomLayout>
 
   return <AdminRoomLayout title="Sửa thông tin phòng" subtitle={`Cập nhật thông tin cho phòng ${room.code}.`} primaryAction={<a className="admin-text-link" href={routes.adminRooms}>← Danh sách phòng</a>}><RoomForm mode="edit" room={room} /></AdminRoomLayout>

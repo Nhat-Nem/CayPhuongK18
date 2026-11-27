@@ -26,8 +26,8 @@ function compareNewestIdFirst(
 
 function initialNotice() {
   const saved = new URLSearchParams(window.location.search).get("saved")
-  if (saved === "created") return "Đã thêm phòng mới vào database."
-  if (saved === "updated") return "Đã cập nhật thông tin phòng trong database."
+  if (saved === "created") return "Đã thêm phòng mới."
+  if (saved === "updated") return "Đã cập nhật thông tin phòng."
   return ""
 }
 
@@ -83,7 +83,7 @@ export default function AdminRoomsPage() {
     try {
       await deleteRoom(room.id)
       setRoomToDelete(null)
-      setNotice(`Đã xóa ${room.code} khỏi database.`)
+      setNotice(`Đã xóa phòng ${room.code}.`)
       await loadRooms()
     } catch (err) {
       const message = err instanceof Error ? err.message : "Không thể xóa phòng."
@@ -124,7 +124,7 @@ export default function AdminRoomsPage() {
         <article>
           <span>Tổng số phòng</span>
           <strong>{rooms.length}</strong>
-          <small>Trong database</small>
+          <small>Tổng số phòng</small>
         </article>
         <article>
           <span>Đang hoạt động</span>
@@ -289,7 +289,7 @@ export default function AdminRoomsPage() {
           onCancel={() => setShowCreate(false)}
           onSaved={async () => {
             setShowCreate(false)
-            setNotice("Đã thêm phòng mới vào database.")
+            setNotice("Đã thêm phòng mới.")
             await loadRooms()
           }}
         />
