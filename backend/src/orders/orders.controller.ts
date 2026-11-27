@@ -138,4 +138,13 @@ export class OrdersController {
     removePromotion(@Param('id') id: string) {
         return this.ordersService.removePromotion(id)
     }
+
+    // DELETE /api/v1/orders/:id
+    // Soft Delete đơn hàng
+    @Delete(":id")
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles("ADMIN")
+    remove(@Param("id") id: string) {
+        return this.ordersService.remove(id)
+    }
 }
